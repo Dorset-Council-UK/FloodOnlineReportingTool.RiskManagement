@@ -1,0 +1,32 @@
+﻿@page "/example"
+
+<PageTitle>Example - Risk Management</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<h1 class="govuk-heading-xl">Example page</h1>
+
+<EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="ExamplePage">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
+
+    <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+    <GdsFormGroup For="@(() => Model.FirstName)" Show="!_isLoading">
+        <GdsLabel Text="First name" />
+        <GdsHint>Some hint</GdsHint>
+        <GdsErrorMessage />
+        <GdsInputText @bind-Value=Model.FirstName class="govuk-input" />
+    </GdsFormGroup>
+
+    <GdsFormGroup For="@(() => Model.SomeNumber)" Show="!_isLoading">
+        <GdsLabel Text="Some number" />
+        <GdsHint>Some other hint</GdsHint>
+        <GdsErrorMessage />
+        <InputNumber id="@nameof(Model.SomeNumber)" @bind-Value=Model.SomeNumber class="govuk-input" />
+    </GdsFormGroup>
+
+    @if (!_isLoading)
+    {
+        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
+    }
+</EditForm>
