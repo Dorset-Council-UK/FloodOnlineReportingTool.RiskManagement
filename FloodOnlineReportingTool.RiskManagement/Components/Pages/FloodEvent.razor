@@ -1,0 +1,53 @@
+﻿@page "/flood-event"
+
+<PageTitle>Create a flood event</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<h1 class="govuk-heading-xl">Create a flood event</h1>
+
+<EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="FloodEvent">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
+
+    <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+    <GdsFormGroup For="@(() => Model.FloodStartDate)" Show="!_isLoading">
+        <GdsLabel Text="Date flooding started" />
+        <GdsErrorMessage />
+        <GdsInputDate Id="flood-start" Date="Model.FloodStartDate" />
+    </GdsFormGroup>
+
+    <GdsFormGroup For="@(() => Model.FloodEndDate)" Show="!_isLoading">
+        <GdsLabel Text="Date flooding ended (optional)" />
+        <GdsErrorMessage />
+        <GdsInputDate Id="flood-end" Date="Model.FloodEndDate" />
+    </GdsFormGroup> 
+
+    <GdsFormGroup For="@(() => Model.FloodStatus)" Show="!_isLoading">
+        <GdsLabel Text="Status" />
+        <GdsErrorMessage />
+        radio buttons
+    </GdsFormGroup>
+    
+    <GdsFormGroup For="@(() => Model.ResponsibleAuthority)" Show="!_isLoading">
+        <GdsLabel Text="Who is the responsible organisation?" />
+        <GdsErrorMessage />
+        radio buttons plus conditional text box for other
+    </GdsFormGroup>
+
+    <GdsFormGroup For="@(() => Model.FloodTitle)" Show="!_isLoading">
+        <GdsLabel Text="Name of the flood event" />
+        <GdsErrorMessage />
+        <GdsHint>
+            This should be short but descriptive, for example: Dorchester Flood 2025 January 11-14
+        </GdsHint>
+        <GdsInputText @bind-Value=Model.FloodTitle class="govuk-input" />
+    </GdsFormGroup>
+
+    <p>Map will go here!</p>
+
+    @if (!_isLoading)
+    {
+        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
+    }
+</EditForm>
