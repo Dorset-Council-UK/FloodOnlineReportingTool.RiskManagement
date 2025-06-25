@@ -1,0 +1,43 @@
+/*!********************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./Components/Layout/GridCard.razor.scss ***!
+  \********************************************************************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.info_panel__clickable {
+  float: left;
+  padding: 15px;
+  cursor: pointer;
+}
+
+.info_panel__item {
+  background-color: #00703c;
+  padding: 15px;
+}
+
+.info_panel__item__warning {
+  background-color: orangered;
+  padding: 15px;
+}
+
+.info_panel__content {
+  color: white;
+}
+
+/*# sourceMappingURL=GridCard.razor.css.map*/
