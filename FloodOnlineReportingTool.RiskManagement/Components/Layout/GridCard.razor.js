@@ -22,4 +22,4 @@ __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
 
-//# sourceMappingURL=ignore.js.map
+//# sourceMappingURL=GridCard.razor.js.map

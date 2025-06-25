@@ -13,7 +13,11 @@ public partial class GridCard
     [Parameter, EditorRequired]
     public string CardSize { get; set; }
 
+    [Parameter]
+    public string CardStyle { get; set; } = "info";
+
     private string? SizeOption { get; set; }
+    private string? SelectedStyle { get; set; }
 
     internal virtual string CssClass(string _cssType)
     {
@@ -25,10 +29,16 @@ public partial class GridCard
         };
     }
 
-    private static class InputSizeCssClasses
+    internal virtual string CardOptions(string _inputStyle)
     {
-        public const string OneHalf = "govuk-grid-column-one-half";
-        public const string OneThird = "govuk-grid-column-one-third";
+        return _inputStyle switch
+        {
+            "info" => ".info_panel__item__default",
+            "success" => ".info_panel__item__success",
+            "warning" => ".info_panel__item__warning",
+            "danger" => ".info_panel__item__danger",
+            _ => string.Empty,
+        };
     }
 
     protected override void OnParametersSet()
@@ -40,5 +50,7 @@ public partial class GridCard
         {
             SizeOption = CssClass("OneThird");
         }
+
+        SelectedStyle = CardOptions(CardStyle);
     }
 }

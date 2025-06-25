@@ -7,13 +7,23 @@
     cursor: pointer;
 }
 
-.info_panel__item {
+.info_panel__item__default {
+    background-color: govuk-colour("blue");
+    padding: 15px;
+}
+
+.info_panel__item__success {
     background-color: govuk-colour("green");
     padding: 15px;
 }
 
 .info_panel__item__warning {
-    background-color: orangered;
+    background-color: govuk-colour("orange");
+    padding: 15px;
+}
+
+.info_panel__item__danger {
+    background-color: govuk-colour("red");
     padding: 15px;
 }
 

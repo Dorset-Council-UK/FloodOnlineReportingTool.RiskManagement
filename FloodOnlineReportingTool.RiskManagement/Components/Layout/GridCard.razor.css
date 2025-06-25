@@ -26,13 +26,23 @@
   cursor: pointer;
 }
 
-.info_panel__item {
+.info_panel__item__default {
+  background-color: #1d70b8;
+  padding: 15px;
+}
+
+.info_panel__item__success {
   background-color: #00703c;
   padding: 15px;
 }
 
 .info_panel__item__warning {
-  background-color: orangered;
+  background-color: #f47738;
+  padding: 15px;
+}
+
+.info_panel__item__danger {
+  background-color: #d4351c;
   padding: 15px;
 }
 
