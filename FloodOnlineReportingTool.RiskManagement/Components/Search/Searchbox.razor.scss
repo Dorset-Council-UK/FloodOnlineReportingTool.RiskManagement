@@ -1,0 +1,49 @@
+﻿@import "govuk-frontend/dist/govuk";
+
+.searchbox
+{
+    position: relative;
+}
+
+.searchbox__wrapper {
+    display: table;
+    width: 100%;
+    background: #fff;
+}
+
+::deep .searchbox__input {
+    position: relative;
+    display: table-cell;
+    vertical-align: top;
+    width: 65%;
+    float: left;
+}
+
+.searchbox__button {
+    position: relative;
+    width: 1%;
+    padding-left: 3px;
+}
+
+.searchbox__submit {
+    border: 0;
+    cursor: pointer;
+    border-radius: 0;
+    outline-offset: 0;
+    position: relative;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    text-indent: -5000px;
+    overflow: hidden;
+}
+
+.searchbox__submit .searchbox__icon {
+    pointer-events: none;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    transform: scale(0.5);
+}

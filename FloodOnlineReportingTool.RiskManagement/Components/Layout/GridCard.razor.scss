@@ -1,0 +1,22 @@
+﻿@import "govuk-frontend/dist/govuk";
+
+.info_panel__clickable
+{
+    float: left;
+    padding: 15px;
+    cursor: pointer;
+}
+
+.info_panel__item {
+    background-color: govuk-colour("green");
+    padding: 15px;
+}
+
+.info_panel__item__warning {
+    background-color: orangered;
+    padding: 15px;
+}
+
+.info_panel__content {
+    color: white;
+}

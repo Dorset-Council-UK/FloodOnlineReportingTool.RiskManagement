@@ -6,135 +6,23 @@
 
 <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-<style>
-    .searchbox {
-        position:relative;
-    }
-
-    .searchbox__wrapper {
-        display: table;
-        width: 100%;
-        background: #fff;
-    }
-    .searchbox__input {
-        position: relative;
-        display: table-cell;
-        vertical-align: top;
-        width: 65%;
-        float:left;
-    }
-
-    .searchbox__button {
-        position: relative;
-        width:1%;
-        padding-left: 3px;
-    }
-
-    .searchbox__submit {
-        border: 0;
-        cursor: pointer;
-        border-radius: 0;
-        outline-offset: 0;
-        position: relative;
-        padding: 0;
-        width: 40px;
-        height: 40px;
-        text-indent: -5000px;
-        overflow: hidden;
-    }
-
-    .searchbox__submit .searchbox__icon {
-        pointer-events: none;
-        position: absolute;
-        height: 100%;
-        width: 100%;
-        top: 0;
-        left: 0;
-        transform: scale(0.5);
-    }
-
-    .info_panel__clickable {
-        float: left;
-        padding: 15px;
-        cursor: pointer;
-    }
-
-    .info_panel__item {
-        background-color: #00703c;
-        padding: 15px;
-    }
-
-    .info_panel__item__warning {
-        background-color: orangered;
-        padding: 15px;
-    }
-
-    .info_panel__content {
-        color: white;
-    }
-</style>
 
 <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch">
     <FluentValidationValidator />
     <GdsErrorSummary />
 
-    
-    <div class="searchbox">
-        <GdsLabel For="@Model.SearchText" Text="Find a flood event or property record"></GdsLabel>
-        <div class="searchbox__wrapper">
-            <GdsInputText @bind-Value=Model.SearchText type="search" spellcheck="false" autocomplete="off" class="searchbox__input govuk-input"></GdsInputText>
-            <div class="searchbox__input searchbox__button">
-                <button class="searchbox__submit" type="submit" enterkeyhint="search">
-                    <span class="govuk-visually-hidden">Search</span>
-                    <svg class="searchbox__icon" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                        <circle cx="12.0161" cy="11.0161" r="8.51613" stroke="currentColor" stroke-width="3"></circle>
-                        <line x1="17.8668" y1="17.3587" x2="26.4475" y2="25.9393" stroke="currentColor" stroke-width="3"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
+    <FloodOnlineReportingTool.RiskManagement.Components.Search.Searchbox For="@(() => Model.SearchText)" LabelText="Some Text"></FloodOnlineReportingTool.RiskManagement.Components.Search.Searchbox>
 
 </EditForm>
 
 <div class="govuk-width-container">
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-half info_panel__clickable">
-            <div class="info_panel__item">
-                <div class="info_panel__content">
-                    <h3>4</h3>
-                    <p>Flood searches saved in the last 30 days</p>
-                </div>
-            </div>
-            
-        </div>
-        <div class="govuk-grid-column-one-half info_panel__clickable">
-            <div class="info_panel__item">
-                <div class="info_panel__content">
-                    <h3>2</h3>
-                    <p>Flood events recorded in the last 30 days</p>
-                </div>
-            </div>
-        </div>
+        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
+        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
     </div>
     <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-half info_panel__clickable">
-            <div class="info_panel__item__warning">
-                <div class="info_panel__content">
-                    <h3>1</h3>
-                    <p>Action waiting for you</p>
-                </div>
-            </div>
-
-        </div>
-        <div class="govuk-grid-column-one-half info_panel__clickable">
-            <div class="info_panel__item">
-                <div class="info_panel__content">
-                    <h3>Property Searches</h3>
-                    <p>Create a new property search</p>
-                </div>
-            </div>
-        </div>
+        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Action waiting for you" HeaderText="1"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
+        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Create a new property search" HeaderText="Property Searches"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
     </div>
 
     <div class="govuk-grid-row">
