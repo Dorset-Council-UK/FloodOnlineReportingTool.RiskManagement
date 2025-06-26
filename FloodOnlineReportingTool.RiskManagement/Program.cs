@@ -1,9 +1,29 @@
+using System.Configuration;
+using FloodOnlineReportingTool.RiskManagement.Data.Data;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var assembly = typeof(Program).Assembly;
+
+var connectionString = builder.Configuration.GetConnectionString("RiskManagement");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new ConfigurationErrorsException("Connection string was empty");
+}
+
+// Configure the database context
+builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
+{
+    options.UseNpgsql(connectionString, x =>
+    {
+        x.MigrationsHistoryTable("__EFMigrationsHistory", "riskmanagement");
+    });
+
+    options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+});
 
 // Risk Management settings
 var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
