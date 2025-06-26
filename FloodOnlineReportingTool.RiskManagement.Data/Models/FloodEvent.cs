@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using GdsBlazorComponents;
+﻿using GdsBlazorComponents;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models
 {
@@ -13,7 +12,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Models
         [GdsFieldErrorClass(GdsFieldTypes.Radio)]
         public string? FloodStatus { get; set; }
         [GdsFieldErrorClass(GdsFieldTypes.Radio)]
-        public string? ResponsibleAuthority { get; set; }
+        public Guid? ResponsibleAuthority {  get; set; }
+        public IReadOnlyCollection<GdsOptionItem<Guid>> ResponsibleAuthorityOptions { get; set; } = [];
         [GdsFieldErrorClass(GdsFieldTypes.Input)]
         public string? ResponsibleAuthorityOther { get; set; }
         [GdsFieldErrorClass(GdsFieldTypes.Input)]

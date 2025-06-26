@@ -23,6 +23,20 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.ResponsibleAuthority", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ResponsibleAuthority", "riskmanagement");
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Models.FloodEventDto", b =>
                 {
                     b.Property<int>("Id")
@@ -45,15 +59,26 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<string>("ResponsibleAuthority")
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ResponsibleAuthorityId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ResponsibleAuthorityOther")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ResponsibleAuthorityId");
+
                     b.ToTable("FloodEvents", "riskmanagement");
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Models.FloodEventDto", b =>
+                {
+                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.ResponsibleAuthority", "ResponsibleAuthority")
+                        .WithMany()
+                        .HasForeignKey("ResponsibleAuthorityId");
+
+                    b.Navigation("ResponsibleAuthority");
                 });
 #pragma warning restore 612, 618
         }

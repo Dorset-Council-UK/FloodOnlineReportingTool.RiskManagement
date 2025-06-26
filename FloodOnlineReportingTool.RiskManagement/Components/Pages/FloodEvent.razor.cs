@@ -12,7 +12,6 @@ public partial class FloodEvent(
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
         new ("", "Home"),
-        new ("somewhere", "Somewhere else"),
     ];
 
     private Models.FloodEvent Model { get; set; } = default!;

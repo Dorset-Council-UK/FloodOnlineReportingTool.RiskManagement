@@ -16,6 +16,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration
                 .Property(o => o.FloodTitle)
                 .IsRequired()
                 .HasMaxLength(200);
+
+            builder.Navigation(o => o.ResponsibleAuthority)
+                .AutoInclude();
         }
     }
 }
