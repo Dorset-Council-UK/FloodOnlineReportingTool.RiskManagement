@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace FloodOnlineReportingTool.RiskManagement.Components.Layout;
+namespace FloodOnlineReportingTool.RiskManagement.Components.Shared;
 
 public partial class GridCard
 {
@@ -11,7 +11,7 @@ public partial class GridCard
     public string BodyText { get; set; } = "";
 
     [Parameter, EditorRequired]
-    public string CardSize { get; set; }
+    public CardSizes CardSize { get; set; }
 
     [Parameter]
     public string LinkURL { get; set; } = "#";
@@ -22,12 +22,19 @@ public partial class GridCard
     private string? SizeOption { get; set; }
     private string? SelectedStyle { get; set; }
 
-    internal virtual string CssClass(string _cssType)
+    public enum CardSizes
+    {
+        None,
+        OneHalf,
+        OneThird
+    }
+
+    internal virtual string CssClass(CardSizes _cssType)
     {
         return _cssType switch
         {
-            "OneHalf" => "govuk-grid-column-one-half",
-            "OneThird" => "govuk-grid-column-one-third",
+            CardSizes.OneHalf => "govuk-grid-column-one-half",
+            CardSizes.OneThird => "govuk-grid-column-one-third",
             _ => string.Empty,
         };
     }
@@ -46,14 +53,7 @@ public partial class GridCard
 
     protected override void OnParametersSet()
     {
-        if (!string.IsNullOrEmpty(CardSize))
-        {
-            SizeOption = CssClass(CardSize);
-        } else
-        {
-            SizeOption = CssClass("OneThird");
-        }
-
+        SizeOption = CssClass(CardSize);
         SelectedStyle = CardOptions(CardStyle);
     }
 }

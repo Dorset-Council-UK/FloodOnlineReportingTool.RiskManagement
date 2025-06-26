@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using FloodOnlineReportingTool.RiskManagement.Components.Shared
+@using FloodOnlineReportingTool.RiskManagement.Components.Search
+@using static FloodOnlineReportingTool.RiskManagement.Components.Shared.GridCard
 
 <PageTitle>@Title</PageTitle>
 
@@ -11,18 +14,18 @@
     <FluentValidationValidator />
     <GdsErrorSummary />
 
-    <FloodOnlineReportingTool.RiskManagement.Components.Search.Searchbox For="@(() => Model.SearchText)" LabelText="Some Text"></FloodOnlineReportingTool.RiskManagement.Components.Search.Searchbox>
+    <Searchbox For="@(() => Model.SearchText)" LabelText="Some Text" />
 
 </EditForm>
 
 <div class="govuk-width-container">
     <div class="govuk-grid-row">
-        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
-        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
     </div>
     <div class="govuk-grid-row">
-        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
-        <FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard CardSize="OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success"></FloodOnlineReportingTool.RiskManagement.Components.Layout.GridCard>
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
     </div>
 
     <div class="govuk-grid-row">
