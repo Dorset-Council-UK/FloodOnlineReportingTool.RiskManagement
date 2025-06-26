@@ -8,6 +8,8 @@ Thank you for your interest in contributing to the Flood Online Reporting Tool -
 To run Flood Online Reporting Tool - Risk Management with minimal modification, you will need the following:
 
 - **.NET 9**: Ensure you have the .NET 9 SDK installed.
+- **PostgreSQL 13+**: This is the default database provider. The project uses Entity Framework, making it adaptable to other providers with minimal effort.
+- **Message system (optional)**: The project includes a messaging system using Azure Service Bus. You can enable or disable this system through the `Messaging:Enabled` setting in your configuration.
 
 ## Getting Started
 
@@ -21,6 +23,37 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
    ```shell
    git checkout -b <branch-name>
    ```
+
+## User Secrets and Configuration
+
+You must set up user secrets for development. Run the following command in the terminal within the project folder:
+- Using Visual Studio:
+
+  Right click the project and select "Manage User Secrets".
+- Using .NET CLI:
+  ```shell
+  dotnet user-secrets init
+  ```
+Then add your configuration:
+
+- **Messaging**: Used for the optional messaging system.
+- **ConnectionStrings**: Required for database access.
+
+Example secrets file:
+```json
+{
+  "ConnectionStrings": {
+    "RiskManagement": "Host=localhost;Port=5432;Database=YourDatabaseName;Username=YourUserName;Password=YourPassword;SearchPath=riskmanagement"
+  },
+  "Messaging": {
+    "Enabled": "true",
+    "ConnectionString": "sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your-key-here",
+    "QueueName": "fortmessaging-queue",
+    "TopicName": "fortmessaging-topic",
+    "SubscriptionName": "fortmessaging-subscription"
+  }
+}
+```
 
 ## Further Help
 
