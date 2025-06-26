@@ -12,39 +12,54 @@
     <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
     <GdsFormGroup For="@(() => Model.FloodStartDate)" Show="!_isLoading">
-        <GdsLabel Text="Date flooding started" />
+        <GdsLabel Text="Date flooding started" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
         <GdsInputDate Id="flood-start" Date="Model.FloodStartDate" />
     </GdsFormGroup>
 
     <GdsFormGroup For="@(() => Model.FloodEndDate)" Show="!_isLoading">
-        <GdsLabel Text="Date flooding ended (optional)" />
+        <GdsLabel Text="Date flooding ended (optional)" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
         <GdsInputDate Id="flood-end" Date="Model.FloodEndDate" />
     </GdsFormGroup> 
 
-    <GdsFormGroup For="@(() => Model.FloodStatus)" Show="!_isLoading">
-        <GdsLabel Text="Status" />
+    <GdsFormGroup For="() => Model.FloodStatus" Show="!_isLoading">
+        <GdsLabel Text="Status" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
-        radio buttons
+        <InputRadioGroup @bind-Value="Model.FloodStatus">
+            <GdsFieldsetGroup>
+                <Content>
+                    <GdsHint>Select one option.</GdsHint>
+                    <GdsErrorMessage />
+                    @* <GdsRadios Options="" Inline="true" /> *@
+                </Content>
+            </GdsFieldsetGroup>
+        </InputRadioGroup>
     </GdsFormGroup>
-    
-    <GdsFormGroup For="@(() => Model.ResponsibleAuthority)" Show="!_isLoading">
-        <GdsLabel Text="Who is the responsible organisation?" />
+
+    <GdsFormGroup For="() => Model.ResponsibleAuthority" Show="!_isLoading">
+        <GdsLabel Text="Who is the responsible organisation?" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
-        radio buttons plus conditional text box for other
+        <InputRadioGroup @bind-Value="Model.ResponsibleAuthority">
+            <GdsFieldsetGroup>
+                <Content>
+                    <GdsHint>Select one option.</GdsHint>
+                    <GdsErrorMessage />
+                    @* <GdsRadios Options="" Inline="true" /> *@
+                </Content>
+            </GdsFieldsetGroup>
+        </InputRadioGroup>
     </GdsFormGroup>
 
     <GdsFormGroup For="@(() => Model.FloodTitle)" Show="!_isLoading">
-        <GdsLabel Text="Name of the flood event" />
         <GdsErrorMessage />
-        <GdsHint>
-            This should be short but descriptive, for example: Dorchester Flood 2025 January 11-14
-        </GdsHint>
+        <GdsLabel Text="Name of the flood event" AdditionalCssClasses="govuk-label--m" />
+        <GdsHint>This should be short but descriptive, for example: Dorchester Flood 2025 January 11-14</GdsHint>
         <GdsInputText @bind-Value=Model.FloodTitle class="govuk-input" />
     </GdsFormGroup>
 
-    <p>Map will go here!</p>
+    <GdsLabel Text="Draw the extent of the flood" AdditionalCssClasses="govuk-label--m" />
+    <img src="https://imageplaceholder.net/800x400/eeeeee/131313?text=Map+here" />
 
     @if (!_isLoading)
     {
