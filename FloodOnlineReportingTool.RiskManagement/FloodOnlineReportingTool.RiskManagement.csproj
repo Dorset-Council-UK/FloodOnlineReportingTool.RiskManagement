@@ -7,6 +7,7 @@
 
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryUrl>https://github.com/Dorset-Council-UK/FloodOnlineReportingTool.RiskManagement</RepositoryUrl>
+		<UserSecretsId>9f7891c0-ddf3-4332-a92a-fe8fd2e0788c</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -19,6 +20,10 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\FloodOnlineReportingTool.RiskManagement.Data\FloodOnlineReportingTool.RiskManagement.Data.csproj" />
 	</ItemGroup>
 
 </Project>
