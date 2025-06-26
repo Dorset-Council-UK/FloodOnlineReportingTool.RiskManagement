@@ -5,7 +5,7 @@
 .searchbox__wrapper {
     display: table;
     width: 100%;
-    background: #fff;
+    background: var(--govuk-color-white);
 }
 
 ::deep .searchbox__input {
