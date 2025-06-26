@@ -10,5 +10,7 @@ public partial class FloodEventValidator : AbstractValidator<FloodEvent>
         RuleFor(o => o.FloodStartDate)
             .NotEmpty()
             .WithMessage("Enter a start date for the flood");
+
+        //TODO add more validations
     }
 }
