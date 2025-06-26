@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration
 {
-    internal class FloodEventConfiguration : IEntityTypeConfiguration<FloodEvent>
+    internal class FloodEventConfiguration : IEntityTypeConfiguration<FloodEventDto>
     {
-        public void Configure(EntityTypeBuilder<FloodEvent> builder)
+        public void Configure(EntityTypeBuilder<FloodEventDto> builder)
         {
             builder
                 .Property(o => o.FloodStartDate)

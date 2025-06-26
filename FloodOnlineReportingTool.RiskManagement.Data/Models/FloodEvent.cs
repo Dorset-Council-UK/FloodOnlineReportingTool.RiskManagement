@@ -1,9 +1,11 @@
-﻿using GdsBlazorComponents;
+﻿using System.Diagnostics.CodeAnalysis;
+using GdsBlazorComponents;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models
 {
     public class FloodEvent
     {
+        public int? Id { get; set; }
         [GdsFieldErrorClass(GdsFieldTypes.Date)]
         public GdsDate? FloodStartDate { get; set; } = new();
         [GdsFieldErrorClass(GdsFieldTypes.Date)]

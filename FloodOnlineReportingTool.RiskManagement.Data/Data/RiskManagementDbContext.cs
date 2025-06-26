@@ -5,8 +5,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Data
 {
     public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> options) : DbContext(options), IRiskManagementDbContext
     {
-        public DbSet<FloodEvent> FloodEvents { get; set; }
-        public DbSet<Example> Examples { get; set; }
+        public DbSet<FloodEventDto> FloodEvents { get; set; }
 
 
 
