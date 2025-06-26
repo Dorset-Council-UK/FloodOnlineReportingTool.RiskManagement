@@ -14,6 +14,9 @@ public partial class GridCard
     public string CardSize { get; set; }
 
     [Parameter]
+    public string LinkURL { get; set; } = "#";
+
+    [Parameter]
     public string CardStyle { get; set; } = "info";
 
     private string? SizeOption { get; set; }
