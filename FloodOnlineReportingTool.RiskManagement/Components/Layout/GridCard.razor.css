@@ -11,3 +11,20 @@
 .info_panel__content {
     color: white;
 }
+
+.info-panel-info {
+    background-color: var(--govuk-color-blue);
+}
+
+.info-panel-success {
+    background-color: var(--govuk-color-green);
+}
+
+.info-panel-warning {
+    background-color: var(--govuk-color-orange);
+}
+
+.info-panel-danger {
+    background-color: var(--govuk-color-red);
+}
+
