@@ -1,0 +1,17 @@
+﻿@import "govuk-frontend/dist/govuk/settings";
+
+::deep .gds_bg_info {
+    background-color: govuk-colour("blue");
+}
+
+::deep .gds_bg_success {
+    background-color: govuk-colour("green");
+}
+
+::deep .gds_bg_warning {
+    background-color: govuk-colour("orange");
+}
+
+::deep .gds_bg_danger {
+    background-color: govuk-colour("red");
+}

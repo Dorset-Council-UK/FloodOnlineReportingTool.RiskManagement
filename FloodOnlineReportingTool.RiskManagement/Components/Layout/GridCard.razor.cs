@@ -33,10 +33,10 @@ public partial class GridCard
     {
         return _inputStyle switch
         {
-            "info" => ".info_panel__item__default",
-            "success" => ".info_panel__item__success",
-            "warning" => ".info_panel__item__warning",
-            "danger" => ".info_panel__item__danger",
+            "info" => ".gds_bg_info",
+            "success" => ".gds_bg_success",
+            "warning" => ".gds_bg_warning",
+            "danger" => ".gds_bg_danger",
             _ => string.Empty,
         };
     }

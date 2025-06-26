@@ -15,11 +15,11 @@
 /******/ 
 /************************************************************************/
 var __webpack_exports__ = {};
-/*!***********************************************!*\
-  !*** ./Components/Layout/GridCard.razor.scss ***!
-  \***********************************************/
+/*!**************************!*\
+  !*** ./Scripts/app.scss ***!
+  \**************************/
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
 
-//# sourceMappingURL=GridCard.razor.js.map
+//# sourceMappingURL=site.js.map

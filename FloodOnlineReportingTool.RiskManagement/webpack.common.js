@@ -1,101 +1,80 @@
 ﻿const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
-//module.exports = {
-//    entry: {
-//        Searchbox: './Components/Search/Searchbox.razor.scss',
-//    },
-//    experiments: {
-//        outputModule: true,
-//    },
-//    output: {
-//        path: path.resolve(__dirname, 'Components/Search'),
-//        filename: '[name].razor.js', //Blank js is required
-//    },
-//    module: {
-//        rules: [
-//            {
-//                test: /\.scss$/i,
-//                use: [
-//                    MiniCssExtractPlugin.loader, // Extracts CSS into files
-//                    'css-loader',                // Translates CSS into CommonJS
-//                    'sass-loader'                // Compiles Sass to CSS
-//                ],
-//            }
-//        ]
-//    },
-//    plugins: [
-//        // Extract the CSS into a separate file
-//        new MiniCssExtractPlugin({
-//            filename: '[name].razor.css'
-//        })
-//    ]
-//};
-
-const grid = {
-    name: 'grid',
+module.exports = {
     entry: {
-        GridCard: './Components/Layout/GridCard.razor.scss',
+        app: './Scripts/app.ts',
+        site: './Scripts/app.scss'
+    },
+    resolve: {
+        extensions: ['.ts', '.js']
     },
     experiments: {
         outputModule: true,
     },
     output: {
-        filename: '[name].razor.js', //Blank js is required
-        path: path.resolve(__dirname, 'Components/Layout')
+        filename: '[name].js',
+        path: path.resolve(__dirname, 'wwwroot'),
+        library: {
+            type: 'module'
+        },
+        clean: {
+            keep: /^(css\/.*\.css)$/ // Keep and any css files under the css folder
+        }
     },
     module: {
         rules: [
             {
-                test: /\.scss$/i,
-                use: [
-                    MiniCssExtractPlugin.loader, // Extracts CSS into files
-                    'css-loader',                // Translates CSS into CommonJS
-                    'sass-loader'                // Compiles Sass to CSS
-                ],
-            }
-        ]
-    },
-    plugins: [
-        // Extract the CSS into a separate file
-        new MiniCssExtractPlugin({
-            filename: '[name].razor.css'
-        })
-    ]
-};
-
-const search = {
-    name: 'search',
-    entry: {
-        Searchbox: './Components/Search/Searchbox.razor.scss',
-    },
-    experiments: {
-        outputModule: true,
-    },
-    output: {
-        filename: '[name].razor.js', //Blank js is required
-        path: path.resolve(__dirname, 'Components/Search')
-    },
-    module: {
-        rules: [
+                test: /\.([cm]?ts|tsx)$/,
+                loader: 'ts-loader',
+                exclude: /node_modules/,
+            },
             {
-                test: /\.scss$/i,
+                test: /\.s[ac]ss$/i,
                 use: [
-                    MiniCssExtractPlugin.loader, // Extracts CSS into files
-                    'css-loader',                // Translates CSS into CommonJS
-                    'sass-loader'                // Compiles Sass to CSS
-                ],
+                    MiniCssExtractPlugin.loader, // Extracts CSS into separate files
+                    {
+                        loader: 'css-loader', // Creates `style` nodes from JS strings
+                        options: {
+                            url: false // This tells css-loader not to resolve url() paths
+                        }
+                    },
+                    {
+                        loader: 'sass-loader', // Compiles Sass to CSS
+                        options: {
+                            sassOptions: {
+                                quietDeps: true,
+                                includePaths: ['node_modules']
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                test: /\.css$/i, // Extracts imported CSS in TypeScript into separate files
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader', // Creates `style` nodes from JS strings
+                        options: {
+                            url: false // This tells css-loader not to resolve url() paths
+                        }
+                    },
+                ]
             }
         ]
     },
     plugins: [
+        new CopyPlugin({
+            patterns: [
+                { from: 'Scripts/images', to: 'images' },
+                { from: 'Scripts/favicons', to: path.resolve(__dirname, 'wwwroot') },
+            ]
+        }),
         // Extract the CSS into a separate file
         new MiniCssExtractPlugin({
-            filename: '[name].razor.css'
+            filename: '[name].css'
         })
     ]
-};
-
-MergedConfig = [grid, search]
-
-module.exports = grid;
+}

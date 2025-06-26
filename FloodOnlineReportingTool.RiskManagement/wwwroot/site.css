@@ -1,0 +1,39 @@
+/*!*******************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]!./Scripts/app.scss ***!
+  \*******************************************************************************************************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+::deep .gds_bg_info {
+  background-color: #1d70b8;
+}
+
+::deep .gds_bg_success {
+  background-color: #00703c;
+}
+
+::deep .gds_bg_warning {
+  background-color: #f47738;
+}
+
+::deep .gds_bg_danger {
+  background-color: #d4351c;
+}
+
+/*# sourceMappingURL=site.css.map*/

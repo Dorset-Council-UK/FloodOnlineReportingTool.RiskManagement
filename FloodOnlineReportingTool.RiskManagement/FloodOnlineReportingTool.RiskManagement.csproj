@@ -10,6 +10,28 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="wwwroot\css\**" />
+	  <Content Remove="wwwroot\css\**" />
+	  <EmbeddedResource Remove="wwwroot\css\**" />
+	  <None Remove="wwwroot\css\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Scripts\app.ts" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Scripts\favicons\favicon.ico">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	  <Content Include="Scripts\images\logos\logo.webp">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
 		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.0.1" />
@@ -19,6 +41,10 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <TypeScriptCompile Include="Scripts\app.ts" />
 	</ItemGroup>
 
 </Project>
