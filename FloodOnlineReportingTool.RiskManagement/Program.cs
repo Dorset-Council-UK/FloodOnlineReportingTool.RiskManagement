@@ -1,17 +1,17 @@
-using FloodOnlineReportingTool.RiskManagement.Settings;
 using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var assembly = typeof(Program).Assembly;
 
-// Risk Management settings
-var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
-builder.Services.Configure<RiskManagementSettings>(section);
-var settings = section.Get<RiskManagementSettings>();
+// Configure all the settings.
+var (riskManagementSettings, messagingSettings) = builder.Services.AddRiskManagementSettings(builder.Configuration);
 
 // Health checks
-builder.Services.AddRiskManagementHealthChecks();
+builder.Services.AddRiskManagementHealthChecks(messagingSettings);
+
+// Message system
+builder.Services.AddMessageSystem(messagingSettings);
 
 // Add the authentication and authorization
 builder.Services.AddAuthentication();
@@ -30,7 +30,7 @@ builder.Services.AddValidatorsFromAssembly(assembly);
 
 var app = builder.Build();
 
-var pathBase = string.IsNullOrWhiteSpace(settings?.PathBase) ? "/" : $"/{settings.PathBase}";
+var pathBase = string.IsNullOrWhiteSpace(riskManagementSettings?.PathBase) ? "/" : $"/{riskManagementSettings.PathBase}";
 app.UsePathBase(pathBase);
 
 // Configure the HTTP request pipeline.
