@@ -8,13 +8,34 @@ var builder = WebApplication.CreateBuilder(args);
 
 var assembly = typeof(Program).Assembly;
 
+
+
+// Risk Management settings
+var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
+builder.Services.Configure<RiskManagementSettings>(section);
+var settings = section.Get<RiskManagementSettings>();
+// Configure all the settings.
+var (riskManagementSettings, messagingSettings) = builder.Services.AddRiskManagementSettings(builder.Configuration);
+
+// Health checks
+builder.Services.AddRiskManagementHealthChecks(messagingSettings);
+
+// Message system
+builder.Services.AddMessageSystem(messagingSettings);
+
+// Add the authentication and authorization
+builder.Services.AddAuthentication();
+builder.Services
+    .AddCascadingAuthenticationState()
+    .AddAuthorizationBuilder();
+
+// Configure the database context
 var connectionString = builder.Configuration.GetConnectionString("RiskManagement");
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new ConfigurationErrorsException("Connection string was empty");
 }
 
-// Configure the database context
 builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
 {
     options.UseNpgsql(connectionString, x =>
@@ -24,20 +45,6 @@ builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
 
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
 });
-
-// Risk Management settings
-var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
-builder.Services.Configure<RiskManagementSettings>(section);
-var settings = section.Get<RiskManagementSettings>();
-
-// Health checks
-builder.Services.AddRiskManagementHealthChecks();
-
-// Add the authentication and authorization
-builder.Services.AddAuthentication();
-builder.Services
-    .AddCascadingAuthenticationState()
-    .AddAuthorizationBuilder();
 
 // Add Blazor services
 builder.Services
@@ -50,7 +57,7 @@ builder.Services.AddValidatorsFromAssembly(assembly);
 
 var app = builder.Build();
 
-var pathBase = string.IsNullOrWhiteSpace(settings?.PathBase) ? "/" : $"/{settings.PathBase}";
+var pathBase = string.IsNullOrWhiteSpace(riskManagementSettings?.PathBase) ? "/" : $"/{riskManagementSettings.PathBase}";
 app.UsePathBase(pathBase);
 
 // Configure the HTTP request pipeline.

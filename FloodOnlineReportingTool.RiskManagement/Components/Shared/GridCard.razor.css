@@ -1,0 +1,39 @@
+﻿.info_panel__clickable {
+    float: left;
+    padding: 15px;
+    position: relative;
+}
+
+.info_panel__item {
+    padding: 15px;
+}
+
+.info_panel__content {
+    color: white;
+}
+
+.info_panel__link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.info-panel-info {
+    background-color: var(--govuk-color-blue);
+}
+
+.info-panel-success {
+    background-color: var(--govuk-color-green);
+}
+
+.info-panel-warning {
+    background-color: var(--govuk-color-orange);
+}
+
+.info-panel-danger {
+    background-color: var(--govuk-color-red);
+}
+
