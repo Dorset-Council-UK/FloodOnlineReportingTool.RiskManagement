@@ -4,32 +4,35 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryUrl>https://github.com/Dorset-Council-UK/FloodOnlineReportingTool.RiskManagement</RepositoryUrl>
+		<UserSecretsId>9f7891c0-ddf3-4332-a92a-fe8fd2e0788c</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="Scripts\favicons\favicon.ico">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	  <Content Include="Scripts\images\logos\logo.webp">
-	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-	  </Content>
-	</ItemGroup>
-
-	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" Version="9.0.0" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
+		<PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="1.0.0" />
 		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.0.1" />
 		<PackageReference Include="FluentValidation" Version="12.0.0" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+		<PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.0" />
 		<PackageReference Include="Meziantou.Analyzer" Version="2.0.202">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Include="Scripts\favicons\favicon.ico">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Include="Scripts\images\logos\logo.webp">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+	
 </Project>
