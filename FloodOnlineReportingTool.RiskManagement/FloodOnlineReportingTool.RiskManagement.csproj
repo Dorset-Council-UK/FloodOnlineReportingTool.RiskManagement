@@ -4,7 +4,6 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<RepositoryUrl>https://github.com/Dorset-Council-UK/FloodOnlineReportingTool.RiskManagement</RepositoryUrl>
 		<UserSecretsId>9f7891c0-ddf3-4332-a92a-fe8fd2e0788c</UserSecretsId>
@@ -25,4 +24,15 @@
 		</PackageReference>
 	</ItemGroup>
 
+	<ItemGroup>
+		<Content Include="Scripts\favicons\favicon.ico">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+		<Content Include="Scripts\images\logos\logo.webp">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
+	
 </Project>

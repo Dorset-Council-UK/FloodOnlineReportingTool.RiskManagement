@@ -1,10 +1,58 @@
 ﻿@page "/"
+@using FloodOnlineReportingTool.RiskManagement.Components.Shared
+@using FloodOnlineReportingTool.RiskManagement.Components.Search
+@using static FloodOnlineReportingTool.RiskManagement.Components.Shared.GridCard
 
-<PageTitle>Risk Management</PageTitle>
+<PageTitle>@Title</PageTitle>
 
-<h1 class="govuk-heading-xl">Risk Management</h1>
+<h1 class="govuk-heading-l">@Title</h1>
 
 <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-<GdsWarning Text="TODO: Create this page!" />
-<div><a href="example" draggable="false" data-prevent-double-click="true" class="govuk-link">Example page</a></div>
+
+<EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
+
+    <Searchbox For="@(() => Model.SearchText)" LabelText="Some Text" />
+
+</EditForm>
+
+<div class="govuk-width-container">
+    <div class="govuk-grid-row">
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
+    </div>
+    <div class="govuk-grid-row">
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
+        <GridCard CardSize="CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
+    </div>
+
+    <div class="govuk-grid-row">
+        <div class="govuk-grid-column-one-half">
+            <h3>Other tasks</h3>
+
+            <ul class="govuk-list">
+                <li>
+                    <a class="govuk-link" href="#">Create a new flood event</a>
+                </li>
+                <li>
+                    <a class="govuk-link" href="#">Create a property log / record site visits</a>
+                </li>
+            </ul>
+
+        </div>
+        <div class="govuk-grid-column-one-half">
+            <h3>Pick up where you left off</h3>
+
+            <ul class="govuk-list">
+                <li>
+                    <a class="govuk-link" href="#">Recent page 1</a>
+                </li>
+                <li>
+                    <a class="govuk-link" href="#">Recent page 2</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
