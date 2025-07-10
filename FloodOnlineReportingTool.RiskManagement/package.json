@@ -1,7 +1,9 @@
 {
-  "name": "floodonlinereportingtool.riskmanagement",
+  "name": "flood-online-reporting-tool-risk-management",
   "version": "1.0.0",
   "description": "This project is a .NET based web application targeted at lead local flood authorities and other responsible risk authorities.",
+  "repository": "https://github.com/Dorset-Council-UK/FloodOnlineReportingTool.RiskManagement",
+  "license": "MIT",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,14 +11,12 @@
     "build:dev": "webpack --node-env development --config webpack.dev.js",
     "watch": "webpack --config webpack.dev.js --watch"
   },
-  "keywords": [],
   "author": "Dorset Council",
-  "license": "MIT",
   "dependencies": {
-    "@types/govuk-frontend": "^5.9.0",
-    "govuk-frontend": "^5.9.0"
+    "glob": "^11.0.1"
   },
   "devDependencies": {
+    "@types/node": "^20.11.16",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^6.10.0",
     "mini-css-extract-plugin": "^2.8.0",
@@ -25,18 +25,17 @@
     "eslint": "9.26.0",
     "ts-loader": "9.5.2",
     "typescript": "5.8.3",
-    "webpack": "^5.99.9",
-    "webpack-cli": "^6.0.1",
-    "webpack-merge": "^6.0.1"
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-merge": "^5.10.0"
+  },
+  "-vs-binding": {
+    "ProjectOpened": [
+      "watch",
+      "build:dev"
+    ],
+    "BeforeBuild": [
+      "build:dev"
+    ]
   }
 }
-
-//"-vs-binding": {
-  //  "ProjectOpened": [
-  //    "watch",
-  //    "build:dev"
-  //  ],
-  //  "BeforeBuild": [
-  //    "build:dev"
-  //  ]
-  //}

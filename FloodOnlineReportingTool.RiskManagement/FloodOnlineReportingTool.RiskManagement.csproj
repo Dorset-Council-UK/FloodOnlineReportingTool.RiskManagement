@@ -14,25 +14,14 @@
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
 		<PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="1.0.0" />
-		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.0.1" />
+		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.0.4" />
 		<PackageReference Include="FluentValidation" Version="12.0.0" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
 		<PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.0" />
-		<PackageReference Include="Meziantou.Analyzer" Version="2.0.202">
+		<PackageReference Include="Meziantou.Analyzer" Version="2.0.205">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Content Include="Scripts\favicons\favicon.ico">
-			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		</Content>
-		<Content Include="Scripts\images\logos\logo.webp">
-			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-		</Content>
 	</ItemGroup>
 	
 </Project>
