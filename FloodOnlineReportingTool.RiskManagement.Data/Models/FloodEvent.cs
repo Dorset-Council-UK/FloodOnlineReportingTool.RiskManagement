@@ -11,9 +11,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Models
         public GdsDate? FloodEndDate { get; set; } = new();
         [GdsFieldErrorClass(GdsFieldTypes.Radio)]
         public string? FloodStatus { get; set; }
-        [GdsFieldErrorClass(GdsFieldTypes.Radio)]
+        [GdsFieldErrorClass(GdsFieldTypes.Checkbox)]
         public Guid? ResponsibleAuthority {  get; set; }
-        public IReadOnlyCollection<GdsOptionItem<Guid>> ResponsibleAuthorityOptions { get; set; } = [];
         [GdsFieldErrorClass(GdsFieldTypes.Input)]
         public string? ResponsibleAuthorityOther { get; set; }
         [GdsFieldErrorClass(GdsFieldTypes.Input)]
