@@ -2,6 +2,11 @@ using FluentValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder
+    .AddResilience()
+    .AddFORTOptions()
+    .AddFORTAuthentication();
+
 var assembly = typeof(Program).Assembly;
 
 // Configure all the settings.
@@ -17,7 +22,8 @@ builder.Services.AddMessageSystem(messagingSettings);
 builder.Services.AddAuthentication();
 builder.Services
     .AddCascadingAuthenticationState()
-    .AddAuthorizationBuilder();
+    .AddAuthorizationBuilder()
+    .AddPolicy("AuthenticatedOnly", policy => policy.RequireAuthenticatedUser());
 
 // Add Blazor services
 builder.Services
@@ -33,6 +39,8 @@ var app = builder.Build();
 var pathBase = string.IsNullOrWhiteSpace(riskManagementSettings?.PathBase) ? "/" : $"/{riskManagementSettings.PathBase}";
 app.UsePathBase(pathBase);
 
+app.UseForwardedHeaders();
+
 // Configure the HTTP request pipeline.
 if (builder.Environment.IsDevelopment())
 {
@@ -46,13 +54,16 @@ else
 
 app.UseHttpsRedirection();
 app.MapRiskManagementHealthChecks();
-app.UseRouting();
+
 app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorComponents<FloodOnlineReportingTool.RiskManagement.Components.App>()
    .AddInteractiveServerRenderMode();
+
+app.MapRazorPages(); // <-- Required for MicrosoftIdentity UI
+app.MapControllers();
 
 await app.RunAsync()
          .ConfigureAwait(false);
