@@ -17,7 +17,7 @@
 
 <AuthorizeView>
     <Authorized>
-        <p>Logged in as @context.User.Identity?.Name.</p>
+        <p>Logged in as <a class="govuk-link" Href="account/myaccount">@context.User.Identity?.Name</a> </p>
 
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch" Context="editContext">
             <FluentValidationValidator />
@@ -70,36 +70,3 @@
         <p>Sorry, you are not able to use this application.</p>
     </NotAuthorized>
 </AuthorizeView>
-
-@* <AuthorizeView>
-    <Authorized>
-        <ul class="navbar-nav ps-3">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-person-circle"></i> @context.User.Identity?.Name
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" data-bs-popper="static">
-                    <li><h6 class="dropdown-header">@(context.User.Claims.FirstOrDefault(c => c.Type.Contains("email")) != null ? context.User.Claims.FirstOrDefault(c => c.Type.Contains("email"))!.Value : "")</h6></li>
-                    <AuthorizeView Policy="CanAccessApp" Context="InnerAccountBox">
-                        <li><a class="dropdown-item" href="Account/MyAccount">My Account</a></li>
-                        @if (InnerAccountBox.User.IsInRole("Administrator"))
-                        {
-                            <li><a class="dropdown-item" href="management">Manage Application</a></li>
-                        }
-                    </AuthorizeView>
-
-                    <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <form action="MicrosoftIdentity/Account/SignOut">
-                            <button id="logout" class="btn btn-outline-danger btn-sm ms-2"><i class="bi-door-open"></i> Logout</button>
-                        </form>
-                    </li>
-                </ul>
-            </li>
-
-        </ul>
-    </Authorized>
-    <NotAuthorized>
-        <a id="login" class="btn btn-outline-primary btn-sm ms-2" href="MicrosoftIdentity/Account/SignIn"><i class="bi-door-open"></i> Sign In</a>
-    </NotAuthorized>
-</AuthorizeView> *@
