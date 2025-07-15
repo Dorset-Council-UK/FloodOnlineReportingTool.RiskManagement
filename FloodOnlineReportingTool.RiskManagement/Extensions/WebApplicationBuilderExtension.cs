@@ -4,28 +4,14 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Tokens;
+using System.Configuration;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.AspNetCore.Builder;
 
-internal static class WebApplicationBuilderExtension 
+internal static class WebApplicationBuilderExtension
 {
-    /// <summary>
-    /// Add resilience to the HttpClient
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <returns></returns>
-    internal static WebApplicationBuilder AddResilience(this WebApplicationBuilder builder)
-    {
-        builder.Services.ConfigureHttpClientDefaults(http =>
-        {
-            // Turn on resilience by default
-            http.AddStandardResilienceHandler();
-        });
-
-        return builder;
-    }
-
     /// <summary>
     /// Add all the Risk Management project options
     /// </summary>
@@ -37,7 +23,7 @@ internal static class WebApplicationBuilderExtension
         builder.Services
             .Configure<ForwardedHeadersOptions>(options =>
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 
                 // Add your firewall's IP address here
                 options.KnownProxies.Add(System.Net.IPAddress.Parse("172.23.40.19"));
@@ -55,39 +41,54 @@ internal static class WebApplicationBuilderExtension
     /// <returns></returns>
     internal static WebApplicationBuilder AddFORTAuthentication(this WebApplicationBuilder builder)
     {
-        const string b2cClientName = "B2CResilient";
 
         var azureAdSection = builder.Configuration
             .GetSection("FORT")
             .GetSection("AzureAd");
 
-        // Register a named HttpClient for B2C with resilience
-        builder.Services
-            .AddHttpClient(b2cClientName)
-            .AddStandardResilienceHandler();
-
         // Add microsoft identity web app authentication
         builder.Services
-            .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(azureAdSection);
-        builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
-        builder.Services.AddRazorPages();
-
-        // Configure OpenIdConnectOptions to use our resilient HttpClient
-        builder.Services
-            .AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
-            .Configure<IHttpClientFactory>((options, httpClientFactory) =>
+            .AddAuthentication(options =>
             {
-                options.Backchannel = httpClientFactory.CreateClient(b2cClientName);
-                options.SignedOutRedirectUri = "/account/signedout";
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
                 options.AccessDeniedPath = "/account/accessdenied";
-            });
+            })
+            .AddOpenIdConnect(options =>
+            {
+                options.ClientId = azureAdSection["ClientId"];
+                options.ClientSecret = azureAdSection["ClientSecret"];
+                options.Authority = azureAdSection["Authority"] + "v2.0/";
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
-        builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-        {
-            options.AccessDeniedPath = "/account/accessdenied";
-        });
+                options.UsePkce = true;
+                options.ResponseType = "code";
+                options.ResponseMode = "form_post";
 
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.Scope.Add("email");
+                options.Scope.Add("profile");
+                options.Scope.Add("offline_access");
+
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.UseTokenLifetime = false;
+                options.SaveTokens = true;
+                options.RequireHttpsMetadata = true;
+
+                options.CallbackPath = "/signin-oidc";
+            }
+        );
+        //builder.Services.AddControllersWithViews().AddMicrosoftIdentityUI();
+        builder.Services.AddRazorPages();
+        builder.Services.AddAuthorization();
+
+        builder.Services
+            .AddCascadingAuthenticationState()
+            .AddAuthorizationBuilder()
+            .AddPolicy("AuthenticatedOnly", policy => policy.RequireAuthenticatedUser());
         return builder;
     }
 }

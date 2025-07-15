@@ -3,56 +3,103 @@
 @using FloodOnlineReportingTool.RiskManagement.Components.Search
 @using static FloodOnlineReportingTool.RiskManagement.Components.Shared.GridCard
 
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize]
+
 <PageTitle>@Title</PageTitle>
 
 <h1 class="govuk-heading-l">@Title</h1>
 
 <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
+<AuthorizeView>
+    <Authorized>
+        <p>Hello @context.User.Identity?.Name.</p>
 
-<EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch">
-    <FluentValidationValidator />
-    <GdsErrorSummary />
+        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch" Context="editContext">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
 
-    <Searchbox For="@(() => Model.SearchText)" LabelText="Find a flood event or property record" />
+            <Searchbox For="@(() => Model.SearchText)" LabelText="Find a flood event or property record" />
 
-</EditForm>
+        </EditForm>
 
-<div class="govuk-width-container">
-    <div class="govuk-grid-row">
-        <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
-        <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
-    </div>
-    <div class="govuk-grid-row">
-        <GridCard CardSize="CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
-        <GridCard CardSize="CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
-    </div>
+        <div class="govuk-width-container">
+            <div class="govuk-grid-row">
+                <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
+                <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
+            </div>
+            <div class="govuk-grid-row">
+                <GridCard CardSize="CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
+                <GridCard CardSize="CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
+            </div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-half">
-            <h3>Other tasks</h3>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-half">
+                    <h3>Other tasks</h3>
 
-            <ul class="govuk-list">
-                <li>
-                    <a class="govuk-link" href="#">Create a new flood event</a>
-                </li>
-                <li>
-                    <a class="govuk-link" href="#">Create a property log / record site visits</a>
-                </li>
-            </ul>
+                    <ul class="govuk-list">
+                        <li>
+                            <a class="govuk-link" href="#">Create a new flood event</a>
+                        </li>
+                        <li>
+                            <a class="govuk-link" href="#">Create a property log / record site visits</a>
+                        </li>
+                    </ul>
 
+                </div>
+                <div class="govuk-grid-column-one-half">
+                    <h3>Pick up where you left off</h3>
+
+                    <ul class="govuk-list">
+                        <li>
+                            <a class="govuk-link" href="#">Recent page 1</a>
+                        </li>
+                        <li>
+                            <a class="govuk-link" href="#">Recent page 2</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="govuk-grid-column-one-half">
-            <h3>Pick up where you left off</h3>
+    </Authorized>
+    <NotAuthorized>
+        <p>Sorry, you are not able to use this application.</p>
+    </NotAuthorized>
+</AuthorizeView>
 
-            <ul class="govuk-list">
-                <li>
-                    <a class="govuk-link" href="#">Recent page 1</a>
-                </li>
-                <li>
-                    <a class="govuk-link" href="#">Recent page 2</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
+@* <AuthorizeView>
+    <Authorized>
+        <ul class="navbar-nav ps-3">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle"></i> @context.User.Identity?.Name
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" data-bs-popper="static">
+                    <li><h6 class="dropdown-header">@(context.User.Claims.FirstOrDefault(c => c.Type.Contains("email")) != null ? context.User.Claims.FirstOrDefault(c => c.Type.Contains("email"))!.Value : "")</h6></li>
+                    <AuthorizeView Policy="CanAccessApp" Context="InnerAccountBox">
+                        <li><a class="dropdown-item" href="Account/MyAccount">My Account</a></li>
+                        @if (InnerAccountBox.User.IsInRole("Administrator"))
+                        {
+                            <li><a class="dropdown-item" href="management">Manage Application</a></li>
+                        }
+                    </AuthorizeView>
+
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form action="MicrosoftIdentity/Account/SignOut">
+                            <button id="logout" class="btn btn-outline-danger btn-sm ms-2"><i class="bi-door-open"></i> Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </li>
+
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <a id="login" class="btn btn-outline-primary btn-sm ms-2" href="MicrosoftIdentity/Account/SignIn"><i class="bi-door-open"></i> Sign In</a>
+    </NotAuthorized>
+</AuthorizeView> *@

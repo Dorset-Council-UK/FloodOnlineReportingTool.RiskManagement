@@ -3,7 +3,6 @@ using FluentValidation;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddResilience()
     .AddFORTOptions()
     .AddFORTAuthentication();
 
@@ -17,13 +16,6 @@ builder.Services.AddRiskManagementHealthChecks(messagingSettings);
 
 // Message system
 builder.Services.AddMessageSystem(messagingSettings);
-
-// Add the authentication and authorization
-builder.Services.AddAuthentication();
-builder.Services
-    .AddCascadingAuthenticationState()
-    .AddAuthorizationBuilder()
-    .AddPolicy("AuthenticatedOnly", policy => policy.RequireAuthenticatedUser());
 
 // Add Blazor services
 builder.Services
@@ -52,18 +44,28 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.MapRiskManagementHealthChecks();
+if (builder.Configuration.GetValue<bool>("UseHttpsRedirection"))
+{
+    app.UseHttpsRedirection();
+}
 
+app.MapRiskManagementHealthChecks();
 app.UseAntiforgery();
+
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapRazorPages(); // <-- Required for MicrosoftIdentity UI
+});
+
 app.MapStaticAssets();
 app.MapRazorComponents<FloodOnlineReportingTool.RiskManagement.Components.App>()
    .AddInteractiveServerRenderMode();
-
-app.MapRazorPages(); // <-- Required for MicrosoftIdentity UI
-app.MapControllers();
 
 await app.RunAsync()
          .ConfigureAwait(false);
