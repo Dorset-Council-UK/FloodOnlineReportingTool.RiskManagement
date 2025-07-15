@@ -17,7 +17,7 @@
 
 <AuthorizeView>
     <Authorized>
-        <p>Hello @context.User.Identity?.Name.</p>
+        <p>Logged in as @context.User.Identity?.Name.</p>
 
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch" Context="editContext">
             <FluentValidationValidator />

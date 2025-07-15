@@ -57,12 +57,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-    endpoints.MapRazorPages(); // <-- Required for MicrosoftIdentity UI
-});
-
 app.MapStaticAssets();
 app.MapRazorComponents<FloodOnlineReportingTool.RiskManagement.Components.App>()
    .AddInteractiveServerRenderMode();
