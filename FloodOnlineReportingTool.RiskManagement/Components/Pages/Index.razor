@@ -7,19 +7,17 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
-@attribute [Authorize]
-
 <PageTitle>@Title</PageTitle>
 
 <h1 class="govuk-heading-l">@Title</h1>
 
 <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-<AuthorizeView>
+<AuthorizeView Context="authContext">
     <Authorized>
-        <p>Logged in as <a class="govuk-link" Href="account/myaccount">@context.User.Identity?.Name</a> </p>
+        <p>Logged in as <a class="govuk-link" Href="account/myaccount">@authContext.User.Identity?.Name</a> </p>
 
-        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch" Context="editContext">
+        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch">
             <FluentValidationValidator />
             <GdsErrorSummary />
 

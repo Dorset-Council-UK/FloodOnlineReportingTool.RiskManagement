@@ -2,8 +2,6 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
-@attribute [Authorize]
-
 <!DOCTYPE html>
 <html lang="en-GB" class="govuk-template">
 
@@ -19,20 +17,12 @@
     <ImportMap />
     <HeadOutlet @rendermode="PageRenderMode" />
 </head>
+    <body class="govuk-template__body">
+        <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
 
-<AuthorizeView>
-    <NotAuthorized>
-        <RedirectToAccessDenied></RedirectToAccessDenied>
-    </NotAuthorized>
-    <Authorized>
-        <body class="govuk-template__body">
-            <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+        <Routes @rendermode="PageRenderMode" />
 
-            <Routes @rendermode="PageRenderMode" />
-
-            <script src="_framework/blazor.web.js"></script>
-            <script type="module" src="@Assets["js/app.js"]"></script>
-        </body>
-    </Authorized>
-</AuthorizeView>
+        <script src="_framework/blazor.web.js"></script>
+        <script type="module" src="@Assets["js/app.js"]"></script>
+    </body>
 </html>

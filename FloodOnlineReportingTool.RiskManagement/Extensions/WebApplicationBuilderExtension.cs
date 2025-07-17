@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using FloodOnlineReportingTool.RiskManagement.Options;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
-using Microsoft.IdentityModel.Tokens;
+using System.Net;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -19,16 +18,28 @@ internal static class WebApplicationBuilderExtension
     internal static WebApplicationBuilder AddFORTOptions(this WebApplicationBuilder builder)
     {
 
-        builder.Services
-            .Configure<ForwardedHeadersOptions>(options =>
+        var section = builder.Configuration
+            .GetSection(NetworkingOptions.SectionName);
+        var networkingOptions = section.Get<NetworkingOptions>();
+
+        if (networkingOptions is not null && networkingOptions.UseForwardedHeadersMiddleware)
+        {
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 
-                // Add your firewall's IP address here
-                options.KnownProxies.Add(System.Net.IPAddress.Parse("172.23.40.19"));
-                options.KnownProxies.Add(System.Net.IPAddress.Parse("172.23.40.15"));
-                options.KnownProxies.Add(System.Net.IPAddress.Parse("172.23.40.25"));
+                if (networkingOptions.KnownProxies is not null)
+                {
+                    foreach (var proxy in networkingOptions.KnownProxies)
+                    {
+                        if (IPAddress.TryParse(proxy, out var ipAddress))
+                        {
+                            options.KnownProxies.Add(ipAddress);
+                        }
+                    }
+                }
             });
+        }
 
         return builder;
     }
@@ -56,9 +67,6 @@ internal static class WebApplicationBuilderExtension
                     .Build();
             })
             .AddCascadingAuthenticationState();
-
-        builder.Services.AddControllersWithViews()
-            .AddMicrosoftIdentityUI();
 
         return builder;
     }
