@@ -73,8 +73,11 @@
     </GdsFormGroup>
 
     @* TODO - add in map *@
-    <GdsLabel Text="Draw the extent of the flood" AdditionalCssClasses="govuk-label--m" />
-    <img src="https://imageplaceholder.net/800x400/eeeeee/131313?text=Map+here" />
+    <GdsFormGroup For="@(() => Model)">
+        <GdsErrorMessage />
+        <GdsLabel Text="Draw the extent of the flood" AdditionalCssClasses="govuk-label--m" />
+        <img src="https://imageplaceholder.net/800x400/eeeeee/131313?text=Map+here" />
+    </GdsFormGroup> 
 
     @if (!_isLoading)
     {
