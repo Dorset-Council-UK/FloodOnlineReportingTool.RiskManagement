@@ -51,7 +51,10 @@
                             {
                                 <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="@ConditionalId">
                                     <div>
-                                        <GdsInputText @bind-Value=Model.ResponsibleAuthorityOther class="govuk-input"></GdsInputText>
+                                        <GdsFormGroup For="@(() => Model.ResponsibleAuthorityOther)">
+                                            <GdsLabel Text="Who is responsible?" />
+                                            <GdsInputText @bind-Value=Model.ResponsibleAuthorityOther class="govuk-input"></GdsInputText>
+                                        </GdsFormGroup>   
                                     </div>
                                 </div>
                             }
