@@ -50,8 +50,9 @@ public partial class FloodEvent(
         }
     }
 
-    private async Task OnValidSubmit()
+    private Task OnValidSubmit()
     {
+        return Task.CompletedTask;
         //logger.LogInformation("Flood Event submitted successfuly");
         //navigationManager.NavigateTo("");
     }
