@@ -4,7 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .AddFORTOptions()
-    .AddFORTAuthentication();
+    .AddFORTAuthentication()
+    .AddFORTAzureKeyVault();
 
 var assembly = typeof(Program).Assembly;
 

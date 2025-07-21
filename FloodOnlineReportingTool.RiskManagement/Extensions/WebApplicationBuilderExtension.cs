@@ -1,9 +1,12 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Azure.Identity;
+using FORT.Options;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -16,6 +19,10 @@ internal static class WebApplicationBuilderExtension
     /// <returns></returns>
     internal static WebApplicationBuilder AddFORTOptions(this WebApplicationBuilder builder)
     {
+        var sectionKeyVault = builder.Configuration.GetSection("FORT").GetSection(KeyVaultOptions.SectionName);
+
+        builder.Services
+            .Configure<KeyVaultOptions>(sectionKeyVault);
 
         if (builder.Configuration.GetValue<bool>("UseForwardedHeadersMiddleware"))
         {
@@ -62,6 +69,37 @@ internal static class WebApplicationBuilderExtension
                     .Build();
             })
             .AddCascadingAuthenticationState();
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Set up Azure Key Vault if a KeyVault name is provided in the configuration
+    /// </summary>
+    internal static WebApplicationBuilder AddFORTAzureKeyVault(this WebApplicationBuilder builder)
+    {
+        var section = builder.Configuration
+            .GetSection("FORT")
+            .GetSection(KeyVaultOptions.SectionName);
+
+        var keyVaultOptions = section.Get<KeyVaultOptions>();
+
+        if (string.IsNullOrWhiteSpace(keyVaultOptions?.Name))
+        {
+            return builder;
+        }
+
+        using var x509Store = new X509Store(StoreLocation.LocalMachine);
+        x509Store.Open(OpenFlags.ReadOnly);
+
+        var x509Certificate = x509Store.Certificates
+            .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
+            .OfType<X509Certificate2>()
+            .Single();
+
+        builder.Configuration.AddAzureKeyVault(
+            new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
+            new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
 
         return builder;
     }
