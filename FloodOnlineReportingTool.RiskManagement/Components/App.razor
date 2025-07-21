@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@using FloodOnlineReportingTool.RiskManagement.Components.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+<!DOCTYPE html>
 <html lang="en-GB" class="govuk-template">
 
 <head>
@@ -13,14 +17,12 @@
     <ImportMap />
     <HeadOutlet @rendermode="PageRenderMode" />
 </head>
+    <body class="govuk-template__body">
+        <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
 
-<body class="govuk-template__body">
-    <a href="#main-content" class="govuk-skip-link" data-module="govuk-skip-link">Skip to main content</a>
+        <Routes @rendermode="PageRenderMode" />
 
-    <Routes @rendermode="PageRenderMode" />
-
-    <script src="_framework/blazor.web.js"></script>
-    <script type="module" src="@Assets["js/app.js"]"></script>
-</body>
-
+        <script src="_framework/blazor.web.js"></script>
+        <script type="module" src="@Assets["js/app.js"]"></script>
+    </body>
 </html>

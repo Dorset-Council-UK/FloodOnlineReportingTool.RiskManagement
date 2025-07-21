@@ -6,6 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder
+    .AddFORTOptions()
+    .AddFORTAuthentication();
+
 var assembly = typeof(Program).Assembly;
 
 
@@ -22,12 +26,6 @@ builder.Services.AddRiskManagementHealthChecks(messagingSettings);
 
 // Message system
 builder.Services.AddMessageSystem(messagingSettings);
-
-// Add the authentication and authorization
-builder.Services.AddAuthentication();
-builder.Services
-    .AddCascadingAuthenticationState()
-    .AddAuthorizationBuilder();
 
 // Configure the database context
 var connectionString = builder.Configuration.GetConnectionString("RiskManagement");
@@ -60,6 +58,8 @@ var app = builder.Build();
 var pathBase = string.IsNullOrWhiteSpace(riskManagementSettings?.PathBase) ? "/" : $"/{riskManagementSettings.PathBase}";
 app.UsePathBase(pathBase);
 
+app.UseForwardedHeaders();
+
 // Configure the HTTP request pipeline.
 if (builder.Environment.IsDevelopment())
 {
@@ -71,12 +71,19 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (builder.Configuration.GetValue<bool>("UseHttpsRedirection"))
+{
+    app.UseHttpsRedirection();
+}
+
 app.MapRiskManagementHealthChecks();
-app.UseRouting();
 app.UseAntiforgery();
+
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapStaticAssets();
 app.MapRazorComponents<FloodOnlineReportingTool.RiskManagement.Components.App>()
    .AddInteractiveServerRenderMode();
