@@ -20,11 +20,13 @@ jobs:
         - task: Npm@1
           inputs:
             command: "install"
+            workingDir: "FloodOnlineReportingTool.RiskManagement"
         - task: Npm@1
           displayName: "Webpack Build (prod)"
           inputs:
             command: "custom"
             customCommand: "run build"
+            workingDir: "FloodOnlineReportingTool.RiskManagement"
             
   - template: deploy/iis.yml@templates
     parameters:
