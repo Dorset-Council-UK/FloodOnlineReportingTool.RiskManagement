@@ -13,7 +13,7 @@ resources:
       type: git
       name: "Web Development/Pipelines"
       ref: refs/heads/feature-updated-artifacts
-
+  
 jobs:
   - template: build/dotnet.yml@templates
     parameters:
@@ -56,5 +56,5 @@ jobs:
       variableGroup: "PipelineSettings"
       artifactDownload: "updated-config"
       projectName: "FloodOnlineReportingTool.RiskManagement"
-      dependsOn: VariableSubstitution'
+      dependsOn: VariableSubstitution
    
