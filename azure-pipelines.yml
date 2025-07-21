@@ -27,7 +27,19 @@ jobs:
             command: "custom"
             customCommand: "run build"
             workingDir: "FloodOnlineReportingTool.RiskManagement"
-            
+
+  - job: VariableSubstitution
+    displayName: "Insert local variables into appsettings.json"
+    dependsOn: build
+    variables:
+    - group: fort-staging-properties
+    steps:
+      - task: FileTransform@2
+        displayName: "Insert local variables into appsettings.json"
+        inputs:
+          folderPath: '$(Pipeline.Workspace)/'
+          jsonTargetFiles: '**/appsettings.json'
+
   - template: deploy/iis.yml@templates
     parameters:
       environment: "staging"
@@ -35,4 +47,4 @@ jobs:
       virtualApplication: "floodriskmanagement"
       variableGroup: "PipelineSettings"
       projectName: "FloodOnlineReportingTool.RiskManagement"
-      dependsOn: build
+      dependsOn: VariableSubstitution   
