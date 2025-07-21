@@ -12,6 +12,7 @@ resources:
     - repository: templates
       type: git
       name: "Web Development/Pipelines"
+      ref: refs/heads/feature-updated-artifacts
 
 jobs:
   - template: build/dotnet.yml@templates
@@ -39,6 +40,13 @@ jobs:
         inputs:
           folderPath: '$(Pipeline.Workspace)/'
           jsonTargetFiles: '**/appsettings.json'
+      
+      - task: PublishPipelineArtifact@1
+        displayName: "Publish updated appsettings.json"
+        inputs:
+          targetPath: '$(Pipeline.Workspace)'
+          artifact: 'updated-config'
+
 
   - template: deploy/iis.yml@templates
     parameters:
@@ -46,5 +54,7 @@ jobs:
       websiteName: "gi-staging"
       virtualApplication: "floodriskmanagement"
       variableGroup: "PipelineSettings"
+      artifactDownload: "updated-config"
       projectName: "FloodOnlineReportingTool.RiskManagement"
-      dependsOn: VariableSubstitution   
+      dependsOn: VariableSubstitution'
+   
