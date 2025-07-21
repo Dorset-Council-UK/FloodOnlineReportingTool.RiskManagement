@@ -1,5 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Options;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -18,19 +17,15 @@ internal static class WebApplicationBuilderExtension
     internal static WebApplicationBuilder AddFORTOptions(this WebApplicationBuilder builder)
     {
 
-        var section = builder.Configuration
-            .GetSection(NetworkingOptions.SectionName);
-        var networkingOptions = section.Get<NetworkingOptions>();
-
-        if (networkingOptions is not null && networkingOptions.UseForwardedHeadersMiddleware)
+        if (builder.Configuration.GetValue<bool>("UseForwardedHeadersMiddleware"))
         {
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-
-                if (networkingOptions.KnownProxies is not null)
-                {
-                    foreach (var proxy in networkingOptions.KnownProxies)
+                var currentProxies = builder.Configuration.GetValue<string[]>("KnownProxies");
+                if (currentProxies is not null)
+                { 
+                    foreach (var proxy in currentProxies)
                     {
                         if (IPAddress.TryParse(proxy, out var ipAddress))
                         {
