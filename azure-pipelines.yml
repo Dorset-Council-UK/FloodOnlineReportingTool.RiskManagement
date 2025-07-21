@@ -14,25 +14,36 @@ resources:
       name: "Web Development/Pipelines"
 
 jobs:
-  - template: build/dotnet.yml@templates
-    parameters:
-      prebuildSteps:
-        - task: Npm@1
-          inputs:
-            command: "install"
-            workingDir: "FloodOnlineReportingTool.RiskManagement"
-        - task: Npm@1
-          displayName: "Webpack Build (prod)"
-          inputs:
-            command: "custom"
-            customCommand: "run build"
-            workingDir: "FloodOnlineReportingTool.RiskManagement"
-            
-  - template: deploy/iis.yml@templates
-    parameters:
-      environment: "staging"
-      websiteName: "gi-staging"
-      virtualApplication: "floodriskmanagement"
-      variableGroup: "PipelineSettings"
-      projectName: "FloodOnlineReportingTool.RiskManagement"
-      dependsOn: build
+- job: FirstVariableSubstitution
+  displayName: "This does local variable substitute"
+  variables:
+    - group: fort-staging-properties
+  steps:
+    - task: FileTransform@2
+      displayName: "Insert local variables into appsettings.json"
+      inputs:
+        folderPath: '$(Pipeline.Workspace)/'
+        jsonTargetFiles: '**/appsettings.json'
+
+- template: build/dotnet.yml@templates
+  parameters:
+    prebuildSteps:
+      - task: Npm@1
+        inputs:
+          command: "install"
+          workingDir: "FloodOnlineReportingTool.RiskManagement"
+      - task: Npm@1
+        displayName: "Webpack Build (prod)"
+        inputs:
+          command: "custom"
+          customCommand: "run build"
+          workingDir: "FloodOnlineReportingTool.RiskManagement"
+          
+- template: deploy/iis.yml@templates
+  parameters:
+    environment: "staging"
+    websiteName: "gi-staging"
+    virtualApplication: "floodriskmanagement"
+    variableGroup: "PipelineSettings"
+    projectName: "FloodOnlineReportingTool.RiskManagement"
+    dependsOn: build
