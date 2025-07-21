@@ -32,5 +32,5 @@ jobs:
       websiteName: "gi-staging"
       virtualApplication: "floodriskmanagement"
       variableGroup: "PipelineSettings"
-      projectName: "s" # Since the project is in the root folder, the project outputs to a folder called s
+      projectName: "s/FloodOnlineReportingTool.RiskManagement"
       dependsOn: build
