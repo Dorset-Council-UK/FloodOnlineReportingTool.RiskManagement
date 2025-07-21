@@ -34,5 +34,5 @@ jobs:
       websiteName: "gi-staging"
       virtualApplication: "floodriskmanagement"
       variableGroup: "PipelineSettings"
-      projectName: "s/FloodOnlineReportingTool.RiskManagement"
+      projectName: "FloodOnlineReportingTool.RiskManagement"
       dependsOn: build
