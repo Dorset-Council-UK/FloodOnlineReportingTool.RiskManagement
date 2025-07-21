@@ -30,6 +30,7 @@ jobs:
 
   - job: VariableSubstitution
     displayName: "Insert local variables into appsettings.json"
+    dependsOn: build
     variables:
     - group: fort-staging-properties
     steps:
@@ -46,7 +47,4 @@ jobs:
       virtualApplication: "floodriskmanagement"
       variableGroup: "PipelineSettings"
       projectName: "FloodOnlineReportingTool.RiskManagement"
-      dependsOn: build
-        
-
-        
+      dependsOn: VariableSubstitution   
