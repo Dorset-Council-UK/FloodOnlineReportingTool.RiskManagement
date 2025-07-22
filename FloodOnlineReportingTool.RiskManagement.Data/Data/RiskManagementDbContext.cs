@@ -6,10 +6,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Data
 {
     public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> options) : DbContext(options), IRiskManagementDbContext
     {
-        public DbSet<FloodEventDto> FloodEvents { get; set; }
+        public DbSet<FloodEvent> FloodEvents { get; set; }
         public DbSet<ResponsibleAuthority> ResponsibleAuthorities { get; set; }
-
-
+        public DbSet<FloodEventResponsibleAuthority> FloodEventResponsibleAuthorities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

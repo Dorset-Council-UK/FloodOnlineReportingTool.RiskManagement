@@ -36,9 +36,9 @@
         </InputRadioGroup>
     </GdsFormGroup>
 
-    <GdsFormGroup For="@(() => Model.ResponsibleAuthority)" Show="FloodAuthorityOptions.Count > 0">
+    <GdsFormGroup For="@(() => Model.ResponsibleAuthorityIds)" Show="FloodAuthorityOptions.Count > 0">
         <GdsLabel Text="Who is the responsible organisation?" AdditionalCssClasses="govuk-label--m" />
-        <InputRadioGroup @bind-Value="Model.ResponsibleAuthority">
+        <InputRadioGroup @bind-Value="Model.ResponsibleAuthorityIds">
             <GdsFieldsetGroup>
                 <Content>
                     <GdsErrorMessage />

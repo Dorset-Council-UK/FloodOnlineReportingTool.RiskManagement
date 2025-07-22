@@ -6,7 +6,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Data
 {
     public interface IRiskManagementDbContext
     {
-        DbSet<FloodEventDto> FloodEvents { get; set; }
+        DbSet<FloodEvent> FloodEvents { get; set; }
         DbSet<ResponsibleAuthority> ResponsibleAuthorities { get; set; }
+        DbSet<FloodEventResponsibleAuthority> FloodEventResponsibleAuthorities { get; set; }
     }
 }

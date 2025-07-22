@@ -1,21 +1,18 @@
-﻿using GdsBlazorComponents;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models;
+using GdsBlazorComponents;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models
 {
     public class FloodEvent
     {
-        public int? Id { get; set; }
-        [GdsFieldErrorClass(GdsFieldTypes.Date)]
-        public GdsDate? FloodStartDate { get; set; } = new();
-        [GdsFieldErrorClass(GdsFieldTypes.Date)]
-        public GdsDate? FloodEndDate { get; set; } = new();
-        [GdsFieldErrorClass(GdsFieldTypes.Radio)]
+        public int Id { get; set; }
+        public DateTimeOffset? FloodStartDate { get; set; } = new();
+        public DateTimeOffset? FloodEndDate { get; set; } = new();
         public string? FloodStatus { get; set; }
-        [GdsFieldErrorClass(GdsFieldTypes.Checkbox)]
-        public Guid? ResponsibleAuthority {  get; set; }
-        [GdsFieldErrorClass(GdsFieldTypes.Input)]
         public string? ResponsibleAuthorityOther { get; set; }
-        [GdsFieldErrorClass(GdsFieldTypes.Input)]
         public string? FloodTitle { get; set; }
+
+        // Navigation properties
+        public IList<FloodEventResponsibleAuthority>? ResponsibleAuthorites { get; set; }
     }
 }

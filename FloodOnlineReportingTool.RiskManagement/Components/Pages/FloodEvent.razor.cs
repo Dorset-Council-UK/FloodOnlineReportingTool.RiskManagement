@@ -15,7 +15,7 @@ public partial class FloodEvent(
         new ("", "Home"),
     ];
 
-    private Models.FloodEvent Model { get; set; } = default!;
+    private Models.FloodEventDto Model { get; set; } = default!;
     private EditContext _editContext = default!;
     private bool _isLoading = true;
     private readonly CancellationTokenSource _cts = new();
