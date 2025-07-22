@@ -1,4 +1,8 @@
+using System.Configuration;
+using FloodOnlineReportingTool.RiskManagement.Data.Data;
+using FloodOnlineReportingTool.RiskManagement.Settings;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +12,12 @@ builder
 
 var assembly = typeof(Program).Assembly;
 
+
+
+// Risk Management settings
+var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
+builder.Services.Configure<RiskManagementSettings>(section);
+var settings = section.Get<RiskManagementSettings>();
 // Configure all the settings.
 var (riskManagementSettings, messagingSettings) = builder.Services.AddRiskManagementSettings(builder.Configuration);
 
@@ -16,6 +26,23 @@ builder.Services.AddRiskManagementHealthChecks(messagingSettings);
 
 // Message system
 builder.Services.AddMessageSystem(messagingSettings);
+
+// Configure the database context
+var connectionString = builder.Configuration.GetConnectionString("RiskManagement");
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new ConfigurationErrorsException("Connection string was empty");
+}
+
+builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
+{
+    options.UseNpgsql(connectionString, x =>
+    {
+        x.MigrationsHistoryTable("__EFMigrationsHistory", "riskmanagement");
+    });
+
+    options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
+});
 
 // Add Blazor services
 builder.Services

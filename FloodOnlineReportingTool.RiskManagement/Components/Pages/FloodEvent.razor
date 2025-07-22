@@ -1,0 +1,86 @@
+﻿@page "/flood-event"
+
+<PageTitle>Create a flood event</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<h1 class="govuk-heading-xl">Create a flood event</h1>
+
+<EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="FloodEvent">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
+
+    <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+    <GdsFormGroup For="() => Model.FloodStartDate" Show="!_isLoading">
+        <GdsLabel Text="Date flooding started" AdditionalCssClasses="govuk-label--m" />
+        <GdsErrorMessage />
+        <GdsInputDate Id="flood-start" For="() => Model.FloodStartDate" />
+    </GdsFormGroup>
+
+    <GdsFormGroup For="() => Model.FloodEndDate" Show="!_isLoading">
+        <GdsLabel Text="Date flooding ended (optional)" AdditionalCssClasses="govuk-label--m" />
+        <GdsErrorMessage />
+        <GdsInputDate Id="flood-end" For="() => Model.FloodEndDate" />
+    </GdsFormGroup> 
+
+    <GdsFormGroup For="() => Model.FloodStatus" Show="!_isLoading">
+        <GdsLabel Text="Are you intending on recording a flood event?" AdditionalCssClasses="govuk-label--m" />
+        <InputRadioGroup @bind-Value="Model.FloodStatus">
+            <GdsFieldsetGroup>
+                <Content>
+                    <GdsHint>Select one option.</GdsHint>
+                    <GdsErrorMessage />
+                    <GdsRadios Options="FloodStatusOptions" />
+                </Content>
+            </GdsFieldsetGroup>
+        </InputRadioGroup>
+    </GdsFormGroup>
+
+    <GdsFormGroup For="@(() => Model.ResponsibleAuthorityIds)" Show="FloodAuthorityOptions.Count > 0">
+        <GdsLabel Text="Who is the responsible organisation?" AdditionalCssClasses="govuk-label--m" />
+        <InputRadioGroup @bind-Value="Model.ResponsibleAuthorityIds">
+            <GdsFieldsetGroup>
+                <Content>
+                    <GdsErrorMessage />
+                    <div class="govuk-radios" data-module="govuk-checkboxes">
+                        @foreach (var option in FloodAuthorityOptions)
+                        {
+                            var ConditionalId = option.Value == Guid.Empty ? "Authority-known" : null;
+                            <GdsCheckbox Option="option" ConditionalId="@ConditionalId" />
+                            if (ConditionalId != null)
+                            {
+                                <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="@ConditionalId">
+                                    <div>
+                                        <GdsFormGroup For="@(() => Model.ResponsibleAuthorityOther)">
+                                            <GdsLabel Text="Who is responsible?" />
+                                            <GdsInputText @bind-Value=Model.ResponsibleAuthorityOther class="govuk-input"></GdsInputText>
+                                        </GdsFormGroup>   
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </Content>
+            </GdsFieldsetGroup>
+        </InputRadioGroup>
+    </GdsFormGroup>
+
+    <GdsFormGroup For="@(() => Model.FloodTitle)" Show="!_isLoading">
+        <GdsErrorMessage />
+        <GdsLabel Text="Name of the flood event" AdditionalCssClasses="govuk-label--m" />
+        <GdsHint>This should be short but descriptive, for example: Dorchester Flood 2025 January 11-14</GdsHint>
+        <GdsInputText @bind-Value=Model.FloodTitle class="govuk-input" />
+    </GdsFormGroup>
+
+    @* TODO - add in map *@
+    <GdsFormGroup For="@(() => Model)">
+        <GdsErrorMessage />
+        <GdsLabel Text="Draw the extent of the flood" AdditionalCssClasses="govuk-label--m" />
+        <img src="https://imageplaceholder.net/800x400/eeeeee/131313?text=Map+here" />
+    </GdsFormGroup> 
+
+    @if (!_isLoading)
+    {
+        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
+    }
+</EditForm>
