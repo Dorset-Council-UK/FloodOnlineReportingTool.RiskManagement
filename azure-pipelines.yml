@@ -12,7 +12,6 @@ resources:
     - repository: templates
       type: git
       name: "Web Development/Pipelines"
-      ref: refs/heads/feature-updated-artifacts
   
 jobs:
   - template: build/dotnet.yml@templates
@@ -34,8 +33,7 @@ jobs:
       environment: "staging"
       websiteName: "gi-staging"
       virtualApplication: "floodriskmanagement"
-      variableGroup: "PipelineSettings"
-      artifactDownload: "updated-config"
+      variableGroup: "fort-staging-properties"
       projectName: "FloodOnlineReportingTool.RiskManagement"
-      dependsOn: VariableSubstitution
+      dependsOn: build
    
