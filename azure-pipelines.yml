@@ -12,6 +12,7 @@ resources:
     - repository: templates
       type: git
       name: "Web Development/Pipelines"
+      ref: refs/heads/feature-multiple-variable-groups
   
 jobs:
   - template: build/dotnet.yml@templates
@@ -33,7 +34,9 @@ jobs:
       environment: "staging"
       websiteName: "gi-staging"
       virtualApplication: "floodriskmanagement"
-      variableGroup: "fort-staging-properties"
+      variableGroups: 
+        - "fort-staging-properties"
+        - "PipelineSettings"
       projectName: "FloodOnlineReportingTool.RiskManagement"
       dependsOn: build
    
