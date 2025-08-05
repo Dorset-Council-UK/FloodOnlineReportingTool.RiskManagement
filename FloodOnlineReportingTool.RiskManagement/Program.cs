@@ -29,7 +29,7 @@ builder.Services.AddRiskManagementHealthChecks(messagingSettings);
 builder.Services.AddMessageSystem(messagingSettings);
 
 // Configure the database context
-var connectionString = builder.Configuration.GetConnectionString("RiskManagement");
+var connectionString = builder.Configuration.GetConnectionString("FloodReportingRiskManagement");
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new ConfigurationErrorsException("Connection string was empty");
@@ -39,7 +39,7 @@ builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
 {
     options.UseNpgsql(connectionString, x =>
     {
-        x.MigrationsHistoryTable("__EFMigrationsHistory", "riskmanagement");
+        x.MigrationsHistoryTable("__EFMigrationsHistory", "fortriskmanagement");
     });
 
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());

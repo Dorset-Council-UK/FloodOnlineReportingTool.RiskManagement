@@ -12,7 +12,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("riskmanagement");
+            modelBuilder.HasDefaultSchema("fortriskmanagement");
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(RiskManagementDbContext).Assembly);
         }
