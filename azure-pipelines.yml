@@ -12,7 +12,7 @@ resources:
     - repository: templates
       type: git
       name: "Web Development/Pipelines"
-      ref: refs/heads/feature-multiple-variable-groups
+      ref: refs/heads/azure-pipelines
   
 jobs:
   - template: build/dotnet.yml@templates
