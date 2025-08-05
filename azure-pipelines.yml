@@ -12,7 +12,7 @@ resources:
     - repository: templates
       type: git
       name: "Web Development/Pipelines"
-      ref: refs/heads/azure-pipelines
+      ref: refs/heads/main
   
 jobs:
   - template: build/dotnet.yml@templates
