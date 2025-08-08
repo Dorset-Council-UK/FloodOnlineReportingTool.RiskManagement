@@ -62,15 +62,15 @@ internal static class WebApplicationBuilderExtension
             })
             .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("FORT").GetSection("AzureAd"));
 
-        //builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-        //{
-        //    options.Events.OnRedirectToIdentityProvider = context =>
-        //    {
-        //        context.ProtocolMessage.RedirectUri = "https://localhost:7112/floodriskmanagement/signin-oidc";
-        //        return Task.CompletedTask;
-        //    };
+        builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+        {
+            options.Events.OnRedirectToIdentityProvider = context =>
+            {
+                context.ProtocolMessage.RedirectUri = "https://gi-staging.dorsetcouncil.gov.uk/floodriskmanagement/signin-oidc";
+                return Task.CompletedTask;
+            };
 
-        //});
+        });
 
         builder.Services.AddAuthorization(options =>
             {
