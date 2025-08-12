@@ -30,7 +30,7 @@ stages:
       - task: AzurePowerShell@5
         name: setVars  
         inputs:
-          azureSubscription: 'Azure Connection'
+          azureSubscription: 'GIS Dev App Server'
           ScriptType: 'InlineScript'
           Inline: |
             $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
