@@ -55,6 +55,12 @@ stages:
       ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.UseForwardedHeadersMiddleware'] ]
       ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.UseHttpsRedirection'] ]
     jobs:
+      - job:
+        steps:
+        - script: |
+            echo "Use HTTPS set to $(ProxySettings.UseHttpsRedirection)"
+          displayName: 'Debugging settings'
+
       - template: build/dotnet.yml@templates
         parameters:
           prebuildSteps:
