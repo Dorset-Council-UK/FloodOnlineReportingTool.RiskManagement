@@ -34,10 +34,14 @@ stages:
           ScriptType: 'InlineScript'
           Inline: |
             $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
+            $test = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name 'ProxySettings--UseHttpsRedirection'
+            Write-Host "Test: $test"
+            $test2 = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name 'ProxySettings--UseHttpsRedirection').SecretValueText
+            Write-Host "Test2: $test2"
             foreach ($secret in $secrets) {
                 $name = $secret.Name.Replace('--', '_')
                 $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText 
-                Write-Host "Setting variable: $name with value: $value"
+                Write-Host "Secret: $name = $value"
                 Write-Host "##vso[task.setvariable variable=$name;issecret=true;isOutput=true;]$value"
             }
           azurePowerShellVersion: 'LatestVersion'
@@ -51,7 +55,7 @@ stages:
       ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
       ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
       ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
-      ProxySettings_UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
+      ProxySettings_UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ] #This line is just for debugging, null indicates an error reading the settings
     jobs:
       - job:
         displayName: 'Debugging Job'
