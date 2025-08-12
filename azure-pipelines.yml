@@ -20,12 +20,17 @@ variables:
 
 stages:
   - stage: Init
-    displayName: 'Deal with KeyVault inputs'  
+    displayName: 'Deal with KeyVault inputs' 
+    #outputs:
+    #    ProxySettings_KnownProxies: ProxySettings.KnownProxies
+    #    ProxySettings_AllowedHosts: ProxySettings.AllowedHosts
+    #    ProxySettings_UseForwardedHeadersMiddleware: ProxySettings.UseForwardedHeadersMiddleware
+    #    ProxySettings_UseHttpsRedirection: ProxySettings.UseHttpsRedirection 
     pool:
       vmImage: 'windows-latest'
     jobs:
     - job: FetchSecrets
-      displayName: 'Fetch and Map Key Vault Secrets'
+      displayName: 'Fetch and Map Key Vault Secrets' 
       steps:
       - task: AzurePowerShell@5
         inputs:
@@ -36,7 +41,7 @@ stages:
             foreach ($secret in $secrets) {
                 $name = $secret.Name.Replace('--', '.')
                 $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText
-                Write-Host "##vso[task.setvariable variable=$name;issecret=true;]$value"
+                Write-Host "##vso[task.setvariable variable=$name;issecret=true;isOutput=true;]$value"
             }
           azurePowerShellVersion: 'LatestVersion'
           pwsh: true
@@ -45,10 +50,10 @@ stages:
     displayName: 'Deployment script'
     dependsOn: Init
     variables:
-      ProxySettings.AllowedHosts: $(ProxySettings.AllowedHosts)
-      ProxySettings.KnownProxies: $(ProxySettings.KnownProxies)
-      ProxySettings.UseForwardedHeadersMiddleware: $(ProxySettings.UseForwardedHeadersMiddleware)
-      ProxySettings.UseHttpsRedirection: $(ProxySettings.UseHttpsRedirection)
+      ProxySettings.AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings_KnownProxies'] ]
+      ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.KnownProxies'] ]
+      ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.UseForwardedHeadersMiddleware'] ]
+      ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.UseHttpsRedirection'] ]
     jobs:
       - template: build/dotnet.yml@templates
         parameters:
