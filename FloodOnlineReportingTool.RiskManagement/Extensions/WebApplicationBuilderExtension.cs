@@ -20,18 +20,20 @@ internal static class WebApplicationBuilderExtension
     internal static WebApplicationBuilder AddFORTOptions(this WebApplicationBuilder builder)
     {
         var sectionKeyVault = builder.Configuration.GetSection("FORT").GetSection(KeyVaultOptions.SectionName);
-
         builder.Services
             .Configure<KeyVaultOptions>(sectionKeyVault);
 
-        if (builder.Configuration.GetValue<bool>("UseForwardedHeadersMiddleware"))
+
+        var sectionProxySettings = builder.Configuration.GetSection("FORT").GetSection(ProxyOptions.SectionName);
+        var proxyOptions = sectionProxySettings.Get<ProxyOptions>();
+        if (proxyOptions is not null && proxyOptions.UseForwardedHeadersMiddleware)
         {
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                var currentProxies = builder.Configuration.GetValue<string[]>("KnownProxies");
+                var currentProxies = proxyOptions.KnownProxies;
                 if (currentProxies is not null)
-                { 
+                {
                     foreach (var proxy in currentProxies)
                     {
                         if (IPAddress.TryParse(proxy, out var ipAddress))

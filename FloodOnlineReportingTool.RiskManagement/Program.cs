@@ -1,8 +1,9 @@
-using System.Configuration;
 using FloodOnlineReportingTool.RiskManagement.Data.Data;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using FluentValidation;
+using FORT.Options;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,7 +73,9 @@ else
     app.UseHsts();
 }
 
-if (builder.Configuration.GetValue<bool>("UseHttpsRedirection"))
+var sectionProxySettings = builder.Configuration.GetSection("FORT").GetSection(ProxyOptions.SectionName);
+var proxyOptions = sectionProxySettings.Get<ProxyOptions>();
+if (proxyOptions is not null && proxyOptions.UseHttpsRedirection)
 {
     app.UseHttpsRedirection();
 }
