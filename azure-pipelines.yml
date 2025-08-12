@@ -46,9 +46,10 @@ stages:
     displayName: 'Deployment script'
     dependsOn: Init
     variables:
-      ProxySettings_AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_AllowedHosts'] ]
-      ProxySettings_KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
-      ProxySettings_UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
+      ProxySettings.AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_AllowedHosts'] ]
+      ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
+      ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
+      ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
       ProxySettings_UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
     jobs:
       - job:
