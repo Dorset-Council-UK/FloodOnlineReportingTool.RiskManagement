@@ -44,6 +44,11 @@ stages:
   - stage: Deploy
     displayName: 'Deployment script'
     dependsOn: Init
+    variables:
+      ProxySettings.AllowedHosts: $(ProxySettings.AllowedHosts)
+      ProxySettings.KnownProxies: $(ProxySettings.KnownProxies)
+      ProxySettings.UseForwardedHeadersMiddleware: $(ProxySettings.UseForwardedHeadersMiddleware)
+      ProxySettings.UseHttpsRedirection: $(ProxySettings.UseHttpsRedirection)
     jobs:
       - template: build/dotnet.yml@templates
         parameters:
