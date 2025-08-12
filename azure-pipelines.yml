@@ -21,11 +21,6 @@ variables:
 stages:
   - stage: Init
     displayName: 'Deal with KeyVault inputs' 
-    #outputs:
-    #    ProxySettings_KnownProxies: ProxySettings.KnownProxies
-    #    ProxySettings_AllowedHosts: ProxySettings.AllowedHosts
-    #    ProxySettings_UseForwardedHeadersMiddleware: ProxySettings.UseForwardedHeadersMiddleware
-    #    ProxySettings_UseHttpsRedirection: ProxySettings.UseHttpsRedirection 
     pool:
       vmImage: 'windows-latest'
     jobs:
@@ -33,13 +28,14 @@ stages:
       displayName: 'Fetch and Map Key Vault Secrets' 
       steps:
       - task: AzurePowerShell@5
+        name: setVars  
         inputs:
           azureSubscription: 'Azure Connection'
           ScriptType: 'InlineScript'
           Inline: |
             $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
             foreach ($secret in $secrets) {
-                $name = $secret.Name.Replace('--', '.')
+                $name = $secret.Name.Replace('--', '_')
                 $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText
                 Write-Host "##vso[task.setvariable variable=$name;issecret=true;isOutput=true;]$value"
             }
@@ -50,15 +46,16 @@ stages:
     displayName: 'Deployment script'
     dependsOn: Init
     variables:
-      ProxySettings.AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings_KnownProxies'] ]
-      ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.KnownProxies'] ]
-      ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.UseForwardedHeadersMiddleware'] ]
-      ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['ProxySettings.UseHttpsRedirection'] ]
+      ProxySettings.AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_AllowedHosts'] ]
+      ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
+      ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
+      ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
     jobs:
       - job:
+        displayName: 'Debugging Job'
         steps:
         - script: |
-            echo "Use HTTPS set to $(ProxySettings.UseHttpsRedirection)"
+            echo "Use HTTPS set to $(ProxySettings.UseHttpsRedirection), use HTTPS 2 set to $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]"
           displayName: 'Debugging settings'
 
       - template: build/dotnet.yml@templates
