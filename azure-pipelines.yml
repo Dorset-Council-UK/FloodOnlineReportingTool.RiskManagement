@@ -46,16 +46,16 @@ stages:
     displayName: 'Deployment script'
     dependsOn: Init
     variables:
-      ProxySettings.AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_AllowedHosts'] ]
-      ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
-      ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
-      ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
+      ProxySettings_AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_AllowedHosts'] ]
+      ProxySettings_KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
+      ProxySettings_UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
+      ProxySettings_UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
     jobs:
       - job:
         displayName: 'Debugging Job'
         steps:
         - script: |
-            echo "Use HTTPS set to $(ProxySettings.UseHttpsRedirection), use HTTPS 2 set to $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]"
+            echo "Use HTTPS set to $(ProxySettings_UseHttpsRedirection)"
           displayName: 'Debugging settings'
 
       - template: build/dotnet.yml@templates
