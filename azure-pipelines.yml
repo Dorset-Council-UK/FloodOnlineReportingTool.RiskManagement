@@ -36,7 +36,8 @@ stages:
             $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
             foreach ($secret in $secrets) {
                 $name = $secret.Name.Replace('--', '_')
-                $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText
+                $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText 
+                Write-Host "Setting variable: $name with value: $value"
                 Write-Host "##vso[task.setvariable variable=$name;issecret=true;isOutput=true;]$value"
             }
           azurePowerShellVersion: 'LatestVersion'
