@@ -73,7 +73,7 @@ else
     app.UseHsts();
 }
 
-var sectionProxySettings = builder.Configuration.GetSection("FORT").GetSection(ProxyOptions.SectionName);
+var sectionProxySettings = builder.Configuration.GetSection(ProxyOptions.SectionName);
 var proxyOptions = sectionProxySettings.Get<ProxyOptions>();
 if (proxyOptions is not null && proxyOptions.UseHttpsRedirection)
 {
