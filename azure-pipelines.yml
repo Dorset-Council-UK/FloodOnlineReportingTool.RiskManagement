@@ -20,7 +20,9 @@ variables:
 
 stages:
   - stage: Init
-    displayName: 'Deal with KeyVault inputs'
+    displayName: 'Deal with KeyVault inputs'  
+    pool:
+      vmImage: 'windows-latest'
     jobs:
     - job: FetchSecrets
       displayName: 'Fetch and Map Key Vault Secrets'
