@@ -29,7 +29,7 @@ stages:
       steps:
       - task: AzurePowerShell@5
         inputs:
-          azureSubscription: 'Enterprise Systems (9a828ca3-5f11-4e04-ae91-74125d90d40d)'
+          azureSubscription: 'Azure Connection'
           ScriptType: 'InlineScript'
           Inline: |
             $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
