@@ -34,16 +34,9 @@ stages:
           ScriptType: 'InlineScript'
           Inline: |
             $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
-            $test = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name 'ProxySettings--UseHttpsRedirection'
-            Write-Host "Test: $test"
-            $test2 = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name 'ProxySettings--UseHttpsRedirection').SecretValue
-            Write-Host "Test2: $test2"
             foreach ($secret in $secrets) {
                 $name = $secret.Name.Replace('--', '_')
-                $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText             
-                $value = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto(
-                    [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureValue)
-                )
+                $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText
                 Write-Host "Secret: $name = $value"
                 Write-Host "##vso[task.setvariable variable=$name;issecret=true;isOutput=true;]$value"
             }
