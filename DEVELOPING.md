@@ -14,15 +14,35 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
 ## Getting Started
 
 1. **Clone the repository**:
-   ```shell
-   git clone <repository-url>
-   cd <repository-folder>
-   ```
-
+    ```shell
+    git clone <repository-url>
+    cd <repository-folder>
+    ```
 2. **Create a new branch**:
-   ```shell
-   git checkout -b <branch-name>
-   ```
+    ```shell
+    git checkout -b <branch-name>
+    ```
+3. **Install front-end dependencies**:
+
+    Run the following command in the root folder:
+    ```shell
+    npm install
+    ```
+4. **Set up your secrets**:
+
+    Configure the user secrets file for development. See the "User Secrets and Configuration" section below for details.
+
+5. **Run migrations and seed the database**:
+
+    The database schema and seed data are handled by the data project.
+    Navigate to the solution folder and run the following command:
+    ```shell
+    dotnet ef database update --project "FloodOnlineReportingTool.RiskManagement.Data\FloodOnlineReportingTool.RiskManagement.Data.csproj" --startup-project "FloodOnlineReportingTool.RiskManagement\FloodOnlineReportingTool.RiskManagement.csproj"
+    ```
+    or with PowerShell command:
+    ```powershell
+    Update-Database -Project "FloodOnlineReportingTool.RiskManagement.Data\FloodOnlineReportingTool.RiskManagement.Data.csproj" -StartupProject "FloodOnlineReportingTool.RiskManagement\FloodOnlineReportingTool.RiskManagement.csproj"
+    ```
 
 ## User Secrets and Configuration
 
