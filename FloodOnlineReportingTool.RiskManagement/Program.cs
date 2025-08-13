@@ -7,8 +7,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddFORTOptions()
-    .AddFORTAuthentication();
+    .AddFORTOptions();
 
 var assembly = typeof(Program).Assembly;
 
