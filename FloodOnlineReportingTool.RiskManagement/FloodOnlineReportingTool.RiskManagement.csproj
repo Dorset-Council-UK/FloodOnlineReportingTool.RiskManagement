@@ -23,12 +23,12 @@
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.7" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.7.0" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="3.13.0" />
 		<PackageReference Include="Microsoft.Identity.Web.UI" Version="3.10.0" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
 	</ItemGroup>
