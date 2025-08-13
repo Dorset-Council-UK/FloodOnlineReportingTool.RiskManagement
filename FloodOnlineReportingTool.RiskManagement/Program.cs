@@ -12,7 +12,7 @@ builder
 
 var assembly = typeof(Program).Assembly;
 
-
+builder.Services.AddRiskManagementAuthentication(builder.Configuration);
 
 // Risk Management settings
 var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
