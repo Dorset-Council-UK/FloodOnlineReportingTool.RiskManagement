@@ -4,10 +4,12 @@ using FORT.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Identity.Web;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -20,30 +22,65 @@ internal static class WebApplicationBuilderExtension
     /// <returns></returns>
     internal static WebApplicationBuilder AddFORTOptions(this WebApplicationBuilder builder)
     {
-        var sectionKeyVault = builder.Configuration.GetSection("FORT").GetSection(KeyVaultOptions.SectionName);
-        builder.Services
-            .Configure<KeyVaultOptions>(sectionKeyVault);
+        var proxySection = builder.Configuration
+            .GetSection(ProxyOptions.SectionName);
+        var ProxyOptionsObject = proxySection.Get<ProxyOptions>();
 
-
-        var sectionProxySettings = builder.Configuration.GetSection(ProxyOptions.SectionName);
-        var proxyOptions = sectionProxySettings.Get<ProxyOptions>();
-        if (proxyOptions is not null && proxyOptions.UseForwardedHeadersMiddleware)
+        if (ProxyOptionsObject != null && ProxyOptionsObject.UseForwardedHeadersMiddleware)
         {
-            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            var section = builder.Configuration
+            .GetSection("FORT")
+            .GetSection(KeyVaultOptions.SectionName);
+            var keyVaultOptions = section.Get<KeyVaultOptions>();
+
+            using var x509Store = new X509Store(StoreLocation.LocalMachine);
+            x509Store.Open(OpenFlags.ReadOnly);
+
+            try
             {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                var currentProxies = proxyOptions.KnownProxies;
-                if (currentProxies is not null)
+                var x509Certificate = x509Store.Certificates
+                .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
+                .OfType<X509Certificate2>()
+                .Single();
+
+                var credential = new ClientCertificateCredential(
+                    keyVaultOptions.AzureAd.DirectoryId,
+                    keyVaultOptions.AzureAd.ApplicationId,
+                    x509Certificate);
+
+                var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+
+                KeyVaultSecret proxySecret = sharedClient.GetSecret("ProxySettings--KnownProxies");
+                string proxyString = proxySecret.Value;
+                string[]? proxyOptions = JsonSerializer.Deserialize<string[]>(proxyString);
+
+                if (proxyOptions is not null)
                 {
-                    foreach (var proxy in currentProxies)
+                    builder.Services.Configure<ForwardedHeadersOptions>(options =>
                     {
-                        if (IPAddress.TryParse(proxy, out var ipAddress))
+                        options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+                        string[] currentProxies = proxyOptions;
+                        if (currentProxies is not null)
                         {
-                            options.KnownProxies.Add(ipAddress);
+                            foreach (var proxy in currentProxies)
+                            {
+                                if (IPAddress.TryParse(proxy, out var ipAddress))
+                                {
+                                    options.KnownProxies.Add(ipAddress);
+                                }
+                            }
                         }
-                    }
+                    });
                 }
-            });
+                else
+                {
+                    throw new InvalidOperationException("Known proxies are missing");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Shared Key Vault access failed", ex);
+            }
         }
 
         return builder;
@@ -99,6 +136,11 @@ internal static class WebApplicationBuilderExtension
 
         using var x509Store = new X509Store(StoreLocation.LocalMachine);
         x509Store.Open(OpenFlags.ReadOnly);
+ 
+        if (string.IsNullOrWhiteSpace(keyVaultOptions?.SharedVault) || string.IsNullOrWhiteSpace(keyVaultOptions?.Name))
+        {
+            return builder;
+        }
 
         var x509Certificate = x509Store.Certificates
             .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
@@ -106,28 +148,23 @@ internal static class WebApplicationBuilderExtension
             .Single();
 
         //This KeyVault has settings shared over multiple projects
-        if (string.IsNullOrWhiteSpace(keyVaultOptions?.SharedVault))
-        {
-            return builder;
-        }
-
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"),
             new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
 
-
         //This KeyVault is specific to this project
-        if (string.IsNullOrWhiteSpace(keyVaultOptions?.Name))
-        {
-            return builder;
-        }
-
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
             new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
 
+        TestKeyVaults(keyVaultOptions, x509Certificate);
 
-        // Validate access manually
+        return builder;
+    }
+
+    private static void TestKeyVaults(KeyVaultOptions keyVaultOptions, X509Certificate2 x509Certificate)
+    {
+        //Generate a credential and use it to test for the health check settings in each KeyVault
         var credential = new ClientCertificateCredential(
             keyVaultOptions.AzureAd.DirectoryId,
             keyVaultOptions.AzureAd.ApplicationId,
@@ -152,7 +189,5 @@ internal static class WebApplicationBuilderExtension
         {
             throw new InvalidOperationException("Project Key Vault access failed", ex);
         }
-
-        return builder;
     }
 }
