@@ -28,59 +28,75 @@ internal static class WebApplicationBuilderExtension
 
         if (ProxyOptionsObject != null && ProxyOptionsObject.UseForwardedHeadersMiddleware)
         {
-            var section = builder.Configuration
-            .GetSection("FORT")
-            .GetSection(KeyVaultOptions.SectionName);
-            var keyVaultOptions = section.Get<KeyVaultOptions>();
-
-            using var x509Store = new X509Store(StoreLocation.LocalMachine);
-            x509Store.Open(OpenFlags.ReadOnly);
-
-            try
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
-                var x509Certificate = x509Store.Certificates
-                .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
-                .OfType<X509Certificate2>()
-                .Single();
-
-                var credential = new ClientCertificateCredential(
-                    keyVaultOptions.AzureAd.DirectoryId,
-                    keyVaultOptions.AzureAd.ApplicationId,
-                    x509Certificate);
-
-                var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
-
-                KeyVaultSecret proxySecret = sharedClient.GetSecret("ProxySettings--KnownProxies");
-                string proxyString = proxySecret.Value;
-                string[]? proxyOptions = JsonSerializer.Deserialize<string[]>(proxyString);
-
-                if (proxyOptions is not null)
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+                string[] currentProxies = ProxyOptionsObject.KnownProxies;
+                if (currentProxies is not null)
                 {
-                    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+                    foreach (var proxy in currentProxies)
                     {
-                        options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                        string[] currentProxies = proxyOptions;
-                        if (currentProxies is not null)
+                        if (IPAddress.TryParse(proxy, out var ipAddress))
                         {
-                            foreach (var proxy in currentProxies)
-                            {
-                                if (IPAddress.TryParse(proxy, out var ipAddress))
-                                {
-                                    options.KnownProxies.Add(ipAddress);
-                                }
-                            }
+                            options.KnownProxies.Add(ipAddress);
                         }
-                    });
+                    }
                 }
-                else
-                {
-                    throw new InvalidOperationException("Known proxies are missing");
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Shared Key Vault access failed", ex);
-            }
+            });
+
+            //    var section = builder.Configuration
+            //    .GetSection("FORT")
+            //    .GetSection(KeyVaultOptions.SectionName);
+            //    var keyVaultOptions = section.Get<KeyVaultOptions>();
+
+            //    using var x509Store = new X509Store(StoreLocation.LocalMachine);
+            //    x509Store.Open(OpenFlags.ReadOnly);
+
+            //    try
+            //    {
+            //        var x509Certificate = x509Store.Certificates
+            //        .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
+            //        .OfType<X509Certificate2>()
+            //        .Single();
+
+            //        var credential = new ClientCertificateCredential(
+            //            keyVaultOptions.AzureAd.DirectoryId,
+            //            keyVaultOptions.AzureAd.ApplicationId,
+            //            x509Certificate);
+
+            //        var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+
+            //        KeyVaultSecret proxySecret = sharedClient.GetSecret("ProxySettings--KnownProxies");
+            //        string proxyString = proxySecret.Value;
+            //        string[]? proxyOptions = JsonSerializer.Deserialize<string[]>(proxyString);
+
+            //        if (proxyOptions is not null)
+            //        {
+            //            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            //            {
+            //                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+            //                string[] currentProxies = proxyOptions;
+            //                if (currentProxies is not null)
+            //                {
+            //                    foreach (var proxy in currentProxies)
+            //                    {
+            //                        if (IPAddress.TryParse(proxy, out var ipAddress))
+            //                        {
+            //                            options.KnownProxies.Add(ipAddress);
+            //                        }
+            //                    }
+            //                }
+            //            });
+            //        }
+            //        else
+            //        {
+            //            throw new InvalidOperationException("Known proxies are missing");
+            //        }
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        throw new InvalidOperationException("Shared Key Vault access failed", ex);
+            //    }
         }
 
         return builder;
