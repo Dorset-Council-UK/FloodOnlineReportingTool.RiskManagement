@@ -109,6 +109,12 @@ internal static class WebApplicationBuilderExtension
             .OfType<X509Certificate2>()
             .Single();
 
+        //This KeyVault has settings shared over multiple projects
+        builder.Configuration.AddAzureKeyVault(
+            new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"),
+            new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
+
+        //This KeyVault is specific to this project
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
             new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));

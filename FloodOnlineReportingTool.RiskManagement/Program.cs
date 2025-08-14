@@ -8,9 +8,10 @@ using System.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 builder
+    .AddFORTAzureKeyVault()
     .AddFORTOptions()
-    .AddFORTAuthentication()
-    .AddFORTAzureKeyVault();
+    .AddFORTAuthentication();
+    
 
 var assembly = typeof(Program).Assembly;
 
