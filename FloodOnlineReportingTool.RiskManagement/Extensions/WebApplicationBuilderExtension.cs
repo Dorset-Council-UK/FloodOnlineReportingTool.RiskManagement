@@ -133,15 +133,15 @@ internal static class WebApplicationBuilderExtension
             keyVaultOptions.AzureAd.ApplicationId,
             x509Certificate);
 
-        //try
-        //{
-        //    var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
-        //    var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
-        //}
-        //catch (Exception ex)
-        //{
-        //    throw new InvalidOperationException("Shared Key Vault access failed", ex);
-        //}
+        try
+        {
+            var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+            var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Shared Key Vault access failed", ex);
+        }
 
         try
         {
