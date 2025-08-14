@@ -134,13 +134,19 @@ internal static class WebApplicationBuilderExtension
         {
             var sharedEnumerator = sharedClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
             sharedEnumerator.MoveNextAsync().GetAwaiter().GetResult();
-
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Shared Key Vault access failed", ex);
+        }
+        try
+        {
             var projectEnumerator = projectClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
             projectEnumerator.MoveNextAsync().GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Key Vault access failed", ex);
+            throw new InvalidOperationException("Project Key Vault access failed", ex);
         }
 
         return builder;
