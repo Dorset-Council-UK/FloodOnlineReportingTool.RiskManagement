@@ -97,11 +97,6 @@ internal static class WebApplicationBuilderExtension
 
         var keyVaultOptions = section.Get<KeyVaultOptions>();
 
-        if (string.IsNullOrWhiteSpace(keyVaultOptions?.Name))
-        {
-            return builder;
-        }
-
         using var x509Store = new X509Store(StoreLocation.LocalMachine);
         x509Store.Open(OpenFlags.ReadOnly);
 
@@ -111,11 +106,22 @@ internal static class WebApplicationBuilderExtension
             .Single();
 
         //This KeyVault has settings shared over multiple projects
+        if (string.IsNullOrWhiteSpace(keyVaultOptions?.SharedVault))
+        {
+            return builder;
+        }
+
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"),
             new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
 
+
         //This KeyVault is specific to this project
+        if (string.IsNullOrWhiteSpace(keyVaultOptions?.Name))
+        {
+            return builder;
+        }
+
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
             new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
@@ -127,13 +133,10 @@ internal static class WebApplicationBuilderExtension
             keyVaultOptions.AzureAd.ApplicationId,
             x509Certificate);
 
-        var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
-        var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
-
         //try
         //{
-        //    var sharedEnumerator = sharedClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
-        //    sharedEnumerator.MoveNextAsync().GetAwaiter().GetResult();
+        //    var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+        //    var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
         //}
         //catch (Exception ex)
         //{
@@ -142,8 +145,8 @@ internal static class WebApplicationBuilderExtension
 
         try
         {
-            var projectEnumerator = projectClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
-            projectEnumerator.MoveNextAsync().GetAwaiter().GetResult();
+            var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
+            var projectHealthCheck = projectClient.GetSecret("HealthCheckSecret").Value;
         }
         catch (Exception ex)
         {
