@@ -31,6 +31,7 @@ internal static class WebApplicationBuilderExtension
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+                //KeyVault secrets only map to string rather than string[] so we need to cast it here
                 string[] currentProxies = JsonSerializer.Deserialize<string[]>(ProxyOptionsObject.KnownProxies);
                 if (currentProxies is not null)
                 {
@@ -43,60 +44,6 @@ internal static class WebApplicationBuilderExtension
                     }
                 }
             });
-
-            //    var section = builder.Configuration
-            //    .GetSection("FORT")
-            //    .GetSection(KeyVaultOptions.SectionName);
-            //    var keyVaultOptions = section.Get<KeyVaultOptions>();
-
-            //    using var x509Store = new X509Store(StoreLocation.LocalMachine);
-            //    x509Store.Open(OpenFlags.ReadOnly);
-
-            //    try
-            //    {
-            //        var x509Certificate = x509Store.Certificates
-            //        .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
-            //        .OfType<X509Certificate2>()
-            //        .Single();
-
-            //        var credential = new ClientCertificateCredential(
-            //            keyVaultOptions.AzureAd.DirectoryId,
-            //            keyVaultOptions.AzureAd.ApplicationId,
-            //            x509Certificate);
-
-            //        var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
-
-            //        KeyVaultSecret proxySecret = sharedClient.GetSecret("ProxySettings--KnownProxies");
-            //        string proxyString = proxySecret.Value;
-            //        string[]? proxyOptions = JsonSerializer.Deserialize<string[]>(proxyString);
-
-            //        if (proxyOptions is not null)
-            //        {
-            //            builder.Services.Configure<ForwardedHeadersOptions>(options =>
-            //            {
-            //                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-            //                string[] currentProxies = proxyOptions;
-            //                if (currentProxies is not null)
-            //                {
-            //                    foreach (var proxy in currentProxies)
-            //                    {
-            //                        if (IPAddress.TryParse(proxy, out var ipAddress))
-            //                        {
-            //                            options.KnownProxies.Add(ipAddress);
-            //                        }
-            //                    }
-            //                }
-            //            });
-            //        }
-            //        else
-            //        {
-            //            throw new InvalidOperationException("Known proxies are missing");
-            //        }
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        throw new InvalidOperationException("Shared Key Vault access failed", ex);
-            //    }
         }
 
         return builder;
@@ -117,16 +64,6 @@ internal static class WebApplicationBuilderExtension
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
             })
             .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("FORT").GetSection("AzureAd"));
-
-        //builder.Services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
-        //{
-        //    options.Events.OnRedirectToIdentityProvider = context =>
-        //    {
-        //        context.ProtocolMessage.RedirectUri = "https://gi-staging.dorsetcouncil.gov.uk/floodriskmanagement/signin-oidc";
-        //        return Task.CompletedTask;
-        //    };
-
-        //});
 
         builder.Services.AddAuthorization(options =>
             {
@@ -158,6 +95,7 @@ internal static class WebApplicationBuilderExtension
             return builder;
         }
 
+        //If we got to this point then we have KeyVaults to load. 
         var x509Certificate = x509Store.Certificates
             .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
             .OfType<X509Certificate2>()
