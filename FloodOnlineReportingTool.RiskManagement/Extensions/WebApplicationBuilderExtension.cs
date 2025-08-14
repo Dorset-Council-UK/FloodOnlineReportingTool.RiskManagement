@@ -1,4 +1,5 @@
 ﻿using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using FORT.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -118,6 +119,29 @@ internal static class WebApplicationBuilderExtension
         builder.Configuration.AddAzureKeyVault(
             new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
             new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
+
+
+        // Validate access manually
+        var credential = new ClientCertificateCredential(
+            keyVaultOptions.AzureAd.DirectoryId,
+            keyVaultOptions.AzureAd.ApplicationId,
+            x509Certificate);
+
+        var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+        var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
+
+        try
+        {
+            var sharedEnumerator = sharedClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
+            sharedEnumerator.MoveNextAsync().GetAwaiter().GetResult();
+
+            var projectEnumerator = projectClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
+            projectEnumerator.MoveNextAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Key Vault access failed", ex);
+        }
 
         return builder;
     }
