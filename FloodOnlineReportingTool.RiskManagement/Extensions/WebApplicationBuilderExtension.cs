@@ -130,15 +130,16 @@ internal static class WebApplicationBuilderExtension
         var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
         var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
 
-        try
-        {
-            var sharedEnumerator = sharedClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
-            sharedEnumerator.MoveNextAsync().GetAwaiter().GetResult();
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Shared Key Vault access failed", ex);
-        }
+        //try
+        //{
+        //    var sharedEnumerator = sharedClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
+        //    sharedEnumerator.MoveNextAsync().GetAwaiter().GetResult();
+        //}
+        //catch (Exception ex)
+        //{
+        //    throw new InvalidOperationException("Shared Key Vault access failed", ex);
+        //}
+
         try
         {
             var projectEnumerator = projectClient.GetPropertiesOfSecretsAsync().GetAsyncEnumerator();
