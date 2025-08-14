@@ -13,74 +13,28 @@ resources:
       type: git
       name: "Web Development/Pipelines"
       ref: refs/heads/main
+jobs:
+  - template: build/dotnet.yml@templates
+    parameters:
+      prebuildSteps:
+        - task: Npm@1
+          inputs:
+            command: "install"
+            workingDir: "FloodOnlineReportingTool.RiskManagement"
+        - task: Npm@1
+          displayName: "Webpack Build (prod)"
+          inputs:
+            command: "custom"
+            customCommand: "run build"
+            workingDir: "FloodOnlineReportingTool.RiskManagement"
 
-
-variables:
-- group: dc-settings  # Static variable group with dot-notated keys
-
-stages:
-  - stage: Init
-    displayName: 'Deal with KeyVault inputs' 
-    pool:
-      vmImage: 'windows-latest'
-    jobs:
-    - job: FetchSecrets
-      displayName: 'Fetch and Map Key Vault Secrets' 
-      steps:
-      - task: AzurePowerShell@5
-        name: setVars  
-        inputs:
-          azureSubscription: 'GIS Dev App Server'
-          ScriptType: 'InlineScript'
-          Inline: |
-            $secrets = Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings'
-            foreach ($secret in $secrets) {
-                $name = $secret.Name.Replace('--', '_')
-                $value = (Get-AzKeyVaultSecret -VaultName 'DC-Common-appSettings' -Name $secret.Name).SecretValueText
-                Write-Host "Secret: $name = $($value.Length)"
-                Write-Host "##vso[task.setvariable variable=$name;issecret=true;isOutput=true;]$value"
-            }
-          azurePowerShellVersion: 'LatestVersion'
-          pwsh: true
-
-  - stage: Deploy
-    displayName: 'Deployment script'
-    dependsOn: Init
-    variables:
-      ProxySettings.AllowedHosts: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_AllowedHosts'] ]
-      ProxySettings.KnownProxies: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_KnownProxies'] ]
-      ProxySettings.UseForwardedHeadersMiddleware: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseForwardedHeadersMiddleware'] ]
-      ProxySettings.UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ]
-      ProxySettings_UseHttpsRedirection: $[ stageDependencies.Init.FetchSecrets.outputs['setVars.ProxySettings_UseHttpsRedirection'] ] #This line is just for debugging, null indicates an error reading the settings
-    jobs:
-      - job:
-        displayName: 'Debugging Job'
-        steps:
-        - script: |
-            echo "Use HTTPS set to $(ProxySettings_UseHttpsRedirection)"
-          displayName: 'Debugging settings'
-
-      - template: build/dotnet.yml@templates
-        parameters:
-          prebuildSteps:
-            - task: Npm@1
-              inputs:
-                command: "install"
-                workingDir: "FloodOnlineReportingTool.RiskManagement"
-            - task: Npm@1
-              displayName: "Webpack Build (prod)"
-              inputs:
-                command: "custom"
-                customCommand: "run build"
-                workingDir: "FloodOnlineReportingTool.RiskManagement"
-
-      - template: deploy/iis.yml@templates
-        parameters:
-          environment: "staging"
-          websiteName: "gi-staging"
-          virtualApplication: "floodriskmanagement"
-          variableGroups: 
-            - "fort-staging-properties"
-          projectName: "FloodOnlineReportingTool.RiskManagement"
-          dependsOn: build
-   
+  - template: deploy/iis.yml@templates
+    parameters:
+      environment: "staging"
+      websiteName: "gi-staging"
+      virtualApplication: "floodriskmanagement"
+      variableGroups: 
+        - "fort-staging-properties"
+        - "dc-settings"
+      projectName: "FloodOnlineReportingTool.RiskManagement"
+      dependsOn: build
