@@ -31,7 +31,7 @@ internal static class WebApplicationBuilderExtension
             builder.Services.Configure<ForwardedHeadersOptions>(options =>
             {
                 options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                string[] currentProxies = ProxyOptionsObject.KnownProxies;
+                string[] currentProxies = JsonSerializer.Deserialize<string[]>(ProxyOptionsObject.KnownProxies);
                 if (currentProxies is not null)
                 {
                     foreach (var proxy in currentProxies)
