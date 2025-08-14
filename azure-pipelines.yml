@@ -35,6 +35,5 @@ jobs:
       virtualApplication: "floodriskmanagement"
       variableGroups: 
         - "fort-staging-properties"
-        - "dc-settings"
       projectName: "FloodOnlineReportingTool.RiskManagement"
       dependsOn: build
