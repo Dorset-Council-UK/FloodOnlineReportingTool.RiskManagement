@@ -34,6 +34,6 @@ public partial class Index(IGdsJsInterop gdsJs)
 
     private async Task OnValidSubmit()
     {
-        string lala = "po";
+        throw new NotImplementedException();
     }
 }
