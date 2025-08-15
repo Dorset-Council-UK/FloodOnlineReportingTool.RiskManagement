@@ -9,6 +9,7 @@ internal static class AuthenticationExtensions
 {
     /// <summary>
     /// Configures authentication, authorization and policies.
+    /// </summary>
     internal static IServiceCollection AddRiskManagementAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var section = configuration
