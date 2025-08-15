@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Data
 {
-    public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> options) : DbContext(options), IRiskManagementDbContext
+    public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> options) : DbContext(options)
     {
         public DbSet<FloodEvent> FloodEvents { get; set; }
         public DbSet<ResponsibleAuthority> ResponsibleAuthorities { get; set; }

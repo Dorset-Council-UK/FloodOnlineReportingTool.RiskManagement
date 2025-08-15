@@ -1,7 +1,7 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Data;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using FluentValidation;
-using FORT.Options;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 
@@ -9,13 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .AddFORTAzureKeyVault()
-    .AddFORTOptions()
-    .AddFORTAuthentication();
-    
+    .AddFORTOptions();    
 
 var assembly = typeof(Program).Assembly;
 
-
+builder.Services.AddRiskManagementAuthentication(builder.Configuration);
 
 // Risk Management settings
 var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);

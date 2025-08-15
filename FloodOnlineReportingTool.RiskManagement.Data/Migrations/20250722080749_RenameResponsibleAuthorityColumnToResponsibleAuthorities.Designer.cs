@@ -12,34 +12,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 {
     [DbContext(typeof(RiskManagementDbContext))]
-    [Migration("20250805155443_Initial Commit")]
-    partial class InitialCommit
+    [Migration("20250722080749_RenameResponsibleAuthorityColumnToResponsibleAuthorities")]
+    partial class RenameResponsibleAuthorityColumnToResponsibleAuthorities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("fortriskmanagement")
+                .HasDefaultSchema("riskmanagement")
                 .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEventResponsibleAuthority", b =>
-                {
-                    b.Property<int>("FloodEventId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("ResponsibleAuthorityId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("FloodEventId", "ResponsibleAuthorityId");
-
-                    b.HasIndex("ResponsibleAuthorityId");
-
-                    b.ToTable("FloodEventResponsibleAuthorities", "fortriskmanagement");
-                });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.ResponsibleAuthority", b =>
                 {
@@ -52,7 +37,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ResponsibleAuthorities", "fortriskmanagement");
+                    b.ToTable("ResponsibleAuthorities", "riskmanagement");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Models.FloodEvent", b =>
@@ -77,35 +62,28 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<Guid?>("ResponsibleAuthoritesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ResponsibleAuthority")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ResponsibleAuthorityOther")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("FloodEvents", "fortriskmanagement");
-                });
+                    b.HasIndex("ResponsibleAuthoritesId");
 
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEventResponsibleAuthority", b =>
-                {
-                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Models.FloodEvent", "FloodEvent")
-                        .WithMany("ResponsibleAuthorites")
-                        .HasForeignKey("FloodEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.ResponsibleAuthority", "ResponsibleAuthority")
-                        .WithMany()
-                        .HasForeignKey("ResponsibleAuthorityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FloodEvent");
-
-                    b.Navigation("ResponsibleAuthority");
+                    b.ToTable("FloodEvents", "riskmanagement");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Models.FloodEvent", b =>
                 {
+                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.ResponsibleAuthority", "ResponsibleAuthorites")
+                        .WithMany()
+                        .HasForeignKey("ResponsibleAuthoritesId");
+
                     b.Navigation("ResponsibleAuthorites");
                 });
 #pragma warning restore 612, 618

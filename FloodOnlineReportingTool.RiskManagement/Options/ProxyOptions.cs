@@ -1,4 +1,4 @@
-﻿namespace FORT.Options;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Options;
 
 public record ProxyOptions
 {

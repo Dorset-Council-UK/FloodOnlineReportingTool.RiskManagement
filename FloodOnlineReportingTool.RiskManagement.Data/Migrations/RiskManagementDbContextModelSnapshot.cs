@@ -17,7 +17,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("fortriskmanagement")
+                .HasDefaultSchema("riskmanagement")
                 .HasAnnotation("ProductVersion", "9.0.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -35,7 +35,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasIndex("ResponsibleAuthorityId");
 
-                    b.ToTable("FloodEventResponsibleAuthorities", "fortriskmanagement");
+                    b.ToTable("FloodEventResponsibleAuthorities", "riskmanagement");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.ResponsibleAuthority", b =>
@@ -49,7 +49,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ResponsibleAuthorities", "fortriskmanagement");
+                    b.ToTable("ResponsibleAuthorities", "riskmanagement");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Models.FloodEvent", b =>
@@ -79,7 +79,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FloodEvents", "fortriskmanagement");
+                    b.ToTable("FloodEvents", "riskmanagement");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEventResponsibleAuthority", b =>

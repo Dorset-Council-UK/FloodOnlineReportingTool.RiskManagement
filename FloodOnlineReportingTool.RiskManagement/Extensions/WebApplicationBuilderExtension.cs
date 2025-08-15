@@ -1,12 +1,7 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
-using FORT.Options;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.DataProtection;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Identity.Web;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
@@ -45,33 +40,6 @@ internal static class WebApplicationBuilderExtension
                 }
             });
         }
-
-        return builder;
-    }
-
-    /// <summary>
-    /// Add the Microsoft Identity Web App authentication
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <returns></returns>
-    internal static WebApplicationBuilder AddFORTAuthentication(this WebApplicationBuilder builder)
-    {
-
-        // Add services
-        builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-            })
-            .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("FORT").GetSection("AzureAd"));
-
-        builder.Services.AddAuthorization(options =>
-            {
-                options.FallbackPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-            })
-            .AddCascadingAuthenticationState();
 
         return builder;
     }
