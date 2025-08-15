@@ -12,6 +12,7 @@
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" Version="9.0.0" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
+		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
 		<PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="1.0.0" />
 		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.0.6" />

@@ -1,13 +1,15 @@
-using System.Configuration;
 using FloodOnlineReportingTool.RiskManagement.Data.Data;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using FluentValidation;
+using FORT.Options;
 using Microsoft.EntityFrameworkCore;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder
-    .AddFORTOptions();
+    .AddFORTAzureKeyVault()
+    .AddFORTOptions();    
 
 var assembly = typeof(Program).Assembly;
 
@@ -27,7 +29,7 @@ builder.Services.AddRiskManagementHealthChecks(messagingSettings);
 builder.Services.AddMessageSystem(messagingSettings);
 
 // Configure the database context
-var connectionString = builder.Configuration.GetConnectionString("RiskManagement");
+var connectionString = builder.Configuration.GetConnectionString("FloodReportingRiskManagement");
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new ConfigurationErrorsException("Connection string was empty");
@@ -37,7 +39,7 @@ builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
 {
     options.UseNpgsql(connectionString, x =>
     {
-        x.MigrationsHistoryTable("__EFMigrationsHistory", "riskmanagement");
+        x.MigrationsHistoryTable("__EFMigrationsHistory", "fortriskmanagement");
     });
 
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
@@ -70,7 +72,9 @@ else
     app.UseHsts();
 }
 
-if (builder.Configuration.GetValue<bool>("UseHttpsRedirection"))
+var sectionProxySettings = builder.Configuration.GetSection(ProxyOptions.SectionName);
+var proxyOptions = sectionProxySettings.Get<ProxyOptions>();
+if (proxyOptions is not null && proxyOptions.UseHttpsRedirection)
 {
     app.UseHttpsRedirection();
 }
