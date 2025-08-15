@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+﻿using FloodOnlineReportingTool.RiskManagement.Authorization;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 
 namespace Microsoft.AspNetCore.Builder;
@@ -22,11 +23,7 @@ internal static class AuthenticationExtensions
         // Setup Authorization
         services
             .AddAuthorizationBuilder()
-            .AddFallbackPolicy("fallback_policy", options =>
-            {
-                options.RequireAuthenticatedUser();
-            })
-            .AddDefaultPolicy("default_policy", options =>
+            .AddFallbackPolicy(PolicyNames.Admin, options =>
             {
                 options.RequireAuthenticatedUser();
             });
