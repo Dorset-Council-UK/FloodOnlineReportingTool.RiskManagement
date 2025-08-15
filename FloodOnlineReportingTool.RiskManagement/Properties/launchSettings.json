@@ -3,7 +3,7 @@
     "http": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:5171/risk-management",
+      "launchUrl": "http://localhost:5171/floodriskmanagement",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
