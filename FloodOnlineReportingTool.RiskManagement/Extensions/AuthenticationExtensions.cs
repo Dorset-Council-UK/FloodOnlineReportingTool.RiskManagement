@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Authorization;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 
@@ -10,10 +11,14 @@ internal static class AuthenticationExtensions
     /// Configures authentication, authorization and policies.
     internal static IServiceCollection AddRiskManagementAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
+        var section = configuration
+            .GetSection("FORT")
+            .GetSection(KeyVaultAzureAdOptions.SectionName);
+
         // Setup Authentication
         services
             .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(configuration);
+            .AddMicrosoftIdentityWebApp(section);
 
         ConfigureResilientOpenIdConnect(services);
 
