@@ -17,6 +17,8 @@
     <Authorized>
         <p>Logged in as <a class="govuk-link" Href="account/myaccount">@authContext.User.Identity?.Name</a> </p>
 
+        <h1>It worked!</h1>
+
         <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch">
             <FluentValidationValidator />
             <GdsErrorSummary />
