@@ -1,0 +1,31 @@
+### Trigger Azure DevOps YAML Pipeline
+
+POST https://dev.azure.com/DorsetCouncilDevOps/Flood%20Reporting%20Tool%20-%20Risk%20Management/_apis/pipelines/29/runs?api-version=7.0
+Authorization: Basic NnNWUFZnOG5QQ1RZQ3RFbjh2V0g0aDVrdnljZUJLNXNHTjFhb3RaVjAwdUlzZ3UyREpuaEpRUUo5OUJIQUNBQUFBQVprM1JpQUFBU0FaRE8yWFp0
+Content-Type: application/json
+
+{
+  "resources": {
+    "repositories": {
+      "self": {
+        "refName": "refs/heads/main"
+      }
+    }
+  }
+}
+
+
+###
+POST https://dev.azure.com/DorsetCouncilDevOps/Flood%20Reporting%20Tool%20-%20Risk%20Management/_apis/build/builds?api-version=6.0
+Authorization: Basic NnNWUFZnOG5QQ1RZQ3RFbjh2V0g0aDVrdnljZUJLNXNHTjFhb3RaVjAwdUlzZ3UyREpuaEpRUUo5OUJIQUNBQUFBQVprM1JpQUFBU0FaRE8yWFp0
+Content-Type: application/json
+
+{
+  "definition": {
+    "id": 29
+  }
+}
+
+
+###
+#6sVPVg8nPCTYCtEn8vWH4h5kvyceBK5sGN1aotZV00uIsgu2DJnhJQQJ99BHACAAAAAZk3RiAAASAZDO2XZt
