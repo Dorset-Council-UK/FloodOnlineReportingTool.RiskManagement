@@ -1,7 +1,8 @@
+# Use a GitHub release with tag to publish to an environment via Continuous Integration. 
 trigger:
   tags:
     include:
-      - v* # Run on all tags starting with 'v'
+      - ^v.*-rc\d+$ # Run on all tags starting with 'v' and ending with release candidate 'rc1', 'rc2' etc
 pr:
   branches:
     include:
