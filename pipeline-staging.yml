@@ -8,6 +8,9 @@
 #    include:
 #      - main
 
+trigger: none
+pr: none
+
 resources:
   repositories:
     - repository: templates
