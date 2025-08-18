@@ -1,16 +1,4 @@
 # Use a GitHub release with tag to publish to an environment via Continuous Integration. 
-#trigger:
-#  tags:
-#    include:
-#      - v*         # Include all tags starting with 'v'
-#    exclude:
-#      - v*-rc*     # Exclude tags ending with '-rc' followed by anything
-
-#pr:
-#  branches:
-#    include:
-#      - main
-
 
 trigger: none
 pr: none 

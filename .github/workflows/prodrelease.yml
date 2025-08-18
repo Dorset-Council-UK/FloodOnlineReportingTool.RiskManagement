@@ -7,7 +7,7 @@ on:
 
 jobs:
   trigger-azure-pipeline:
-    if: startsWith(github.event.release.tag_name, 'v') && !matches(github.event.release.tag_name, '.*-rc[0-9]+$')
+    if: startsWith(github.event.release.tag_name, 'v') && !endsWith(github.event.release.tag_name, '.*-rc[0-9]+$')
 
     runs-on: ubuntu-latest
     steps:
