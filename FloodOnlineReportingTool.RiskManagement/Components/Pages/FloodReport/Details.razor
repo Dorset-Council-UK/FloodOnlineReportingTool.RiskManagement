@@ -1,0 +1,50 @@
+﻿@page "/flood-report/details/{FloodEventId:guid}"
+@using FloodOnlineReportingTool.RiskManagement.Data.Models;
+@using FloodOnlineReportingTool.RiskManagement.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject IApiService apiService;
+
+
+<PageTitle>Flood report</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+
+        <h1 class="govuk-heading-xl">Flood report @FloodEventId</h1>
+
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+        @if(Report is not null)
+        {
+            <p>Here be some flood data</p>
+            <p>Flood report ID: @Report.Id</p>
+            <p>Flood sligibility check ID: @Report.EligibilityCheckId</p>
+            <p>Flood start date: @Report.ImpactStartUtc?.ToString("d")</p>
+        }
+        else
+        {
+            <GdsWarning Text="Flood report could not be found">
+            </GdsWarning>
+        }
+    </Authorized>
+</AuthorizeView>
+@code{
+    bool _isLoading = false;
+    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
+    new ("", "Home"),
+    ];
+
+    [Parameter]
+    public required Guid FloodEventId { get; set; }
+
+    private FloodReport? Report { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        Report = await apiService.GetReportByIdAsync(FloodEventId.ToString());
+        _isLoading = false;
+
+    }
+}

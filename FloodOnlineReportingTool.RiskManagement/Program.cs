@@ -1,6 +1,7 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Data;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using FloodOnlineReportingTool.RiskManagement.Settings;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
@@ -19,6 +20,12 @@ builder.Services.AddRiskManagementAuthentication(builder.Configuration);
 var section = builder.Configuration.GetSection(RiskManagementSettings.SectionName);
 builder.Services.Configure<RiskManagementSettings>(section);
 var settings = section.Get<RiskManagementSettings>();
+
+// API settings
+var apiSection = builder.Configuration.GetSection(ApiSettings.SectionName);
+builder.Services.Configure<ApiSettings>(apiSection);
+var apiSettings = apiSection.Get<ApiSettings>() ?? new ApiSettings { BaseUrl = "https://localhost:7065/" };
+
 // Configure all the settings.
 var (riskManagementSettings, messagingSettings) = builder.Services.AddRiskManagementSettings(builder.Configuration);
 
@@ -27,6 +34,18 @@ builder.Services.AddRiskManagementHealthChecks(messagingSettings);
 
 // Message system
 builder.Services.AddMessageSystem(messagingSettings);
+
+//API client - improved configuration with resilience and configurable settings
+builder.Services.AddHttpClient("ApiClient", client =>
+{
+    client.BaseAddress = new Uri(apiSettings.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(apiSettings.TimeoutSeconds);
+    client.DefaultRequestHeaders.Add("User-Agent", apiSettings.UserAgent);
+})
+.AddStandardResilienceHandler();
+
+// Register API service
+builder.Services.AddScoped<IApiService, ApiService>();
 
 // Configure the database context
 var connectionString = builder.Configuration.GetConnectionString("FloodReportingRiskManagement");

@@ -17,13 +17,17 @@
     <Authorized>
         <p>Logged in as <a class="govuk-link" Href="account/myaccount">@authContext.User.Identity?.Name</a> </p>
 
-        <h1>It worked!</h1>
-
-        <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="TopSearch">
+        <EditForm EditContext="_editContext" OnSubmit="OnValidSubmit" FormName="TopSearch">
             <FluentValidationValidator />
             <GdsErrorSummary />
+            <GdsFormGroup For="@(() => Model.SearchText)">
+                <GdsLabel Text="Find a flood event or property record" />
+                <GdsErrorMessage />
+                <GdsInputText @bind-Value=Model.SearchText class="govuk-input govuk-input--width-20" />
+                <button class="govuk-button govuk-button--secondary" data-module="govuk-button" type="submit" enterkeyhint="Search">Search</button>
 
-            <Searchbox For="@(() => Model.SearchText)" LabelText="Find a flood event or property record" />
+            </GdsFormGroup>
+
 
         </EditForm>
 
