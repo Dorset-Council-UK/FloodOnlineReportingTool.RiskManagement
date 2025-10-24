@@ -1,10 +1,9 @@
 ﻿using GdsBlazorComponents;
 
-namespace FloodOnlineReportingTool.RiskManagement.Models.Searches
+namespace FloodOnlineReportingTool.RiskManagement.Models.Searches;
+
+public class HomeSearch
 {
-    public class HomeSearch
-    {
-        [GdsFieldErrorClass(GdsFieldTypes.Input)]
-        public string? SearchText { get; set; }
-    }
+    [GdsFieldErrorClass(GdsFieldTypes.Input)]
+    public string? SearchText { get; set; }
 }
