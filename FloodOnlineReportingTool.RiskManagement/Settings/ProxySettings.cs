@@ -1,6 +1,6 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Options;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Settings;
 
-public record ProxyOptions
+public class ProxySettings
 {
     public const string SectionName = "ProxySettings";
 
@@ -8,5 +8,4 @@ public record ProxyOptions
     public string KnownProxies { get; init; } = "";
     public string AllowedHosts { get; set; } = "";
     public bool UseHttpsRedirection { get; set; }
-    
 }
