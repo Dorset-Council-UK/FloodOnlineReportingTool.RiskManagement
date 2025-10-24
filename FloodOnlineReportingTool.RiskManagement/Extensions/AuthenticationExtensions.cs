@@ -3,38 +3,41 @@ using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Identity.Web;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Microsoft.AspNetCore.Builder;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 internal static class AuthenticationExtensions
 {
     /// <summary>
     /// Configures authentication, authorization and policies.
     /// </summary>
-    internal static IServiceCollection AddRiskManagementAuthentication(this IServiceCollection services, IConfiguration configuration)
+    internal static TBuilder AddAuthentication<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        var section = configuration
-            .GetSection("FORT")
-            .GetSection(KeyVaultAzureAdOptions.SectionName);
+        var section = builder.Configuration
+            .GetRequiredSection("FORT")
+            .GetRequiredSection(KeyVaultAzureAdOptions.SectionName);
 
         // Setup Authentication
-        services
+        builder.Services
             .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApp(section);
+            //.EnableTokenAcquisitionToCallDownstreamApi();
 
-        ConfigureResilientOpenIdConnect(services);
+        ConfigureResilientOpenIdConnect(builder.Services);
 
         // Add Blazor cascading authentication state
-        services.AddCascadingAuthenticationState();
+        builder.Services.AddCascadingAuthenticationState();
 
         // Setup Authorization
-        services
+        builder.Services
             .AddAuthorizationBuilder()
             .AddFallbackPolicy(PolicyNames.Admin, options =>
             {
                 options.RequireAuthenticatedUser();
             });
 
-        return services;
+        return builder;
     }
 
     /// <summary>
