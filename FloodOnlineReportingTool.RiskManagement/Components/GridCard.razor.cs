@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace FloodOnlineReportingTool.RiskManagement.Components.Shared;
+namespace FloodOnlineReportingTool.RiskManagement.Components;
 
 public partial class GridCard
 {
@@ -26,7 +26,7 @@ public partial class GridCard
     {
         None,
         OneHalf,
-        OneThird
+        OneThird,
     }
 
     internal virtual string CssClass(CardSizes _cssType)
