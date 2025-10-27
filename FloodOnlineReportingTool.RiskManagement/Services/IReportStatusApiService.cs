@@ -1,6 +1,8 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Services;
+﻿using FloodOnlineReportingTool.RiskManagement.Models.Search;
+
+namespace FloodOnlineReportingTool.RiskManagement.Services;
 
 public interface IReportStatusApiService
 {
-    Task Test(CancellationToken cancellationToken = default);
+    Task<SearchResult> SearchUprn(long uprn, CancellationToken cancellationToken = default);
 }

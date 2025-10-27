@@ -1,0 +1,89 @@
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+        <GdsSpinner Show="_isSearching" ShowMessage="true" Message="Searching..." />
+
+        @if (_searchResult is null)
+        {
+            <p>You have not searched yet.</p>
+        }
+        else
+        {
+            if (!_isSearching)
+            {
+                <p>Enter your search criteria and select Search to find flood reports.</p>
+            }
+
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                    <div id="filter">
+                        <div>Search bar goes here</div>
+                        <div>Filters go here</div>
+                    </div>
+                </div>
+
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-grid-row">
+                        <div>Count goes here</div>
+                    </div>
+                    <div class="govuk-grid-row">
+                        <div>Sort by goes here</div>
+                    </div>
+                    <div class="govuk-grid-row">
+                        @foreach (var floodReport in _searchResult.FloodReports)
+                        {
+                            <div>
+                                <div>Title goes here</div>
+                                <div>Summary goes here</div>
+                                <div>Date goes here, ideally updated</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (!_isSearching && _searchResult.FloodReports.Count == 0)
+            {
+                <p class="govuk-!-font-weight-bold">There are no matching results.</p>
+                <p>Improve your search results by:</p>
+                <ul class="govuk-list govuk-list--bullet">
+                    <li>removing filters</li>
+                    <li>double-checking your spelling</li>
+                    <li>using fewer keywords</li>
+                    <li>searching for something less specific</li>
+                </ul>
+            }
+
+            <div>
+                <div>Next page</div>
+                <div>2 of xx</div>
+            </div>
+        }
+
+        <EditForm EditContext="_editContext" OnSubmit="OnValidSubmit" FormName="SearchFloodReports">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
+
+            <GdsFormGroup For="@(() => Search.SearchText)">
+                <GdsLabel Text="Find a flood event or property record" />
+                <GdsErrorMessage />
+                <GdsInputText @bind-Value=Search.SearchText class="govuk-input govuk-input--width-20" />
+            </GdsFormGroup>
+
+            <GdsFormGroup For="() => Search.Uprn">
+                <GdsLabel Text="Unique Property Reference Number" />
+                <GdsHint>Must be a UPRN in the United Kingdom</GdsHint>
+                <GdsErrorMessage />
+                <GdsInputNumber @bind-Value=Search.UprnText @bind-WholeNumber=Search.Uprn class="govuk-input govuk-input--width-10" />
+            </GdsFormGroup>
+
+            <button class="govuk-button govuk-button--secondary" data-module="govuk-button" type="submit" enterkeyhint="Search">Search</button>
+        </EditForm>
+    </Authorized>
+
+    <NotAuthorized>
+        <p>You do not have permission to search for flood reports.</p>
+    </NotAuthorized>
+</AuthorizeView>
