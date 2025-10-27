@@ -15,7 +15,7 @@ internal static class DatabaseExtensions
         var connectionString = builder.Configuration.GetRiskManagementConnectionString(logSensitiveData);
 
         // Add the database context
-        builder.Services.AddDbContextPool<RiskManagementDbContext>(options =>
+        builder.Services.AddDbContextFactory<RiskManagementDbContext>(options =>
         {
             options.UseNpgsql(connectionString, o =>
             {
