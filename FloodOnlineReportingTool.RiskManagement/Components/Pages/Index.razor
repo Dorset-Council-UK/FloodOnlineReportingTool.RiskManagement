@@ -1,40 +1,27 @@
 ﻿@page "/"
-@using FloodOnlineReportingTool.RiskManagement.Components.Shared
+@using FloodOnlineReportingTool.RiskManagement.Components.Search
 @using Microsoft.AspNetCore.Components.Authorization
-@using static FloodOnlineReportingTool.RiskManagement.Components.Shared.GridCard
 
-<PageTitle>@Title</PageTitle>
+<PageTitle>@_title</PageTitle>
 
-<h1 class="govuk-heading-l">@Title</h1>
+<h1 class="govuk-heading-l">@_title</h1>
 
 <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-<AuthorizeView Context="authContext">
+<AuthorizeView>
     <Authorized>
-        <p>Logged in as <a class="govuk-link" Href="account/myaccount">@authContext.User.Identity?.Name</a> </p>
+        <p>Logged in as <a class="govuk-link" href="account/myaccount">@context.User.Identity?.Name</a></p>
 
-        <EditForm EditContext="_editContext" OnSubmit="OnValidSubmit" FormName="TopSearch">
-            <FluentValidationValidator />
-            <GdsErrorSummary />
-            <GdsFormGroup For="@(() => Model.SearchText)">
-                <GdsLabel Text="Find a flood event or property record" />
-                <GdsErrorMessage />
-                <GdsInputText @bind-Value=Model.SearchText class="govuk-input govuk-input--width-20" />
-                <button class="govuk-button govuk-button--secondary" data-module="govuk-button" type="submit" enterkeyhint="Search">Search</button>
-
-            </GdsFormGroup>
-
-
-        </EditForm>
+        <SearchFloodReports />
 
         <div class="govuk-width-container">
             <div class="govuk-grid-row">
-                <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
-                <GridCard CardSize="CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
             </div>
             <div class="govuk-grid-row">
-                <GridCard CardSize="CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
-                <GridCard CardSize="CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
             </div>
 
             <div class="govuk-grid-row">
