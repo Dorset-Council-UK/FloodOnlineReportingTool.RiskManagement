@@ -20,9 +20,12 @@ internal static class ClaimsPrincipalExtensions
     internal static string Email(this ClaimsPrincipal? claimsPrincipal)
     {
         var emailaddress = claimsPrincipal?.FindFirstValue(ClaimTypes.Email);
-        return !string.IsNullOrWhiteSpace(emailaddress)
-            ? emailaddress
-            : claimsPrincipal?.FindFirstValue("emails") ?? Unknown;
+        if (!string.IsNullOrWhiteSpace(emailaddress))
+        {
+            return emailaddress;
+        }
+
+        return claimsPrincipal?.FindFirstValue("emails") ?? Unknown;
     }
 
     /// <summary>
@@ -31,10 +34,13 @@ internal static class ClaimsPrincipalExtensions
     internal static string IdentityProvider(this ClaimsPrincipal? claimsPrincipal)
     {
         var identityprovider = claimsPrincipal?.FindFirstValue("http://schemas.microsoft.com/identity/claims/identityprovider");
+        if (!string.IsNullOrWhiteSpace(identityprovider))
+        {
+            return identityprovider;
+        }
+
         var accesscontrolservice = claimsPrincipal?.FindFirstValue("http://schemas.microsoft.com/accesscontrolservice/2010/07/claims/identityprovider");
-        return !string.IsNullOrWhiteSpace(identityprovider)
-            ? identityprovider
-            : !string.IsNullOrWhiteSpace(accesscontrolservice) ? accesscontrolservice : Unknown;
+        return !string.IsNullOrWhiteSpace(accesscontrolservice) ? accesscontrolservice : Unknown;
     }
 
     internal static bool IsAuthenticated(this ClaimsPrincipal? claimsPrincipal) =>
