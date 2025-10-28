@@ -3,84 +3,99 @@
 <AuthorizeView Context="authContext">
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
-        <GdsSpinner Show="_isSearching" ShowMessage="true" Message="Searching..." />
 
-        @if (_searchResult is null)
+        @if (!_isLoading)
         {
-            <p>You have not searched yet.</p>
-        }
-        else
-        {
-            if (!_isSearching)
-            {
-                <p>Enter your search criteria and select Search to find flood reports.</p>
-            }
-
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-one-third">
-                    <div id="filter">
-                        <div>Search bar goes here</div>
-                        <div>Filters go here</div>
+                    <div class="govuk-body-s">
+                        <EditForm EditContext="_editContext" OnSubmit="OnSearchFloodReport" FormName="SearchFloodReports">
+                            <FluentValidationValidator />
+
+                            <GdsFormGroup For="() => Search.UprnText" Id="uprn">
+                                <GdsLabel Text="UPRN" />
+                                <GdsHint>Must be a <abbr title="Unique Property Reference Number">UPRN</abbr> in the United Kingdom</GdsHint>
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Search.UprnText @bind-WholeNumber=Search.Uprn class="govuk-input govuk-input--width-10" />
+                            </GdsFormGroup>
+
+                            <button type="submit" class="govuk-button" data-module="govuk-button">Search</button>
+                        </EditForm>
                     </div>
                 </div>
 
                 <div class="govuk-grid-column-two-thirds">
                     <div class="govuk-grid-row">
-                        <div>Count goes here</div>
+                        <div>@(_searchResult?.FloodReports.Count ?? 0) results found</div>
                     </div>
                     <div class="govuk-grid-row">
-                        <div>Sort by goes here</div>
+                        <div>TODO: Sort goes here</div>
                     </div>
                     <div class="govuk-grid-row">
-                        @foreach (var floodReport in _searchResult.FloodReports)
+                        @switch (_searchState)
                         {
-                            <div>
-                                <div>Title goes here</div>
-                                <div>Summary goes here</div>
-                                <div>Date goes here, ideally updated</div>
-                            </div>
+                            case SearchState.NotStarted:
+                                <p>TODO: Add initial search instructions, if relevant.</p>
+                                break;
+
+                            case SearchState.Searching:
+                                <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
+                                break;
+
+                            case SearchState.ResultsFound:
+                                if (_searchResult?.FloodReports.Count > 0)
+                                {
+                                    @foreach (var floodReport in _searchResult.FloodReports)
+                                    {
+                                        <div>
+                                            <div>Title goes here</div>
+                                            <div>Summary goes here</div>
+                                            <div>Date goes here, ideally updated</div>
+                                        </div>
+                                    }
+                                }
+                                break;
+
+                            case SearchState.NoResults:
+                                <p class="govuk-!-font-weight-bold">There are no matching results.</p>
+                                <p>Improve your search results by:</p>
+                                <ul class="govuk-list govuk-list--bullet">
+                                    <li>removing filters</li>
+                                    <li>double-checking your spelling</li>
+                                    <li>using fewer keywords</li>
+                                    <li>searching for something less specific</li>
+                                </ul>
+                                break;
+
+                            case SearchState.Error:
+                                if (_searchResult?.Errors.Count > 0)
+                                {
+                                    <div class="govuk-error-summary" data-module="govuk-error-summary">
+                                        <div role="alert">
+                                            <h2 class="govuk-error-summary__title">There is a problem</h2>
+                                            <div class="govuk-error-summary__body">
+                                                <ul class="govuk-list govuk-error-summary__list">
+                                                    @foreach (var message in _searchResult.Errors)
+                                                    {
+                                                        <li>@message</li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                break;
                         }
+
+                        <div>
+                            <div>TODO: Once the search service contains paging build this next page feature.</div>
+                            <div>Next page</div>
+                            <div>2 of xx</div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            @if (!_isSearching && _searchResult.FloodReports.Count == 0)
-            {
-                <p class="govuk-!-font-weight-bold">There are no matching results.</p>
-                <p>Improve your search results by:</p>
-                <ul class="govuk-list govuk-list--bullet">
-                    <li>removing filters</li>
-                    <li>double-checking your spelling</li>
-                    <li>using fewer keywords</li>
-                    <li>searching for something less specific</li>
-                </ul>
-            }
-
-            <div>
-                <div>Next page</div>
-                <div>2 of xx</div>
-            </div>
         }
-
-        <EditForm EditContext="_editContext" OnSubmit="OnValidSubmit" FormName="SearchFloodReports">
-            <FluentValidationValidator />
-            <GdsErrorSummary />
-
-            <GdsFormGroup For="@(() => Search.SearchText)">
-                <GdsLabel Text="Find a flood event or property record" />
-                <GdsErrorMessage />
-                <GdsInputText @bind-Value=Search.SearchText class="govuk-input govuk-input--width-20" />
-            </GdsFormGroup>
-
-            <GdsFormGroup For="() => Search.Uprn">
-                <GdsLabel Text="Unique Property Reference Number" />
-                <GdsHint>Must be a UPRN in the United Kingdom</GdsHint>
-                <GdsErrorMessage />
-                <GdsInputNumber @bind-Value=Search.UprnText @bind-WholeNumber=Search.Uprn class="govuk-input govuk-input--width-10" />
-            </GdsFormGroup>
-
-            <button class="govuk-button govuk-button--secondary" data-module="govuk-button" type="submit" enterkeyhint="Search">Search</button>
-        </EditForm>
     </Authorized>
 
     <NotAuthorized>

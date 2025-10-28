@@ -11,8 +11,8 @@ public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGds
     private SearchFloodReportViewModel Search { get; set; } = default!;
     private EditContext _editContext = default!;
     private bool _isLoading = true;
-    private bool _isSearching = false;
     private SearchResult? _searchResult;
+    private SearchState _searchState = SearchState.NotStarted;
 
     protected override void OnInitialized()
     {
@@ -32,17 +32,47 @@ public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGds
         }
     }
 
-    private async Task OnValidSubmit()
+    private async Task OnSearchFloodReport()
     {
-        if (Search.Uprn is null)
+        var validated = _editContext.Validate();
+        if (!validated)
         {
             return;
         }
 
-        _isSearching = true;
-        long uprn = Search.Uprn.Value;
+        _searchState = SearchState.Searching;
+
+        if (Search.Uprn is not null)
+        {
+            long uprn = Search.Uprn.Value;
+            await SearchByUprn(uprn);
+        }
+
+        _searchState = CurrentSearchState();
+
+        return;
+    }
+
+    private async Task SearchByUprn(long uprn)
+    {
         logger.LogInformation("Searching food reports with UPRN {Uprn}", uprn);
         _searchResult = await reportStatusApiService.SearchUprn(uprn).ConfigureAwait(false);
-        _isSearching = false;
+    }
+
+    private SearchState CurrentSearchState()
+    {
+        if (_searchResult is null)
+        {
+            return SearchState.NotStarted;
+        }
+
+        if (_searchResult.Errors.Count > 0)
+        {
+            return SearchState.Error;
+        }
+
+        return _searchResult.FloodReports.Count > 0
+            ? SearchState.ResultsFound
+            : SearchState.NoResults;
     }
 }
