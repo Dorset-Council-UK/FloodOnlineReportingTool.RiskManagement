@@ -8,7 +8,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Search;
 
 public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGdsJsInterop gdsJs, IReportStatusApiService reportStatusApiService)
 {
-    private SearchFloodReportViewModel Search { get; set; } = default!;
+    private SearchFloodReportViewModel Model { get; set; } = default!;
     private EditContext _editContext = default!;
     private bool _isLoading = true;
     private SearchResult? _searchResult;
@@ -16,8 +16,8 @@ public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGds
 
     protected override void OnInitialized()
     {
-        Search ??= new();
-        _editContext = new(Search);
+        Model ??= new();
+        _editContext = new(Model);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
@@ -42,21 +42,15 @@ public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGds
 
         _searchState = SearchState.Searching;
 
-        if (Search.Uprn is not null)
+        if (Model.Uprn is not null)
         {
-            long uprn = Search.Uprn.Value;
-            await SearchByUprn(uprn);
+            logger.LogInformation("Searching food reports with UPRN {Uprn}", Model.Uprn.Value);
+            _searchResult = await reportStatusApiService.SearchUprn(Model.Uprn.Value).ConfigureAwait(false);
         }
 
         _searchState = CurrentSearchState();
 
         return;
-    }
-
-    private async Task SearchByUprn(long uprn)
-    {
-        logger.LogInformation("Searching food reports with UPRN {Uprn}", uprn);
-        _searchResult = await reportStatusApiService.SearchUprn(uprn).ConfigureAwait(false);
     }
 
     private SearchState CurrentSearchState()

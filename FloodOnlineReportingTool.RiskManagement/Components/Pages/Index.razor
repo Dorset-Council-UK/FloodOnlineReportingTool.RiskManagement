@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
 @using FloodOnlineReportingTool.RiskManagement.Components.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
@@ -8,6 +9,39 @@
 
 <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
+<h2>Testing authtenication here</h2>
+<AuthorizeView>
+    <Authorized>
+        <p>Authorised as @context.User.Identity?.Name</p>
+        <p>
+            Claims:
+            <ul>
+                @foreach (var claim in context.User.Claims)
+                {
+                    <li>@claim.Type : @claim.Value</li>
+                }
+            </ul>
+        </p>
+        <AuthorizeView Policy="@PolicyNames.Reader" Context="readerContext">
+            <Authorized><p>Authorised 'Reader' policy.</p></Authorized>
+        </AuthorizeView>
+        <AuthorizeView Policy="@PolicyNames.Writer" Context="writerContext">
+            <Authorized><p>Authorised 'Writer' policy</p></Authorized>
+        </AuthorizeView>
+        <AuthorizeView Policy="@PolicyNames.Admin" Context="adminContext">
+            <Authorized><p>Authorised 'Admin' policy</p></Authorized>
+        </AuthorizeView>
+    </Authorized>
+    <Authorizing><p><GdsSpinner Show="@true" ShowMessage="true" Message="Authorising..." /></p></Authorizing>
+    <NotAuthorized>
+        <p>Not authorised</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+<div><a href="login" class="govuk-link">Sign in</a></div>
+<div><a href="logout" class="govuk-link">Sign out</a></div>
+
+<h2>Normal content below</h2>
 <AuthorizeView>
     <Authorized>
         <p>Logged in as <a class="govuk-link" href="account/myaccount">@context.User.Identity?.Name</a></p>

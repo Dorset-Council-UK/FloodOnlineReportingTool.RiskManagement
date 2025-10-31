@@ -59,6 +59,7 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode();
+app.MapAuthenticationEndpoints();
 
 await app.RunAsync()
          .ConfigureAwait(false);

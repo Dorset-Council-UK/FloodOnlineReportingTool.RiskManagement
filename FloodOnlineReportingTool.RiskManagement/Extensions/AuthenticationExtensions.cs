@@ -1,6 +1,9 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Authorization;
+using FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 using FloodOnlineReportingTool.RiskManagement.Options;
+using FloodOnlineReportingTool.RiskManagement.Settings;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -14,15 +17,21 @@ internal static class AuthenticationExtensions
     /// </summary>
     internal static TBuilder AddAuthentication<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
-        var section = builder.Configuration
+        var azureAdSection = builder.Configuration
             .GetRequiredSection("FORT")
             .GetRequiredSection(KeyVaultAzureAdOptions.SectionName);
+
+        var reportStatusApiSection = builder.Configuration
+            .GetRequiredSection(RiskManagementSettings.SectionName)
+            .GetRequiredSection(RiskManagementSettings.ReportStatusApi);
 
         // Setup Authentication
         builder.Services
             .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(section);
-            //.EnableTokenAcquisitionToCallDownstreamApi();
+            .AddMicrosoftIdentityWebApp(azureAdSection)
+            .EnableTokenAcquisitionToCallDownstreamApi()
+            .AddDownstreamApi(RiskManagementSettings.ReportStatusApi, reportStatusApiSection)
+            .AddInMemoryTokenCaches();
 
         ConfigureResilientOpenIdConnect(builder.Services);
 
@@ -30,12 +39,26 @@ internal static class AuthenticationExtensions
         builder.Services.AddCascadingAuthenticationState();
 
         // Setup Authorization
+        var fallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
         builder.Services
             .AddAuthorizationBuilder()
-            .AddFallbackPolicy(PolicyNames.Admin, options =>
-            {
-                options.RequireAuthenticatedUser();
-            });
+            .AddPolicy(PolicyNames.Reader, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireAssertion(context =>
+                    context.User.IsInRole(RoleNames.Reader) ||
+                    context.User.IsInRole(RoleNames.Writer) ||
+                    context.User.IsInRole(RoleNames.Admin)))
+            .AddPolicy(PolicyNames.Writer, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireAssertion(context =>
+                    context.User.IsInRole(RoleNames.Writer) ||
+                    context.User.IsInRole(RoleNames.Admin)))
+            .AddPolicy(PolicyNames.Admin, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireRole(RoleNames.Admin))
+            .SetFallbackPolicy(fallbackPolicy);
 
         return builder;
     }
@@ -58,5 +81,22 @@ internal static class AuthenticationExtensions
             {
                 options.Backchannel = httpClientFactory.CreateClient(clientName);
             });
+    }
+
+    internal static WebApplication MapAuthenticationEndpoints(this WebApplication app)
+    {
+        app.MapGet("login", AccountEndpoints.Login)
+            .WithTags("Account")
+            .WithDisplayName("Login")
+            .WithSummary("Logs the user into the application")
+            .AllowAnonymous();
+
+        app.MapGet("logout", AccountEndpoints.Logout)
+            .WithTags("Account")
+            .WithDisplayName("Logout")
+            .WithSummary("Logs the user out of the application.")
+            .AllowAnonymous();
+
+        return app;
     }
 }

@@ -1,0 +1,27 @@
+﻿@using FloodOnlineReportingTool.RiskManagement.Models.Search
+
+<div class="govuk-grid-row govuk-!-padding-bottom-3 govuk-!-margin-bottom-3" style="border-bottom: 1px solid #b1b4b6">
+    <div class="govuk-!-margin-bottom-2"><strong class="govuk-tag">Flood report</strong></div>
+    <div>Easting: @FloodReport.Easting Northing: @FloodReport.Northing</div>
+    @if (FloodReport.ImpactStartUtc is not null)
+    {
+        <div>Started: @FloodReport.ImpactStartUtc.Value.GdsReadable()</div>
+    }
+    @if (FloodReport.UpdatedUtc is not null)
+    {
+        <div>Updated: @FloodReport.UpdatedUtc.Value.GdsReadable()</div>
+    }
+    else
+    {
+        <div>Created: @FloodReport.CreatedUtc.GdsReadable()</div>
+    }
+    @if (FloodReport.Sources.Count > 0)
+    {
+        <div>Sources: @string.Join(", ", FloodReport.Sources.Select(s => s.Name))</div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TEMP_FloodReport FloodReport { get; set; }
+}

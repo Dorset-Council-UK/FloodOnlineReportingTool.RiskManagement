@@ -14,6 +14,7 @@ public partial class SearchFloodReportViewModelValidator : AbstractValidator<Sea
         RuleFor(o => o.Uprn)
             .NotNull()
             .WithMessage("UPRN must be a number")
+            .OverridePropertyName(o => o.UprnText)
             .When(o => !string.IsNullOrWhiteSpace(o.UprnText));
     }
 }
