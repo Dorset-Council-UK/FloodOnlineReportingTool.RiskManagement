@@ -28,15 +28,6 @@ internal static class SettingsExtensions
         return settings;
     }
 
-    internal static ReportStatusApiSettings AddReportStatusApiSettings<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        var section = builder.Configuration.GetRequiredSection(ReportStatusApiSettings.SectionName);
-        builder.Services.Configure<ReportStatusApiSettings>(section);
-        var settings = section.Get<ReportStatusApiSettings>()
-            ?? throw new ConfigurationMissingException($"Configuration section '{ReportStatusApiSettings.SectionName}' is not properly defined.");
-        return settings;
-    }
-
     /// <summary>
     /// Configures proxy settings for the application and optionally sets up forwarded headers middleware.
     /// </summary>

@@ -1,5 +1,6 @@
 using FloodOnlineReportingTool.RiskManagement.Components;
 using FluentValidation;
+using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,18 +9,17 @@ builder.AddFORTAzureKeyVault();
 var proxySettings = builder.AddProxySettings();
 var riskManagementSettings = builder.AddSettings();
 var mesasgingSettings = builder.AddMessagingSettings();
-var reportStatusApiSettings = builder.AddReportStatusApiSettings();
 
 builder.AddAuthentication();
 builder.AddRiskManagementHealthChecks();
 builder.AddMessageSystem(mesasgingSettings);
-builder.AddReportStatusApi(reportStatusApiSettings);
 builder.AddDatabase();
 
 // Add Blazor services
 builder.Services
     .AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveServerComponents()
+    .AddMicrosoftIdentityConsentHandler();
 builder.Services.AddScoped<GdsBlazorComponents.IGdsJsInterop, GdsBlazorComponents.GdsJsInterop>();
 
 // Add all the validation rules

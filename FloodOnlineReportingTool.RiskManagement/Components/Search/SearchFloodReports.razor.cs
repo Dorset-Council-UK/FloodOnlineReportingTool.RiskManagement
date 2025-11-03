@@ -1,13 +1,21 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.RiskManagement.Settings;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Identity.Abstractions;
+using Microsoft.Identity.Web;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Search;
 
-public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGdsJsInterop gdsJs, IReportStatusApiService reportStatusApiService)
-{
+public partial class SearchFloodReports(
+    ILogger<SearchFloodReports> logger,
+    IGdsJsInterop gdsJs,
+    IDownstreamApi downstreamApi,
+    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler
+) {
+    private const string TryAgain = "Please try again and if the problem persists, contact support.";
+
     private SearchFloodReportViewModel Model { get; set; } = default!;
     private EditContext _editContext = default!;
     private bool _isLoading = true;
@@ -32,6 +40,7 @@ public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGds
         }
     }
 
+    [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
     private async Task OnSearchFloodReport()
     {
         var validated = _editContext.Validate();
@@ -44,8 +53,33 @@ public partial class SearchFloodReports(ILogger<SearchFloodReports> logger, IGds
 
         if (Model.Uprn is not null)
         {
-            logger.LogInformation("Searching food reports with UPRN {Uprn}", Model.Uprn.Value);
-            _searchResult = await reportStatusApiService.SearchUprn(Model.Uprn.Value).ConfigureAwait(false);
+            long uprn = Model.Uprn.Value;
+            logger.LogInformation("Searching food reports with UPRN {Uprn}", uprn);
+
+            try
+            {
+                var floodReports = await downstreamApi
+                    .CallApiForUserAsync<IReadOnlyCollection<TEMP_FloodReport>>(RiskManagementSettings.ReportStatusApi, options =>
+                    {
+                        options.RelativePath = $"/api/search/uprn?uprn={uprn}";
+                    })
+                    .ConfigureAwait(false);
+
+                _searchResult = SearchResult.Success(floodReports ?? []);
+            }
+            catch (MicrosoftIdentityWebChallengeUserException ex)
+            {
+                consentHandler.HandleException(ex);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Search flood reports by UPRN {Uprn} failed.", uprn);
+                _searchResult = SearchResult.Failure([
+                    "I am sorry but there was a problem searching using that UPRN.",
+                    ex.Message,
+                    TryAgain,
+                ]);
+            }
         }
 
         _searchState = CurrentSearchState();
