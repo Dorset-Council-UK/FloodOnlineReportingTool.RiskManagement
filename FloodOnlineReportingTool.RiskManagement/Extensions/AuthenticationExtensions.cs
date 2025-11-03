@@ -85,16 +85,22 @@ internal static class AuthenticationExtensions
 
     internal static WebApplication MapAuthenticationEndpoints(this WebApplication app)
     {
-        app.MapGet("login", AccountEndpoints.Login)
+        app.MapGet("signin", AccountEndpoints.SignIn)
             .WithTags("Account")
-            .WithDisplayName("Login")
-            .WithSummary("Logs the user into the application")
+            .WithDisplayName("Sign in")
+            .WithSummary("Signs the user into the application")
             .AllowAnonymous();
 
-        app.MapGet("logout", AccountEndpoints.Logout)
+        app.MapGet("signout", AccountEndpoints.SignOut)
             .WithTags("Account")
-            .WithDisplayName("Logout")
-            .WithSummary("Logs the user out of the application.")
+            .WithDisplayName("Sign out")
+            .WithSummary("Signs the user out of the application.")
+            .AllowAnonymous();
+
+        app.MapGet("MicrosoftIdentity/Account/Challenge", AccountEndpoints.Challenge)
+            .WithTags("Account")
+            .WithDisplayName("Challenges the user.")
+            .WithSummary("Challenge generating a redirect to Azure AD to sign in the user.")
             .AllowAnonymous();
 
         return app;
