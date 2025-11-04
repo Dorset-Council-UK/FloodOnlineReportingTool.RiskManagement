@@ -111,4 +111,15 @@ public partial class SearchFloodReports(
 
         return SearchResult.Success(floodReports ?? []);
     }
+
+    private string ResultsFoundText()
+    {
+        const string template1 = "{0} result found";
+        const string templateN = "{0} results found";
+
+        var found = _searchResult?.FloodReports.Count ?? 0;
+        var template = found == 1 ? template1 : templateN;
+
+        return string.Format(CultureInfo.InvariantCulture, template, found);
+    }
 }

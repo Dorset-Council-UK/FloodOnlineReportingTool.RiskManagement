@@ -3,6 +3,7 @@ using FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -32,6 +33,14 @@ internal static class AuthenticationExtensions
             .AddDownstreamApi(RiskManagementSettings.ReportStatusApi, reportStatusApiSection)
             .AddInMemoryTokenCaches();
 
+        // Configure all HttpClients to be resilient. For example: Identity Web + DownstreamApi
+        builder.Services
+            .AddHttpClient(Options.DefaultName)
+            .AddStandardResilienceHandler();
+
+        // Still need to set the back channel client for OpenID Connect to be resilient
+        ConfigureResilientOpenIdConnect(builder.Services);
+
         // Add Blazor cascading authentication state
         builder.Services.AddCascadingAuthenticationState();
 
@@ -55,6 +64,26 @@ internal static class AuthenticationExtensions
             .SetFallbackPolicy(policy: null); // Anonymous access allowed unless [Authorize] is used
 
         return builder;
+    }
+
+    /// <summary>
+    /// Configure a resilient OpenID Connect authentication handler.
+    /// </summary>
+    /// <remarks>For example, retrying when .well-known fails to read.</remarks>
+    private static void ConfigureResilientOpenIdConnect(IServiceCollection services)
+    {
+        const string clientName = "OpenIdConnectResilient";
+
+        services
+            .AddHttpClient(clientName)
+            .AddStandardResilienceHandler();
+
+        services
+            .AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
+            .Configure<IHttpClientFactory>((options, httpClientFactory) =>
+            {
+                options.Backchannel = httpClientFactory.CreateClient(clientName);
+            });
     }
 
     internal static WebApplication MapAuthenticationEndpoints(this WebApplication app)
