@@ -1,6 +1,7 @@
+@using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
-<AuthorizeView Context="authContext">
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
@@ -8,7 +9,8 @@
         {
             <div class="govuk-grid-row">
                 <div class="govuk-grid-column-one-third">
-                    <div class="govuk-body-s">
+                    <div>
+                        <h3 class="govuk-heading-m">Flood reports</h3>
                         <EditForm EditContext="_editContext" OnSubmit="OnSearchFloodReport" FormName="SearchFloodReports">
                             <FluentValidationValidator />
 
@@ -103,6 +105,6 @@
     </Authorized>
 
     <NotAuthorized>
-        <p>You do not have permission to search for flood reports.</p>
+        <GdsWarning Text="You do not have permission to search for flood reports" />
     </NotAuthorized>
 </AuthorizeView>

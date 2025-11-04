@@ -2,9 +2,11 @@
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Abstractions;
 using Microsoft.Identity.Web;
+using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Search;
 
@@ -40,6 +42,7 @@ public partial class SearchFloodReports(
         }
     }
 
+    [Authorize]
     [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
     private async Task OnSearchFloodReport()
     {
@@ -58,14 +61,7 @@ public partial class SearchFloodReports(
 
             try
             {
-                var floodReports = await downstreamApi
-                    .CallApiForUserAsync<IReadOnlyCollection<TEMP_FloodReport>>(RiskManagementSettings.ReportStatusApi, options =>
-                    {
-                        options.RelativePath = $"/api/search/uprn?uprn={uprn}";
-                    })
-                    .ConfigureAwait(false);
-
-                _searchResult = SearchResult.Success(floodReports ?? []);
+                _searchResult = await SearchFloodReportsByUprn(uprn);
             }
             catch (MicrosoftIdentityWebChallengeUserException ex)
             {
@@ -102,5 +98,17 @@ public partial class SearchFloodReports(
         return _searchResult.FloodReports.Count > 0
             ? SearchState.ResultsFound
             : SearchState.NoResults;
+    }
+
+    private async Task<SearchResult> SearchFloodReportsByUprn(long uprn)
+    {
+        var floodReports = await downstreamApi
+            .CallApiForUserAsync<IReadOnlyCollection<TEMP_FloodReport>>(RiskManagementSettings.ReportStatusApi, options =>
+            {
+                options.RelativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/uprn?uprn={uprn}");
+            })
+            .ConfigureAwait(false);
+
+        return SearchResult.Success(floodReports ?? []);
     }
 }

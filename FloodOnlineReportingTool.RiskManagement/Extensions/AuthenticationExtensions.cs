@@ -3,7 +3,6 @@ using FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Identity.Web;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -37,9 +36,6 @@ internal static class AuthenticationExtensions
         builder.Services.AddCascadingAuthenticationState();
 
         // Setup Authorization
-        var fallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser()
-            .Build();
         builder.Services
             .AddAuthorizationBuilder()
             .AddPolicy(PolicyNames.Reader, policy => policy
@@ -56,7 +52,7 @@ internal static class AuthenticationExtensions
             .AddPolicy(PolicyNames.Admin, policy => policy
                 .RequireAuthenticatedUser()
                 .RequireRole(RoleNames.Admin))
-            .SetFallbackPolicy(fallbackPolicy);
+            .SetFallbackPolicy(policy: null); // Anonymous access allowed unless [Authorize] is used
 
         return builder;
     }

@@ -1,9 +1,6 @@
 ﻿@page "/account/myaccount"
-@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
-
-@attribute [Authorize]
 
 <AuthorizeView>
     <Authorized>
@@ -39,6 +36,6 @@
         }
     </Authorized>
     <NotAuthorized>
-        <p>You are not authorized to view this content.</p>
+        <GdsWarning Text="You are not signed in." />
     </NotAuthorized>
 </AuthorizeView>

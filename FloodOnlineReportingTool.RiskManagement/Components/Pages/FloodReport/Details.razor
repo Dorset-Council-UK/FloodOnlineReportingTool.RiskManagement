@@ -1,10 +1,11 @@
 ﻿@page "/flood-report/details/{FloodEventId:guid}"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Flood report</PageTitle>
 <GdsBreadcrumbs Items="Breadcrumbs" />
 
-<AuthorizeView Context="authContext">
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
         <h1 class="govuk-heading-xl">Flood report @FloodEventId</h1>
 
