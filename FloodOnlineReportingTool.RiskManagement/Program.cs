@@ -4,6 +4,9 @@ using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure all HttpClients to be resilient. For example: OpenIdConnect, Identity Web + DownstreamApi 
+builder.Services.ConfigureHttpClientDefaults(options => options.AddStandardResilienceHandler());
+
 // Settings
 builder.AddFORTAzureKeyVault();
 var proxySettings = builder.AddProxySettings();

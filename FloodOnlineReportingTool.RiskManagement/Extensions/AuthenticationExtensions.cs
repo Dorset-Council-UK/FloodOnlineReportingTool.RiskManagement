@@ -33,8 +33,6 @@ internal static class AuthenticationExtensions
             .AddDownstreamApi(RiskManagementSettings.ReportStatusApi, reportStatusApiSection)
             .AddInMemoryTokenCaches();
 
-        ConfigureResilientOpenIdConnect(builder.Services);
-
         // Add Blazor cascading authentication state
         builder.Services.AddCascadingAuthenticationState();
 
@@ -61,26 +59,6 @@ internal static class AuthenticationExtensions
             .SetFallbackPolicy(fallbackPolicy);
 
         return builder;
-    }
-
-    /// <summary>
-    /// Configure a resilient OpenID Connect authentication handler.
-    /// </summary>
-    /// <remarks>For example, retrying when .well-known fails to read.</remarks>
-    private static void ConfigureResilientOpenIdConnect(IServiceCollection services)
-    {
-        const string clientName = "OAuthResilient";
-
-        services
-            .AddHttpClient(clientName)
-            .AddStandardResilienceHandler();
-
-        services
-            .AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
-            .Configure<IHttpClientFactory>((options, httpClientFactory) =>
-            {
-                options.Backchannel = httpClientFactory.CreateClient(clientName);
-            });
     }
 
     internal static WebApplication MapAuthenticationEndpoints(this WebApplication app)
