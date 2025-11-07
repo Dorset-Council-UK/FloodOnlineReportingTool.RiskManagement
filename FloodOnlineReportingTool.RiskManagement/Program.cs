@@ -8,11 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddFORTAzureKeyVault();
 var proxySettings = builder.AddProxySettings();
 var riskManagementSettings = builder.AddSettings();
-var mesasgingSettings = builder.AddMessagingSettings();
+var messagingSettings = builder.AddMessagingSettings();
 
 builder.AddAuthentication();
 builder.AddRiskManagementHealthChecks();
-builder.AddMessageSystem(mesasgingSettings);
+builder.AddMessageSystem(messagingSettings);
 builder.AddDatabase();
 
 // Add Blazor services

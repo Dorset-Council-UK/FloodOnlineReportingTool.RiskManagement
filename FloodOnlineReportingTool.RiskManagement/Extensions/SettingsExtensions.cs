@@ -15,7 +15,7 @@ internal static class SettingsExtensions
         var section = builder.Configuration.GetRequiredSection(RiskManagementSettings.SectionName);
         builder.Services.Configure<RiskManagementSettings>(section);
         var settings = section.Get<RiskManagementSettings>()
-            ?? throw new ConfigurationMissingException($"Configuration section '{MessagingSettings.SectionName}' is not properly defined.");
+            ?? throw new ConfigurationMissingException($"Configuration section '{RiskManagementSettings.SectionName}' is not properly defined.");
         return settings;
     }
 
@@ -35,7 +35,7 @@ internal static class SettingsExtensions
     ///     <para>This method retrieves proxy settings from the application's configuration using the section name defined in <see cref="ProxySettings.SectionName"/>.</para>
     ///     <para>
     ///         If the <see cref="ProxySettings.UseForwardedHeadersMiddleware"/> property is set to <see langword="true"/>,
-    ///         the method configures the <see cref="ForwardedHeadersOptions"/> to handle forwarded headers, including adding knownproxies if specified.
+    ///         the method configures the <see cref="ForwardedHeadersOptions"/> to handle forwarded headers, including adding known proxies if specified.
     ///     </para>
     /// </remarks>
     /// <returns>

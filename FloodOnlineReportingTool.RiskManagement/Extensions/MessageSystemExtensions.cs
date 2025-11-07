@@ -34,7 +34,6 @@ internal static class MessageSystemExtensions
                     config.Host(new Uri(messagingSettings.ConnectionString));
                 }
 
-                config.Host(messagingSettings.ConnectionString);
                 config.ConfigureEndpoints(context);
             });
         });

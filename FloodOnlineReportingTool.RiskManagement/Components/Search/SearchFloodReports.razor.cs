@@ -57,7 +57,7 @@ public partial class SearchFloodReports(
         if (Model.Uprn is not null)
         {
             long uprn = Model.Uprn.Value;
-            logger.LogInformation("Searching food reports with UPRN {Uprn}", uprn);
+            logger.LogInformation("Searching flood reports with UPRN {Uprn}", uprn);
 
             try
             {
