@@ -10,28 +10,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" Version="9.0.0" />
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
-		<PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="1.1.1" />
-		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.0.7" />
+		<PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="2.0.0" />
+		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="1.2.0" />
 		<PackageReference Include="FluentValidation" Version="12.0.0" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
-		<PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.0" />
-		<PackageReference Include="Meziantou.Analyzer" Version="2.0.212">
+		<PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.5" />
+		<PackageReference Include="Meziantou.Analyzer" Version="2.0.234">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.7" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.7.0" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="3.13.0" />
-		<PackageReference Include="Microsoft.Identity.Web.UI" Version="3.13.0" />
-		<PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.6" />
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="9.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.10.0" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="4.0.1" />
+		<PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="4.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>

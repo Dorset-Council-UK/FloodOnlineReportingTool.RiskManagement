@@ -1,9 +1,15 @@
-﻿@page "/Account/SignedOut"
-@using Microsoft.AspNetCore.Authorization
-@attribute [AllowAnonymous]
+﻿@page "/account/signed-out"
+@using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>You've been signed out</PageTitle>
+<PageTitle>Signed out</PageTitle>
 
-<h3>You've been signed out</h3>
-
-<p>You must log back in to use this site</p>
+<AuthorizeView>
+    <Authorized>
+        <h1 class="govuk-heading-l">Signed in</h1>
+        <p>You still seem to be signed in, try <a href="signout" class="govuk-link">signing out</a></p>
+    </Authorized>
+    <NotAuthorized>
+        <h1 class="govuk-heading-l">Signed out</h1>
+        <p>You have been signed out</p>
+    </NotAuthorized>
+</AuthorizeView>

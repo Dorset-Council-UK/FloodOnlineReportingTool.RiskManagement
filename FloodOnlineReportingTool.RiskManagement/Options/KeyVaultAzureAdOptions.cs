@@ -1,8 +1,10 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Options;
+﻿using Microsoft.Identity.Web;
+
+namespace FloodOnlineReportingTool.RiskManagement.Options;
 
 public record KeyVaultAzureAdOptions
 {
-    public const string SectionName = "AzureAd";
+    public const string SectionName = Constants.AzureAd;
 
     public string ApplicationId { get; init; } = "";
     public string CertificateThumbprint { get; init; } = "";

@@ -1,0 +1,50 @@
+﻿@using FloodOnlineReportingTool.RiskManagement.Models.Search
+
+<div class="govuk-!-margin-bottom-3 border-bottom">
+    <dl class="govuk-summary-list govuk-summary-list--no-border">
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Easting</dt>
+            <dd class="govuk-summary-list__value">@FloodReport.Easting</dd>
+            <dd class="govuk-summary-list__actions">
+                <strong class="govuk-tag govuk-tag--grey">Flood report</strong>
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Northing</dt>
+            <dd class="govuk-summary-list__value">@FloodReport.Northing</dd>
+        </div>
+        @if (FloodReport.ImpactStartUtc is not null)
+        {
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Started</dt>
+                <dd class="govuk-summary-list__value">@FloodReport.ImpactStartUtc.Value.GdsReadable()</dd>
+            </div>
+        }
+        @if (FloodReport.Sources.Count > 0)
+        {
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Sources</dt>
+                <dd class="govuk-summary-list__value">@string.Join(", ", FloodReport.Sources.Select(s => s.Name))</dd>
+            </div>
+        }
+        @if (FloodReport.UpdatedUtc is not null)
+        {
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Updated</dt>
+                <dd class="govuk-summary-list__value">@FloodReport.UpdatedUtc.Value.GdsReadable()</dd>
+            </div>
+        }
+        else
+        {
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Created</dt>
+                <dd class="govuk-summary-list__value">@FloodReport.CreatedUtc.GdsReadable()</dd>
+            </div>
+        }
+    </dl>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TEMP_FloodReport FloodReport { get; set; }
+}

@@ -1,4 +1,5 @@
-﻿using GdsBlazorComponents;
+﻿using FloodOnlineReportingTool.RiskManagement.Models;
+using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -7,15 +8,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages;
 public partial class FloodEvent(
     ILogger<FloodEvent> logger,
     IGdsJsInterop gdsJs,
-    //ICommonRepository commonRepository,
     NavigationManager navigationManager
-)
-{
+) {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
         new ("", "Home"),
     ];
 
-    private Models.FloodEventDto Model { get; set; } = default!;
+    private FloodEventViewModel Model { get; set; } = default!;
     private EditContext _editContext = default!;
     private bool _isLoading = true;
     private readonly CancellationTokenSource _cts = new();
@@ -50,10 +49,9 @@ public partial class FloodEvent(
         }
     }
 
-    private Task OnValidSubmit()
+    private void OnValidSubmit()
     {
-        return Task.CompletedTask;
-        //logger.LogInformation("Flood Event submitted successfuly");
-        //navigationManager.NavigateTo("");
+        logger.LogInformation("Flood Event submitted successfuly");
+        navigationManager.NavigateTo("");
     }
 }

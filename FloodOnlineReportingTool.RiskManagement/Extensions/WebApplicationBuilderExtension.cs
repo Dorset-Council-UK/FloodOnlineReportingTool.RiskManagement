@@ -1,49 +1,12 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using FloodOnlineReportingTool.RiskManagement.Options;
-using Microsoft.AspNetCore.HttpOverrides;
-using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Builder;
 
 internal static class WebApplicationBuilderExtension
 {
-    /// <summary>
-    /// Add all the Risk Management project options
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <returns></returns>
-    internal static WebApplicationBuilder AddFORTOptions(this WebApplicationBuilder builder)
-    {
-        var proxySection = builder.Configuration
-            .GetSection(ProxyOptions.SectionName);
-        var ProxyOptionsObject = proxySection.Get<ProxyOptions>();
-
-        if (ProxyOptionsObject != null && ProxyOptionsObject.UseForwardedHeadersMiddleware)
-        {
-            builder.Services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                //KeyVault secrets only map to string rather than string[] so we need to cast it here
-                string[] currentProxies = JsonSerializer.Deserialize<string[]>(ProxyOptionsObject.KnownProxies);
-                if (currentProxies is not null)
-                {
-                    foreach (var proxy in currentProxies)
-                    {
-                        if (IPAddress.TryParse(proxy, out var ipAddress))
-                        {
-                            options.KnownProxies.Add(ipAddress);
-                        }
-                    }
-                }
-            });
-        }
-
-        return builder;
-    }
-
     /// <summary>
     /// Set up Azure Key Vault if a KeyVault name is provided in the configuration
     /// </summary>

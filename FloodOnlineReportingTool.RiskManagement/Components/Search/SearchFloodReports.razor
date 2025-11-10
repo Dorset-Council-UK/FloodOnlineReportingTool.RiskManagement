@@ -1,0 +1,106 @@
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+    <Authorized>
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+        @if (!_isLoading)
+        {
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-third">
+                    <div class="border-bottom">
+                        <h2 class="govuk-heading-m">Flood reports</h2>
+                        <EditForm EditContext="_editContext" OnSubmit="OnSearchFloodReport" FormName="SearchFloodReports">
+                            <FluentValidationValidator />
+
+                            <GdsFormGroup For="() => Model.UprnText" Id="uprn">
+                                <GdsLabel Text="UPRN" />
+                                <GdsHint>Must be a <abbr title="Unique Property Reference Number">UPRN</abbr> in the United Kingdom</GdsHint>
+                                <GdsErrorMessage />
+                                <GdsInputText @bind-Value=Model.UprnText class="govuk-input govuk-input--width-10" inputmode="numeric" spellcheck="false" aria-describedby="uprn-hint uprn-error" />
+                            </GdsFormGroup>
+
+                            <button type="submit" class="govuk-button" data-module="govuk-button">Search</button>
+                        </EditForm>
+                    </div>
+                </div>
+
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-grid-row govuk-!-padding-bottom-3 govuk-!-margin-bottom-3 border-bottom">
+                        <div class="govuk-!-font-weight-bold">@ResultsFoundText()</div>
+                    </div>
+                    <div class="govuk-grid-row govuk-!-padding-bottom-3 govuk-!-margin-bottom-3 border-bottom">
+                        <div>TODO: Sort goes here</div>
+                    </div>
+                    @switch (_searchState)
+                    {
+                        case SearchState.NotStarted:
+                            <div class="govuk-grid-row">
+                                <p>TODO: Add initial search instructions, if relevant.</p>
+                            </div>
+                            break;
+
+                        case SearchState.Searching:
+                            <div class="govuk-grid-row">
+                                <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
+                            </div>
+                            break;
+
+                        case SearchState.ResultsFound:
+                            if (_searchResult?.FloodReports.Count > 0)
+                            {
+                                foreach (var floodReport in _searchResult.FloodReports)
+                                {
+                                    <FloodReportSummary FloodReport="floodReport" @key="floodReport.Id" />
+                                }
+                            }
+                            break;
+
+                        case SearchState.NoResults:
+                            <p class="govuk-!-font-weight-bold">There are no matching results.</p>
+                            <p>Improve your search results by:</p>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li>removing filters</li>
+                                <li>double-checking your spelling</li>
+                                <li>using fewer keywords</li>
+                                <li>searching for something less specific</li>
+                            </ul>
+                            break;
+
+                        case SearchState.Error:
+                            if (_searchResult?.Errors.Count > 0)
+                            {
+                                <div class="govuk-error-summary" data-module="govuk-error-summary">
+                                    <div role="alert">
+                                        <h2 class="govuk-error-summary__title">There is a problem</h2>
+                                        <div class="govuk-error-summary__body">
+                                            <ul class="govuk-list govuk-error-summary__list">
+                                                @foreach (var message in _searchResult.Errors)
+                                                {
+                                                    <li>@message</li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            break;
+                    }
+
+                    <div class="govuk-grid-row">
+                        <div>
+                            <div>TODO: Once the search service contains paging build this next page feature.</div>
+                            <div>Next page</div>
+                            <div>2 of xx</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </Authorized>
+
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to search for flood reports" />
+    </NotAuthorized>
+</AuthorizeView>
