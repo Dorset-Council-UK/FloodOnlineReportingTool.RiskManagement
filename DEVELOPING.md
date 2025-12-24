@@ -44,6 +44,13 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
     Update-Database -Project "FloodOnlineReportingTool.RiskManagement.Data" -StartupProject "FloodOnlineReportingTool.RiskManagement"
     ```
 
+## Update standards module
+
+To update the standards module, navigate to the `FloodOnlineReportingTool.RiskManagement` solution folder and run:
+```shell
+git submodule update
+```
+
 ## User Secrets and Configuration
 
 You must set up user secrets for development. Run the following command in the terminal within the project folder:
