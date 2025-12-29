@@ -1,0 +1,44 @@
+﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
+
+<div class="govuk-!-margin-bottom-3 border-bottom">
+    <dl class="govuk-summary-list govuk-summary-list--no-border">
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Title</dt>
+            <dd class="govuk-summary-list__value">@SearchResult.Title</dd>
+        </div>
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Easting</dt>
+            <dd class="govuk-summary-list__value">@SearchResult.Geom.X</dd>
+            <dd class="govuk-summary-list__actions">
+                <strong class="govuk-tag govuk-tag--grey">Flood report</strong>
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Northing</dt>
+            <dd class="govuk-summary-list__value">@SearchResult.Geom.Y</dd>
+        </div>
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Flood reports</dt>
+            <dd class="govuk-summary-list__value">@SearchResult.FloodReports.Count</dd>
+        </div>
+        @if (SearchResult.UpdatedUtc is not null)
+        {
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Updated</dt>
+                <dd class="govuk-summary-list__value">@SearchResult.UpdatedUtc.Value.GdsReadable()</dd>
+            </div>
+        }
+        else
+        {
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key">Created</dt>
+                <dd class="govuk-summary-list__value">@SearchResult.CreatedUtc.GdsReadable()</dd>
+            </div>
+        }
+    </dl>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public SearchResultFloodLocation SearchResult { get; set; }
+}
