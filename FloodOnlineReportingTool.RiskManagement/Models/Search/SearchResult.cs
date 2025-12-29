@@ -19,5 +19,5 @@ public record SearchResult<T>(SearchState State, T Results, ICollection<string> 
     public static SearchResult<T> NoResults() => new(SearchState.NoResults, default!, []);
 
     /// <summary>Creates a search result indicating an error occurred.</summary>
-    public static SearchResult<T> Errors(ICollection<string> errors) => new(SearchState.Error, default!, errors);
+    public static SearchResult<T> Error(ICollection<string> errors) => new(SearchState.Error, default!, errors);
 }

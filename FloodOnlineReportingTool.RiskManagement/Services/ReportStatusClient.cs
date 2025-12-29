@@ -26,51 +26,51 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
 
     public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodLocation>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsByPoint(double easting, double northing, double buffer, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodLocation>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodProperty>>> SearchFloodProperties(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodProperty>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodProperty>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodProperty>>> SearchFloodPropertiesWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodProperty>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodProperty>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsWithinMetres(double easting, double northing, double metres = 50, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsByUprn(long uprn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsByUsrn(long usrn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodRoad>>> SearchFloodRoads(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodRoad>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodRoad>>.Error(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodRoad>>> SearchFloodRoadsFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodRoad>>.Errors(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodRoad>>.Error(["TODO"]);
     }
 }
