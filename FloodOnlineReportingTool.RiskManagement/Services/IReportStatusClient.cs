@@ -6,7 +6,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Services;
 /// <summary>
 /// Report Status API client using Downstream API
 /// </summary>
-internal interface IReportStatusClient
+public interface IReportStatusClient
 {
     Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocations(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
     Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);

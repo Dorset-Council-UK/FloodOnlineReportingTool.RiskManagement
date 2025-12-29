@@ -61,5 +61,4 @@ app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode();
 app.MapAuthenticationEndpoints();
 
-await app.RunAsync()
-         .ConfigureAwait(false);
+await app.RunAsync();

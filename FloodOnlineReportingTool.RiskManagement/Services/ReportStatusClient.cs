@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
-internal sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDownstreamApi downstreamApi) : IReportStatusClient
+public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDownstreamApi downstreamApi) : IReportStatusClient
 {
     // TODO: CHECK ClaimsPrincipal? user = default
     public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocations(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
