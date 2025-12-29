@@ -23,7 +23,7 @@ public partial class SearchFloodLocations(
     private EditContext _editContext = default!;
     private bool _isLoading = true;
     //private PagedResult<SearchResultFloodLocation> _search;
-    private SearchResult<PagedResult<SearchResultFloodLocation>>? _pagedSearch;
+    private SearchResult<PagedResult<SearchResultFloodLocation>> _pagedSearch = SearchResult<PagedResult<SearchResultFloodLocation>>.NotStarted();
     private SearchState _searchState = SearchState.NotStarted;
 
     protected override void OnInitialized()
@@ -132,7 +132,12 @@ public partial class SearchFloodLocations(
 
     private async Task OnPageChanged(int newPageNumber)
     {
-        int pageSize = Model.PageSize ?? 10;
-        _pagedSearch = await reportStatusClient.SearchFloodLocations(newPageNumber, pageSize);
+        if (Model.PageSize is null)
+        {
+            _pagedSearch = await reportStatusClient.SearchFloodLocations(newPageNumber);
+            return;
+        }
+
+        _pagedSearch = await reportStatusClient.SearchFloodLocations(newPageNumber, Model.PageSize.Value);
     }
 }

@@ -1,4 +1,5 @@
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
@@ -140,7 +141,7 @@
                             break;
                     }
 
-                    @if (_pagedSearch is { Succeeded: true, Results.TotalPages: > 1 })
+                    @if (_pagedSearch is { State: SearchState.ResultsFound, Results.TotalPages: > 1 })
                     {
                         <PagingNavigation CurrentPage="@_pagedSearch.Results.CurrentPage" TotalPages="@_pagedSearch.Results.TotalPages" OnPageChanged="@OnPageChanged" />
                     }

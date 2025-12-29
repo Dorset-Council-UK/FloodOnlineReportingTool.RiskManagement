@@ -21,56 +21,56 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
             }, cancellationToken: ct);
 
         logger.LogInformation("Successfully retrieved flood locations: PageNumber={PageNumber}, PageSize={PageSize}, TotalCount={TotalCount}", pageNumber, pageSize, pagedResults.TotalCount);
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Success(pagedResults);
+        return SearchResult<PagedResult<SearchResultFloodLocation>>.ResultsFound(pagedResults);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodLocation>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsByPoint(double easting, double northing, double buffer, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodLocation>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodProperty>>> SearchFloodProperties(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodProperty>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodProperty>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodProperty>>> SearchFloodPropertiesWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodProperty>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodProperty>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsWithinMetres(double easting, double northing, double metres = 50, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsByUprn(long uprn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsByUsrn(long usrn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodReport>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodRoad>>> SearchFloodRoads(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodRoad>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodRoad>>.Errors(["TODO"]);
     }
 
     public async Task<SearchResult<PagedResult<SearchResultFloodRoad>>> SearchFloodRoadsFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodRoad>>.Failure(["TODO"]);
+        return SearchResult<PagedResult<SearchResultFloodRoad>>.Errors(["TODO"]);
     }
 }
