@@ -1,0 +1,27 @@
+﻿<div class="govuk-grid-row">
+    <button @onclick="() => ChangePage(CurrentPage - 1)" disabled="@IsFirstPage">Previous</button>
+    <span>Page @CurrentPage of @TotalPages</span>
+    <button @onclick="() => ChangePage(CurrentPage + 1)" disabled="@IsLastPage">Next</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int CurrentPage { get; set; }
+
+    [Parameter, EditorRequired]
+    public int TotalPages { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnPageChanged { get; set; }
+
+    private bool IsFirstPage => CurrentPage <= 1;
+    private bool IsLastPage => CurrentPage >= TotalPages;
+
+    private async Task ChangePage(int newPageNumber)
+    {
+        if (newPageNumber >= 1 && newPageNumber <= TotalPages)
+        {
+            await OnPageChanged.InvokeAsync(newPageNumber);
+        }
+    }
+}
