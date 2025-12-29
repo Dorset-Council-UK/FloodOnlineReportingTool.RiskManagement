@@ -341,3 +341,6 @@ healthchecksdb
 
 # Project generated files
 **/js/app.js
+**/js/app.js.map
+**/css/app.css
+**/css/app.css.map
