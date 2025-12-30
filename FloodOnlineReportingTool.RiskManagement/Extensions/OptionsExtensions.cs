@@ -63,7 +63,7 @@ internal static class OptionsExtensions
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             //KeyVault secrets only map to string rather than string[] so we need to cast it here
-            var knownProxies = JsonSerializer.Deserialize<string[]>((string)proxyOptions.KnownProxies);
+            var knownProxies = JsonSerializer.Deserialize<string[]>(proxyOptions.KnownProxies);
             if (knownProxies is not null)
             {
                 foreach (var proxy in knownProxies)
