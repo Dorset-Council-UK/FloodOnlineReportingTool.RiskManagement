@@ -3,20 +3,20 @@
 @inherits LayoutComponentBase
 
 <GdsHeader ServiceName="Risk Management" ServiceUrl="" LogoUrl="@Assets["images/logos/logo.webp"]">
-    @if (!Env.IsProduction())
-    {
-        <div class="govuk-heading-m" style="color:#fff">@Env.EnvironmentName</div>
-    }
-    <div>
+    <NavLinks>
         <AuthorizeView>
-            <Authorized><a href="signout" class="govuk-link govuk-link--no-visited-state" style="color:#fff">Sign out</a></Authorized>
-            <NotAuthorized><a href="signin" class="govuk-link govuk-link--no-visited-state" style="color:#fff">Sign in</a></NotAuthorized>
+            <Authorized>
+                <GdsHeaderNavLink Href="signout" Match="NavLinkMatch.All">Sign out</GdsHeaderNavLink>
+            </Authorized>
+            <NotAuthorized>
+                <GdsHeaderNavLink Href="signin" Match="NavLinkMatch.All">Sign in</GdsHeaderNavLink>
+            </NotAuthorized>
         </AuthorizeView>
-    </div>
+    </NavLinks>
 </GdsHeader>
 
 <div class="govuk-width-container">
-    <GdsPhaseBanner Phase="GdsPhaseBanner.Phases.Alpha" FeedbackLink="_feedbackUri" />
+    <GdsPhaseBanner Phase="@_phase" FeedbackLink="_feedbackUri" />
 
     <SectionOutlet SectionName="Layout.GdsBreadcrumbs" />
 
@@ -31,5 +31,6 @@
     [Inject]
     public IWebHostEnvironment Env { get; set; } = default!;
 
+    private GdsPhaseBanner.Phases _phase => Env.IsProduction() ? GdsPhaseBanner.Phases.Alpha : GdsPhaseBanner.Phases.Development;
     private readonly Uri _feedbackUri = new("https://dorset-self.achieveservice.com/service/flood-reporting-tool-feedback");
 }
