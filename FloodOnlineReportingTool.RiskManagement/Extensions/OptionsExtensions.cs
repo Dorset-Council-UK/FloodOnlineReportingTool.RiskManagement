@@ -59,7 +59,7 @@ internal static class OptionsExtensions
             return proxyOptions;
         }
 
-        builder.Services.Configure((Action<ForwardedHeadersOptions>)(options =>
+        builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             //KeyVault secrets only map to string rather than string[] so we need to cast it here
@@ -74,7 +74,7 @@ internal static class OptionsExtensions
                     }
                 }
             }
-        }));
+        });
 
         return proxyOptions;
     }
