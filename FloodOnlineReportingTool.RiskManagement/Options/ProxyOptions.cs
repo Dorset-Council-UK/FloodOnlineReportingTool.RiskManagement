@@ -1,8 +1,8 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Settings;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Options;
 
-public class ProxySettings
+public class ProxyOptions
 {
-    public const string SectionName = "ProxySettings";
+    public const string SectionName = "ProxyOptions";
 
     public bool UseForwardedHeadersMiddleware { get; set; }
     public string KnownProxies { get; init; } = "";

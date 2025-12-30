@@ -62,6 +62,16 @@ Then add your configuration:
 Example secrets file:
 ```json
 {
+  //These options may come from your secrets vault when deployed
+  "ProxyOptions": {
+    "UseHttpsRedirection": true,
+    "UseForwardedHeadersMiddleware": false,
+    "AllowedHosts": "*",
+    "KnownProxies": []
+  },
+  "AzureAd": {
+    // Configure Azure AD settings here if using Azure AD authentication
+  },
   "ConnectionStrings": {
     "RiskManagement": "Host=localhost;Port=5432;Database=YourDatabaseName;Username=YourUserName;Password=YourPassword;SearchPath=riskmanagement"
   },
