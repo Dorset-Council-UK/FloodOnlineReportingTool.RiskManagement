@@ -12,7 +12,7 @@
                 <div class="govuk-grid-column-one-third">
                     <div class="border-bottom">
                         <h2 class="govuk-heading-m">Flood locations</h2>
-                        <EditForm EditContext="_editContext" OnSubmit="OnSearchFloodLocations" FormName="SearchFloodLocations">
+                        <EditForm EditContext="_editContext" OnSubmit="OnSearch" FormName="SearchFloodLocations">
                             <FluentValidationValidator />
 
                             @{
@@ -101,12 +101,9 @@
                             break;
 
                         case SearchState.ResultsFound:
-                            if (_searchResult?.FloodReports.Count > 0)
+                            foreach(var result in _pagedSearch.Results)
                             {
-                                foreach (var floodReport in _searchResult.FloodReports)
-                                {
-                                    <FloodReportSummary FloodReport="floodReport" @key="floodReport.Id" />
-                                }
+                                <FloodLocationInformation SearchResult="result" />
                             }
                             break;
 
@@ -122,14 +119,14 @@
                             break;
 
                         case SearchState.Error:
-                            if (_searchResult?.Errors.Count > 0)
+                            if (_searchErrors.Count > 0)
                             {
                                 <div class="govuk-error-summary" data-module="govuk-error-summary">
                                     <div role="alert">
                                         <h2 class="govuk-error-summary__title">There is a problem</h2>
                                         <div class="govuk-error-summary__body">
                                             <ul class="govuk-list govuk-error-summary__list">
-                                                @foreach (var message in _searchResult.Errors)
+                                                @foreach (var message in _searchErrors)
                                                 {
                                                     <li>@message</li>
                                                 }
@@ -141,9 +138,9 @@
                             break;
                     }
 
-                    @if (_pagedSearch is { State: SearchState.ResultsFound, Results.TotalPages: > 1 })
+                    @if (_searchState == SearchState.ResultsFound && _pagedSearch.TotalPages > Model.PageSize)
                     {
-                        <PagingNavigation CurrentPage="@_pagedSearch.Results.CurrentPage" TotalPages="@_pagedSearch.Results.TotalPages" OnPageChanged="@OnPageChanged" />
+                        <PagingNavigation CurrentPage="@_pagedSearch.CurrentPage" TotalPages="@_pagedSearch.TotalPages" OnPageChanged="@OnPageChanged" />
                     }
                 </div>
             </div>

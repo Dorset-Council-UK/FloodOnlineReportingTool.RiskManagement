@@ -1,11 +1,9 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
-using FloodOnlineReportingTool.RiskManagement.Settings;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Identity.Abstractions;
 using Microsoft.Identity.Web;
 using System.Globalization;
 
@@ -22,15 +20,18 @@ public partial class SearchFloodLocations(
     private SearchFloodLocationsViewModel Model { get; set; } = default!;
     private EditContext _editContext = default!;
     private bool _isLoading = true;
-    //private PagedResult<SearchResultFloodLocation> _search;
-    private SearchResult<PagedResult<SearchResultFloodLocation>> _pagedSearch = SearchResult<PagedResult<SearchResultFloodLocation>>.NotStarted();
+
+    // Search
     private SearchState _searchState = SearchState.NotStarted;
+    private PagedResult<SearchResultFloodLocation> _pagedSearch = default!;
+    private IReadOnlyCollection<string> _searchErrors = [];
 
     protected override void OnInitialized()
     {
         Model ??= new();
         _editContext = new(Model);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _pagedSearch = new([], 0, Model.PageSize ?? 10, Model.PageNumber ?? 1, 0);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -44,9 +45,7 @@ public partial class SearchFloodLocations(
         }
     }
 
-    [Authorize]
-    [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
-    private async Task OnSearchFloodLocations()
+    private async Task OnSearch()
     {
         var validated = _editContext.Validate();
         if (!validated)
@@ -54,77 +53,62 @@ public partial class SearchFloodLocations(
             return;
         }
 
+        await OnSearchFloodLocations();
+    }
+
+    [Authorize]
+    [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
+    private async Task OnSearchFloodLocations()
+    {
         _searchState = SearchState.Searching;
 
-        /*
-        if (Model.Uprn is not null)
+        try
         {
-            long uprn = Model.Uprn.Value;
-            logger.LogInformation("Searching flood reports with UPRN {Uprn}", uprn);
+            var pageNumber = Model.PageNumber ?? 1;
 
-            try
+            if (Model.PageSize is null)
             {
-                _searchResult = await SearchFloodReportsByUprn(uprn);
+                _pagedSearch = await reportStatusClient.SearchFloodLocations(pageNumber);
             }
-            catch (MicrosoftIdentityWebChallengeUserException ex)
+            else
             {
-                consentHandler.HandleException(ex);
+                _pagedSearch = await reportStatusClient.SearchFloodLocations(pageNumber, Model.PageSize.Value);
             }
-            catch (Exception ex)
+
+            if (_pagedSearch is null)
             {
-                logger.LogError(ex, "Search flood reports by UPRN {Uprn} failed.", uprn);
-                _searchResult = SearchResult.Failure([
-                    "I am sorry but there was a problem searching using that UPRN.",
-                    ex.Message,
-                    TryAgain,
-                ]);
+                _searchState = SearchState.NoResults;
+                return;
             }
+
+            _searchState = SearchState.ResultsFound;
         }
-        */
-
-        _searchState = CurrentSearchState();
-
-        return;
-    }
-
-    private SearchState CurrentSearchState()
-    {
-        if (_search is null)
+        catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            return SearchState.NotStarted;
+            consentHandler.HandleException(ex);
+            return;
         }
-
-        if (_search.e)
-        if (_searchResult.Errors.Count > 0)
+        catch (Exception ex)
         {
-            return SearchState.Error;
+            logger.LogError(ex, "Error while searching flood locations");
+
+            _searchState = SearchState.Error;
+
+            _searchErrors = [
+                "There was a problem sarching for flood locations",
+                TryAgain,
+                ex.Message,
+            ];
+            _editContext.NotifyValidationStateChanged();
         }
-
-        return _searchResult.FloodReports.Count > 0
-            ? SearchState.ResultsFound
-            : SearchState.NoResults;
     }
-
-    /*
-    private async Task<SearchResult> SearchFloodReportsByUprn(long uprn)
-    {
-        var floodReports = await downstreamApi
-            .CallApiForUserAsync<IReadOnlyCollection<TEMP_FloodReport>>(RiskManagementSettings.ReportStatusApi, options =>
-            {
-                options.RelativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/uprn?uprn={uprn}");
-            });
-
-        return SearchResult.Success(floodReports ?? []);
-    }
-    */
 
     private string ResultsFoundText()
     {
         const string template1 = "{0} result found";
         const string templateN = "{0} results found";
 
-        var numberFound = _searchResult?.Succeeded == true ? _searchResult.Items.
-        var found = _searchResult?.FloodReports.Count ?? 0;
+        var found = _searchState == SearchState.ResultsFound ? _pagedSearch.TotalCount : 0;
         var template = found == 1 ? template1 : templateN;
 
         return string.Format(CultureInfo.InvariantCulture, template, found);
