@@ -1,7 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Settings;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Identity.Abstractions;
 using System.Globalization;
 
@@ -10,7 +8,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Services;
 public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDownstreamApi downstreamApi) : IReportStatusClient
 {
     // TODO: CHECK ClaimsPrincipal? user = default
-    public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocations(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodLocation>> SearchFloodLocations(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
         logger.LogInformation("Searching flood locations: PageNumber={PageNumber}, PageSize={PageSize}", pageNumber, pageSize);
 
@@ -20,57 +18,82 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
                 options.RelativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodlocations?pageNumber={pageNumber}&pageSize={pageSize}");
             }, cancellationToken: ct);
 
-        logger.LogInformation("Successfully retrieved flood locations: PageNumber={PageNumber}, PageSize={PageSize}, TotalCount={TotalCount}", pageNumber, pageSize, pagedResults.TotalCount);
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.ResultsFound(pagedResults);
+        if (pagedResults is null)
+        {
+            logger.LogWarning("No flood locations found");
+            return new([], 0, pageSize, pageNumber, 0);
+        }
+
+        logger.LogInformation("Successfully retrieved {TotalCount} flood locations", pagedResults.TotalCount);
+        return pagedResults;
+
+        //    return new()
+        //    {
+        //        State = totalCount > 0 ? SearchState.ResultsFound : SearchState.NoResults,
+        //        Results = pagedResults,
+        //    };
+        //}
+        //catch (Exception ex)
+        //{
+        //    logger.LogError(ex, "Error occurred while searching flood locations");
+        //    return new()
+        //    {
+        //        State = SearchState.Error,
+        //        Errors = [
+        //            "There was a problem sarching for flood locations. Please try again",
+        //            ex.Message,
+        //        ],
+        //    };
+        //}
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodLocation>> SearchFloodLocationsWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodLocation>>> SearchFloodLocationsByPoint(double easting, double northing, double buffer, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodLocation>> SearchFloodLocationsByPoint(double easting, double northing, double buffer, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodLocation>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodProperty>>> SearchFloodProperties(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodProperty>> SearchFloodProperties(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodProperty>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodProperty>>> SearchFloodPropertiesWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodProperty>> SearchFloodPropertiesWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodProperty>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodReport>> SearchFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsWithinMetres(double easting, double northing, double metres = 50, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodReport>> SearchFloodReportsWithinMetres(double easting, double northing, double metres = 50, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsByUprn(long uprn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodReport>> SearchFloodReportsByUprn(long uprn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodReport>>> SearchFloodReportsByUsrn(long usrn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodReport>> SearchFloodReportsByUsrn(long usrn, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodReport>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodRoad>>> SearchFloodRoads(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodRoad>> SearchFloodRoads(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodRoad>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 
-    public async Task<SearchResult<PagedResult<SearchResultFloodRoad>>> SearchFloodRoadsFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<PagedResult<SearchResultFloodRoad>> SearchFloodRoadsFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
-        return SearchResult<PagedResult<SearchResultFloodRoad>>.Error(["TODO"]);
+        throw new NotImplementedException();
     }
 }
