@@ -1,13 +1,19 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Settings;
 using Microsoft.Identity.Abstractions;
+using NetTopologySuite.IO.Converters;
 using System.Globalization;
+using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
 public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDownstreamApi downstreamApi) : IReportStatusClient
 {
-    // TODO: CHECK ClaimsPrincipal? user = default
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new GeoJsonConverterFactory() },
+    };
+
     public async Task<PagedResult<SearchResultFloodLocation>> SearchFloodLocations(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
         logger.LogInformation("Searching flood locations: PageNumber={PageNumber}, PageSize={PageSize}", pageNumber, pageSize);
@@ -16,6 +22,12 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
             .CallApiForUserAsync<PagedResult<SearchResultFloodLocation>>(RiskManagementSettings.ReportStatusApi, options =>
             {
                 options.RelativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodlocations?pageNumber={pageNumber}&pageSize={pageSize}");
+                options.Deserializer = (content) =>
+                {
+                    if (content is null) return null;
+                    var stream = content.ReadAsStream(ct);
+                    return JsonSerializer.Deserialize<PagedResult<SearchResultFloodLocation>>(stream, _jsonSerializerOptions);
+                };
             }, cancellationToken: ct);
 
         if (pagedResults is null)
@@ -26,25 +38,6 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
 
         logger.LogInformation("Successfully retrieved {TotalCount} flood locations", pagedResults.TotalCount);
         return pagedResults;
-
-        //    return new()
-        //    {
-        //        State = totalCount > 0 ? SearchState.ResultsFound : SearchState.NoResults,
-        //        Results = pagedResults,
-        //    };
-        //}
-        //catch (Exception ex)
-        //{
-        //    logger.LogError(ex, "Error occurred while searching flood locations");
-        //    return new()
-        //    {
-        //        State = SearchState.Error,
-        //        Errors = [
-        //            "There was a problem sarching for flood locations. Please try again",
-        //            ex.Message,
-        //        ],
-        //    };
-        //}
     }
 
     public async Task<PagedResult<SearchResultFloodLocation>> SearchFloodLocationsWithFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)

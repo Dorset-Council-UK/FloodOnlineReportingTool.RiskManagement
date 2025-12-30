@@ -42,7 +42,7 @@ internal static class EditContextExtensions
             (true, true) => $"{fieldName}-hint {fieldName}-error",
             (true, false) => $"{fieldName}-hint",
             (false, true) => $"{fieldName}-error",
-            _ => null
+            _ => null,
         };
     }
 }

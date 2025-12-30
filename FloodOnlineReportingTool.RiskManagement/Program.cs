@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Components;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using FluentValidation;
 using Microsoft.Identity.Web;
 
@@ -14,6 +15,8 @@ builder.AddAuthentication();
 builder.AddRiskManagementHealthChecks();
 builder.AddMessageSystem(messagingSettings);
 builder.AddDatabase();
+
+builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
 
 // Add Blazor services
 builder.Services
