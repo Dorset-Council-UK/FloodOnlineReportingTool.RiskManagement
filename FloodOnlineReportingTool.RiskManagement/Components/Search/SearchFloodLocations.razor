@@ -14,10 +14,61 @@
                         <h2 class="govuk-heading-m">Flood locations</h2>
                         <EditForm EditContext="_editContext" OnSubmit="OnSearch" FormName="SearchFloodLocations">
                             <FluentValidationValidator />
-
+                            
                             @{
+                                const string eastingFieldName = nameof(Model.EastingText);
+                                const string northingFieldName = nameof(Model.Northing);
+                                const string bufferFieldName = nameof(Model.Buffer);
+
                                 const string pageNumberFieldName = nameof(Model.PageNumberText);
+                                const string pageSizeFieldName = nameof(Model.PageSize);
                             }
+
+                            <GdsFormGroup For="() => Model.SearchType">
+                                <InputRadioGroup @bind-Value="Model.SearchType">
+                                    <GdsFieldsetGroup>
+                                        <Content>
+                                            <GdsErrorMessage />
+                                            <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+                                                @foreach (var option in _searchTypeOptions)
+                                                {
+                                                    var conditionalId = option.Value == FloodLocationSearchType.ByLocation ? $"{option.Id}-conditional" : null;
+                                                    <GdsRadio Option="@option" ConditionalId="@conditionalId" />
+                                                    if (conditionalId != null)
+                                                    {
+                                                        <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
+                                                            <GdsFormGroup For="() => Model.EastingText" Id="@eastingFieldName">
+                                                                <GdsLabel Text="Easting" />
+                                                                <GdsErrorMessage />
+                                                                <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(eastingFieldName)" />
+                                                            </GdsFormGroup>
+
+                                                            <GdsFormGroup For="() => Model.NorthingText" Id="@northingFieldName">
+                                                                <GdsLabel Text="Northing" />
+                                                                <GdsErrorMessage />
+                                                                <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(northingFieldName)" />
+                                                            </GdsFormGroup>
+
+                                                            <GdsFormGroup For="() => Model.Buffer" Id="@bufferFieldName">
+                                                                <GdsLabel Text="Buffer" />
+                                                                <GdsHint>The distance buffer (in metres) around the Easting and Northing coordinates to include in the search</GdsHint>
+                                                                <GdsErrorMessage />
+                                                                <InputSelect id="@bufferFieldName" @bind-Value="Model.PageSize" class="govuk-select" aria-describedby="@_editContext.DescribedBy(bufferFieldName, hasHint: true)">
+                                                                    <option value="10">10</option>
+                                                                    <option value="25">25</option>
+                                                                    <option value="50">50</option>
+                                                                    <option value="100">100</option>
+                                                                </InputSelect>
+                                                            </GdsFormGroup>
+                                                        </div>
+                                                    }
+                                                }
+                                            </div>
+                                        </Content>
+                                    </GdsFieldsetGroup>
+                                </InputRadioGroup>
+                            </GdsFormGroup>
+
                             <GdsFormGroup For="() => Model.PageNumberText" Id="@pageNumberFieldName">
                                 <GdsLabel Text="Page number" />
                                 <GdsHint>Which search result page to show, for example 1</GdsHint>
@@ -25,48 +76,12 @@
                                 <GdsInputNumber @bind-Value=Model.PageNumberText @bind-NumberValue=Model.PageNumber class="govuk-input govuk-input--width-5" aria-describedby="@_editContext.DescribedBy(pageNumberFieldName, hasHint: true)" />
                             </GdsFormGroup>
 
-                            @{
-                                const string pageSizeFieldName = nameof(Model.PageSize);
-                            }
                             <GdsFormGroup For="() => Model.PageSize" Id="@pageSizeFieldName">
                                 <GdsLabel Text="Page size" />
                                 <GdsHint>How many search results to see on the page, for example 10</GdsHint>
                                 <GdsErrorMessage />
                                 <InputSelect id="@pageSizeFieldName" @bind-Value="Model.PageSize" class="govuk-select" aria-describedby="@_editContext.DescribedBy(pageSizeFieldName, hasHint: true)">
                                     <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="25">25</option>
-                                    <option value="50">50</option>
-                                    <option value="100">100</option>
-                                </InputSelect>
-                            </GdsFormGroup>
-
-                            @{
-                                const string eastingFieldName = nameof(Model.EastingText);
-                            }
-                            <GdsFormGroup For="() => Model.EastingText" Id="@eastingFieldName">
-                                <GdsLabel Text="Easting" />
-                                <GdsErrorMessage />
-                                <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(eastingFieldName)" />
-                            </GdsFormGroup>
-
-                            @{
-                                const string northingFieldName = nameof(Model.Northing);
-                            }
-                            <GdsFormGroup For="() => Model.NorthingText" Id="@northingFieldName">
-                                <GdsLabel Text="Northing" />
-                                <GdsErrorMessage />
-                                <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(northingFieldName)" />
-                            </GdsFormGroup>
-
-                            @{
-                                const string bufferFieldName = nameof(Model.Buffer);
-                            }
-                            <GdsFormGroup For="() => Model.Buffer" Id="@bufferFieldName">
-                                <GdsLabel Text="Buffer" />
-                                <GdsHint>The distance buffer (in metres) around the Easting and Northing coordinates to include in the search</GdsHint>
-                                <GdsErrorMessage />
-                                <InputSelect id="@bufferFieldName" @bind-Value="Model.PageSize" class="govuk-select" aria-describedby="@_editContext.DescribedBy(bufferFieldName, hasHint: true)">
                                     <option value="10">10</option>
                                     <option value="25">25</option>
                                     <option value="50">50</option>
@@ -148,6 +163,6 @@
     </Authorized>
 
     <NotAuthorized>
-        <GdsWarning Text="You do not have permission to search for flood locations" />
+        <GdsWarning Text="Please sign in to search for flood locations" />
     </NotAuthorized>
 </AuthorizeView>

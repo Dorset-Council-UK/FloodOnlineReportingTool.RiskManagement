@@ -21,4 +21,7 @@ public class SearchFloodLocationsViewModel
 
     [GdsFieldErrorClass(GdsFieldTypes.Select)]
     public double? Buffer { get; set; } = 10;
+
+    [GdsFieldErrorClass(GdsFieldTypes.Select)]
+    public FloodLocationSearchType SearchType { get; set; } = FloodLocationSearchType.All;
 }

@@ -15,7 +15,7 @@ public partial class SearchFloodLocations(
     IReportStatusClient reportStatusClient,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler
 ) {
-    private const string TryAgain = "Please try again and if the problem persists, contact support.";
+    private const int PageSize = 20;
 
     private SearchFloodLocationsViewModel Model { get; set; } = default!;
     private EditContext _editContext = default!;
@@ -25,6 +25,11 @@ public partial class SearchFloodLocations(
     private SearchState _searchState = SearchState.NotStarted;
     private PagedResult<SearchResultFloodLocation> _pagedSearch = default!;
     private IReadOnlyCollection<string> _searchErrors = [];
+    private readonly IReadOnlyCollection<GdsOptionItem<FloodLocationSearchType>> _searchTypeOptions = [
+        new ("searchAll", "All", FloodLocationSearchType.All),
+        new ("searchWithReports", "Include flood reports", FloodLocationSearchType.WithFloodReports),
+        new ("searchByLocation", "Near location", FloodLocationSearchType.ByLocation),
+    ];
 
     protected override void OnInitialized()
     {
@@ -47,6 +52,7 @@ public partial class SearchFloodLocations(
 
     private async Task OnSearch()
     {
+        _searchErrors = [];
         var validated = _editContext.Validate();
         if (!validated)
         {
@@ -66,19 +72,20 @@ public partial class SearchFloodLocations(
         {
             var pageNumber = Model.PageNumber ?? 1;
 
-            if (Model.PageSize is null)
+            _pagedSearch = Model.SearchType switch
             {
-                _pagedSearch = await reportStatusClient.SearchFloodLocations(pageNumber);
-            }
-            else
-            {
-                _pagedSearch = await reportStatusClient.SearchFloodLocations(pageNumber, Model.PageSize.Value);
-            }
+                FloodLocationSearchType.All =>
+                    await reportStatusClient.SearchFloodLocations(pageNumber, PageSize),
+                FloodLocationSearchType.WithFloodReports =>
+                    await reportStatusClient.SearchFloodLocationsWithFloodReports(pageNumber, PageSize),
+                FloodLocationSearchType.ByLocation =>
+                    await reportStatusClient.SearchFloodLocationsByPoint(Model.Easting.Value, Model.Northing.Value, Model.Buffer.Value, pageNumber, PageSize),
+                _ => new([], 0, PageSize, pageNumber, 0),
+            };
 
-            if (_pagedSearch is null)
+            if (_pagedSearch is null || _pagedSearch.TotalCount == 0)
             {
                 _searchState = SearchState.NoResults;
-                return;
             }
 
             _searchState = SearchState.ResultsFound;
@@ -86,7 +93,6 @@ public partial class SearchFloodLocations(
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
             consentHandler.HandleException(ex);
-            return;
         }
         catch (Exception ex)
         {
@@ -96,10 +102,8 @@ public partial class SearchFloodLocations(
 
             _searchErrors = [
                 "There was a problem sarching for flood locations",
-                TryAgain,
-                ex.Message,
+                "Please try again and if the problem persists, contact support.",
             ];
-            _editContext.NotifyValidationStateChanged();
         }
     }
 
@@ -116,12 +120,7 @@ public partial class SearchFloodLocations(
 
     private async Task OnPageChanged(int newPageNumber)
     {
-        if (Model.PageSize is null)
-        {
-            _pagedSearch = await reportStatusClient.SearchFloodLocations(newPageNumber);
-            return;
-        }
-
-        _pagedSearch = await reportStatusClient.SearchFloodLocations(newPageNumber, Model.PageSize.Value);
+        Model.PageNumber = newPageNumber;
+        await OnSearch();
     }
 }
