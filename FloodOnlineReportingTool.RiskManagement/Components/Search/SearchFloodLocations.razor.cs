@@ -78,8 +78,8 @@ public partial class SearchFloodLocations(
                     await reportStatusClient.SearchFloodLocations(pageNumber, PageSize),
                 FloodLocationSearchType.WithFloodReports =>
                     await reportStatusClient.SearchFloodLocationsWithFloodReports(pageNumber, PageSize),
-                FloodLocationSearchType.ByLocation =>
-                    await reportStatusClient.SearchFloodLocationsByPoint(Model.Easting.Value, Model.Northing.Value, Model.Buffer.Value, pageNumber, PageSize),
+                FloodLocationSearchType.ByLocation when Model.Easting is double easting && Model.Northing is double northing && Model.Buffer is double buffer =>
+                    await reportStatusClient.SearchFloodLocationsByPoint(easting, northing, buffer, pageNumber, PageSize),
                 _ => new([], 0, PageSize, pageNumber, 0),
             };
 

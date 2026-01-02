@@ -9,8 +9,8 @@
     <div itemprop="headline">@SearchResult.Title</div>
     <div itemprop="displayLocation" itemscope itemtype="https://schema.org/Place">
         <span itemprop="geo" itemscope itemtype="https://schema.org/GeoCoordinates">
-            Easting: <span itemprop="@latitude" content="????">@SearchResult.Geom.X</span>
-            Northing: <span itemprop="@longitude" content="????">@SearchResult.Geom.Y</span>
+            Easting: <span itemprop="@latitude" content="@latitude">@SearchResult.Geom.X</span>
+            Northing: <span itemprop="@longitude" content="@longitude">@SearchResult.Geom.Y</span>
         </span>
     </div>
     <div>@SearchResult.FloodReports.Count related flood reports</div>
