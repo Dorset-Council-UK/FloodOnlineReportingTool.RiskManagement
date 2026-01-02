@@ -9,7 +9,7 @@
 }
 
 .info_panel__content {
-    color: white;
+    color: var(--govuk-color-white);
 }
 
 .info_panel__link {
