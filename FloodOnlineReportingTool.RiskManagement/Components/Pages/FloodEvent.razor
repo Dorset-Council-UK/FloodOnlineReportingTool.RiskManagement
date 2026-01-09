@@ -9,10 +9,10 @@
     <FluentValidationValidator />
     <GdsErrorSummary />
 
-    <GdsFormGroup For="() => Model.Something">
+    <GdsFormGroup For="() => Model!.Something">
         <GdsLabel Text="Temp Id" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
-        <GdsInputText @bind-Value=Model.Something class="govuk-input" />
+        <GdsInputText @bind-Value=Model!.Something class="govuk-input" />
     </GdsFormGroup>
 
     @*

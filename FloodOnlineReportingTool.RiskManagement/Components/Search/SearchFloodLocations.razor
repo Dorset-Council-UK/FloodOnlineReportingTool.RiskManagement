@@ -30,7 +30,6 @@
                                             {
                                                 var conditionalId = option.Value == FloodLocationSearchType.ByLocation ? $"{option.Id}-conditional" : null;
                                                 <GdsRadio Option="@option" ConditionalId="@conditionalId" />
-                                                <div>@(conditionalId ?? "null")</div>
                                                 if (conditionalId != null)
                                                 {
                                                     <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
@@ -111,7 +110,7 @@
                         break;
 
                     case SearchState.Error:
-                        if (_searchErrors.Count > 0)
+                        if (_searchErrors?.Count > 0)
                         {
                             <div class="govuk-error-summary" data-module="govuk-error-summary">
                                 <div role="alert">

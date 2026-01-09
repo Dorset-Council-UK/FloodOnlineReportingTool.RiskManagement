@@ -16,12 +16,22 @@ public partial class SearchFloodLocations(
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     NavigationManager navigationManager
 ) {
+    // Constants
     private const int PageSize = 20;
 
-    private SearchFloodLocationsViewModel Model { get; set; } = default!;
-    private EditContext _editContext = default!;
+    // Fields
+    private EditContext? _editContext;
 
-    // Search query parameters
+    // Fields - Search state
+    private SearchState? _searchState;
+    private PagedResult<SearchResultFloodLocation>? _pagedSearch;
+    private ICollection<string>? _searchErrors;
+    private IReadOnlyCollection<GdsOptionItem<FloodLocationSearchType>>? _searchTypeOptions;
+
+    // Properties
+    private SearchFloodLocationsViewModel? Model { get; set; }
+
+    // Properties - Search query
     [SupplyParameterFromQuery(Name = "searchType")]
     private string? SearchTypeQuery { get; set; }
     [SupplyParameterFromQuery(Name = "page")]
@@ -33,22 +43,25 @@ public partial class SearchFloodLocations(
     [SupplyParameterFromQuery(Name = "buffer")]
     private double? BufferQuery { get; set; }
 
-    // Search state
-    private SearchState _searchState = SearchState.NotStarted;
-    private PagedResult<SearchResultFloodLocation> _pagedSearch = default!;
-    private IReadOnlyCollection<string> _searchErrors = [];
-    private readonly IReadOnlyCollection<GdsOptionItem<FloodLocationSearchType>> _searchTypeOptions = [
-        new ("searchAll", "All", FloodLocationSearchType.All),
-        new ("searchWithReports", "Include flood reports", FloodLocationSearchType.WithFloodReports),
-        new ("searchByLocation", "Near location", FloodLocationSearchType.ByLocation),
-    ];
-
     protected override void OnInitialized()
     {
+        // Setup model and edit context
         Model ??= new();
-        _editContext = new(Model);
-        _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _pagedSearch = new([], 0, PageSize, 1, 0);
+        if (_editContext is null)
+        {
+            _editContext = new(Model);
+            _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        }
+
+        // Search state
+        _searchState ??= SearchState.NotStarted;
+        _pagedSearch ??= new([], 0, PageSize, 1, 0);
+        _searchErrors ??= [];
+        _searchTypeOptions ??= [
+            new ("searchAll", "All", FloodLocationSearchType.All),
+            new ("searchWithReports", "Include flood reports", FloodLocationSearchType.WithFloodReports),
+            new ("searchByLocation", "Near location", FloodLocationSearchType.ByLocation),
+        ];
     }
 
     protected override async Task OnParametersSetAsync()
@@ -103,21 +116,15 @@ public partial class SearchFloodLocations(
 
     private void UpdateUrlWithModelState()
     {
+        var isByLocation = Model.SearchType == FloodLocationSearchType.ByLocation;
         var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
         {
             { "searchType", Model.SearchType.ToString() },
             { "page", Model.PageNumber },
-            //{ "easting", Model.Easting },
-            //{ "northing", Model.Northing },
-            //{ "buffer", Model.Buffer },
+            { "easting", isByLocation ? Model.Easting : null },
+            { "northing", isByLocation ? Model.Northing : null },
+            { "buffer", isByLocation ? Model.Buffer : null },
         };
-
-        if (Model.SearchType == FloodLocationSearchType.ByLocation)
-        {
-            parameters["easting"] = Model.Easting;
-            parameters["northing"] = Model.Northing;
-            parameters["buffer"] = Model.Buffer;
-        }
 
         var uri = navigationManager.GetUriWithQueryParameters(parameters);
         navigationManager.NavigateTo(uri, replace: false);
