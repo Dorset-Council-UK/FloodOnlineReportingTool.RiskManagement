@@ -33,14 +33,6 @@ public partial class SearchFloodLocationsViewModelValidator : AbstractValidator<
         // pagnation validation
         RuleFor(o => o.PageNumber)
             .GreaterThan(0)
-            .WithMessage("Page number must be greater than 0")
-            .OverridePropertyName(o => o.PageNumberText)
-            .When(o => !string.IsNullOrWhiteSpace(o.PageNumberText));
-
-        RuleFor(o => o.PageSize)
-            .GreaterThan(0)
-            .WithMessage("Select a page size")
-            .InclusiveBetween(1, 100)
-            .WithMessage("Page size must be between 1 and 100");
+            .WithMessage("Page number must be greater than 0");
     }
 }
