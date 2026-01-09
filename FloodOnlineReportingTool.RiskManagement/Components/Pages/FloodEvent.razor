@@ -9,9 +9,7 @@
     <FluentValidationValidator />
     <GdsErrorSummary />
 
-    <GdsSpinner Show="_isLoading" ShowMessage="true" />
-
-    <GdsFormGroup For="() => Model.Something" Show="!_isLoading">
+    <GdsFormGroup For="() => Model.Something">
         <GdsLabel Text="Temp Id" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
         <GdsInputText @bind-Value=Model.Something class="govuk-input" />
@@ -55,8 +53,5 @@
         <img src="https://imageplaceholder.net/800x400/eeeeee/131313?text=Map+here" />
     </GdsFormGroup> 
 
-    @if (!_isLoading)
-    {
-        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
-    }
+    <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
 </EditForm>

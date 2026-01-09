@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components;
 
-public partial class App(IOptions<RiskManagementSettings> _settings, GdsBlazorComponents.IGdsJsInterop gdsJs)
+public partial class App(IOptions<RiskManagementSettings> _settings)
 {
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
@@ -23,14 +23,6 @@ public partial class App(IOptions<RiskManagementSettings> _settings, GdsBlazorCo
         if (pathBase != null)
         {
             _pathBase = $"/{pathBase}/";
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await gdsJs.InitGds();
         }
     }
 }

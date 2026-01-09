@@ -23,7 +23,6 @@ builder.Services
     .AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddMicrosoftIdentityConsentHandler();
-builder.Services.AddScoped<GdsBlazorComponents.IGdsJsInterop, GdsBlazorComponents.GdsJsInterop>();
 
 // Add all the validation rules
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);

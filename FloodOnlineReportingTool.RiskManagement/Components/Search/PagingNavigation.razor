@@ -1,7 +1,37 @@
-﻿<div class="govuk-grid-row">
-    <button @onclick="() => ChangePage(CurrentPage - 1)" disabled="@IsFirstPage">Previous</button>
-    <span>Page @CurrentPage of @TotalPages</span>
-    <button @onclick="() => ChangePage(CurrentPage + 1)" disabled="@IsLastPage">Next</button>
+﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
+
+<div class="govuk-grid-row">
+    <nav aria-label="Pagination" class="govuk-pagination govuk-pagination--block" >
+        @if (!_isFirstPage)
+        {
+            // Previous page
+            <div class="govuk-pagination__prev">
+                <button @onclick="() => ChangePage(CurrentPage - 1)" class="govuk-link govuk-pagination__link" type="button">Test button</button>
+                <a href="/search/services?page=1" class="govuk-link govuk-pagination__link">
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" width="15" height="13" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                        <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+                    </svg>
+                    <span class="govuk-pagination__link-title">Previous page</span>
+                    <span class="govuk-visually-hidden">:</span>
+                    <span class="govuk-pagination__link-label">@CurrentPage of @TotalPages</span>
+                </a>
+             </div>
+        }
+        @if (!_isLastPage)
+        {
+            // Next page
+            <div class="govuk-pagination__next">
+                <a href="/search/services?page=2" class="govuk-link govuk-pagination__link">
+                    <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" width="15" height="13" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                        <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+                    </svg>
+                    <span class="govuk-pagination__link-title">Next page</span>
+                    <span class="govuk-visually-hidden">:</span>
+                    <span class="govuk-pagination__link-label">@CurrentPage of @TotalPages</span>
+                </a>
+            </div>
+        }
+    </nav>
 </div>
 
 @code {
@@ -14,12 +44,25 @@
     [Parameter, EditorRequired]
     public EventCallback<int> OnPageChanged { get; set; }
 
-    private bool IsFirstPage => CurrentPage <= 1;
-    private bool IsLastPage => CurrentPage >= TotalPages;
+    private bool _isFirstPage;
+    private bool _isLastPage;
+
+    protected override void OnParametersSet()
+    {
+        CurrentPage = Math.Max(1, CurrentPage);
+        TotalPages = Math.Max(1, TotalPages);
+
+        _isFirstPage = CurrentPage == 1;
+        _isLastPage = CurrentPage >= TotalPages;
+
+        _isFirstPage = true;
+        _isLastPage = true;
+    }
 
     private async Task ChangePage(int newPageNumber)
     {
-        if (newPageNumber >= 1 && newPageNumber <= TotalPages)
+        newPageNumber = Math.Max(1, newPageNumber);
+        if (newPageNumber != CurrentPage && newPageNumber <= TotalPages)
         {
             await OnPageChanged.InvokeAsync(newPageNumber);
         }

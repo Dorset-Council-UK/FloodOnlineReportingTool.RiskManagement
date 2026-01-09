@@ -3,6 +3,7 @@ using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
 using System.Globalization;
@@ -11,17 +12,28 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Search;
 
 public partial class SearchFloodLocations(
     ILogger<SearchFloodLocations> logger,
-    IGdsJsInterop gdsJs,
     IReportStatusClient reportStatusClient,
-    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler
+    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
+    NavigationManager navigationManager
 ) {
     private const int PageSize = 20;
 
     private SearchFloodLocationsViewModel Model { get; set; } = default!;
     private EditContext _editContext = default!;
-    private bool _isLoading = true;
 
-    // Search
+    // Search query parameters
+    [SupplyParameterFromQuery(Name = "searchType")]
+    private string? SearchTypeQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "page")]
+    private int? PageNumberQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "easting")]
+    private double? EastingQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "northing")]
+    private double? NorthingQuery { get; set; }
+    [SupplyParameterFromQuery(Name = "buffer")]
+    private double? BufferQuery { get; set; }
+
+    // Search state
     private SearchState _searchState = SearchState.NotStarted;
     private PagedResult<SearchResultFloodLocation> _pagedSearch = default!;
     private IReadOnlyCollection<string> _searchErrors = [];
@@ -36,18 +48,42 @@ public partial class SearchFloodLocations(
         Model ??= new();
         _editContext = new(Model);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _pagedSearch = new([], 0, Model.PageSize ?? 10, Model.PageNumber ?? 1, 0);
+        _pagedSearch = new([], 0, PageSize, 1, 0);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
-        {
-            await gdsJs.InitGds();
+        CopyQueryParametersToModel();
 
-            _isLoading = false;
-            StateHasChanged();
+        // Auto-search if we have URL parameters and haven't searched yet
+        if (_searchState == SearchState.NotStarted && HasSearchQueryParameters())
+        {
+            await OnSearchFloodLocations();
         }
+    }
+
+    private void CopyQueryParametersToModel()
+    {
+        if (Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var searchType))
+        {
+            Model.SearchType = searchType;
+        }
+
+        Model.PageNumber = PageNumberQuery;
+
+        if (searchType == FloodLocationSearchType.ByLocation)
+        {
+            Model.Easting = EastingQuery;
+            Model.EastingText = EastingQuery?.ToString(CultureInfo.InvariantCulture);
+            Model.Northing = NorthingQuery;
+            Model.NorthingText = NorthingQuery?.ToString(CultureInfo.InvariantCulture);
+            Model.Buffer = BufferQuery;
+        }
+    }
+
+    private bool HasSearchQueryParameters()
+    {
+        return SearchTypeQuery is not null || PageNumberQuery.HasValue || EastingQuery.HasValue || NorthingQuery.HasValue;
     }
 
     private async Task OnSearch()
@@ -59,7 +95,32 @@ public partial class SearchFloodLocations(
             return;
         }
 
+        // Update URL with current model state
+        UpdateUrlWithModelState();
+
         await OnSearchFloodLocations();
+    }
+
+    private void UpdateUrlWithModelState()
+    {
+        var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
+        {
+            { "searchType", Model.SearchType.ToString() },
+            { "page", Model.PageNumber },
+            //{ "easting", Model.Easting },
+            //{ "northing", Model.Northing },
+            //{ "buffer", Model.Buffer },
+        };
+
+        if (Model.SearchType == FloodLocationSearchType.ByLocation)
+        {
+            parameters["easting"] = Model.Easting;
+            parameters["northing"] = Model.Northing;
+            parameters["buffer"] = Model.Buffer;
+        }
+
+        var uri = navigationManager.GetUriWithQueryParameters(parameters);
+        navigationManager.NavigateTo(uri, replace: false);
     }
 
     [Authorize]
@@ -92,6 +153,7 @@ public partial class SearchFloodLocations(
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
+            logger.LogWarning(ex, "Consent required while searching flood locations");
             consentHandler.HandleException(ex);
         }
         catch (Exception ex)
@@ -101,7 +163,7 @@ public partial class SearchFloodLocations(
             _searchState = SearchState.Error;
 
             _searchErrors = [
-                "There was a problem sarching for flood locations",
+                "There was a problem searching for flood locations",
                 "Please try again and if the problem persists, contact support.",
             ];
         }
