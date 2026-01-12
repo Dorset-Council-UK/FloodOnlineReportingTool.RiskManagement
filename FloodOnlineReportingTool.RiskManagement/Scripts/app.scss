@@ -21,6 +21,10 @@
     --govuk-color-turquoise: #28a197;
 }
 
+.border-top {
+    border-top: 1px solid var(--govuk-color-mid-grey);
+}
+
 .border-bottom {
     border-bottom: 1px solid var(--govuk-color-mid-grey);
 }

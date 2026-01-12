@@ -20,13 +20,13 @@
                             // const string pageSizeFieldName = nameof(Model.PageSize);
                         }
 
-                        <GdsFormGroup For="() => Model.SearchType">
-                            <InputRadioGroup @bind-Value="Model.SearchType">
+                        <GdsFormGroup For="() => Model!.SearchType">
+                            <InputRadioGroup @bind-Value="Model!.SearchType">
                                 <GdsFieldsetGroup>
                                     <Content>
                                         <GdsErrorMessage />
-                                        <div class="govuk-radios govuk-radios--smallXX" data-module="govuk-radios">
-                                            @foreach (var option in _searchTypeOptions)
+                                        <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+                                            @foreach (var option in _searchTypeOptions!)
                                             {
                                                 var conditionalId = option.Value == FloodLocationSearchType.ByLocation ? $"{option.Id}-conditional" : null;
                                                 <GdsRadio Option="@option" ConditionalId="@conditionalId" />
@@ -36,20 +36,20 @@
                                                         <GdsFormGroup For="() => Model.EastingText" Id="@eastingFieldName">
                                                             <GdsLabel Text="Easting" />
                                                             <GdsErrorMessage />
-                                                            <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(eastingFieldName)" />
+                                                            <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext!.DescribedBy(eastingFieldName)" />
                                                         </GdsFormGroup>
 
                                                         <GdsFormGroup For="() => Model.NorthingText" Id="@northingFieldName">
                                                             <GdsLabel Text="Northing" />
                                                             <GdsErrorMessage />
-                                                            <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(northingFieldName)" />
+                                                            <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext!.DescribedBy(northingFieldName)" />
                                                         </GdsFormGroup>
 
                                                         <GdsFormGroup For="() => Model.Buffer" Id="@bufferFieldName">
                                                             <GdsLabel Text="Buffer" />
                                                             <GdsHint>The distance buffer (in metres) around the Easting and Northing coordinates to include in the search</GdsHint>
                                                             <GdsErrorMessage />
-                                                            <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext.DescribedBy(bufferFieldName, hasHint: true)">
+                                                            <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext!.DescribedBy(bufferFieldName, hasHint: true)">
                                                                 <option value="10">10</option>
                                                                 <option value="25">25</option>
                                                                 <option value="50">50</option>
@@ -71,35 +71,35 @@
             </div>
 
             <div class="govuk-grid-column-two-thirds">
-                <div class="govuk-grid-row govuk-!-padding-bottom-3 govuk-!-margin-bottom-3 border-bottom">
+                <div class="govuk-grid-row govuk-!-margin-bottom-3">
                     <div class="govuk-!-font-weight-bold">@ResultsFoundText()</div>
                 </div>
-                <div class="govuk-grid-row govuk-!-padding-bottom-3 govuk-!-margin-bottom-3 border-bottom">
+                <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
                     <div>TODO: Sort goes here</div>
                 </div>
                 @switch (_searchState)
                 {
                     case SearchState.NotStarted:
-                        <div class="govuk-grid-row">
+                        <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
                             <p>TODO: Add initial search instructions, if relevant.</p>
                         </div>
                         break;
 
                     case SearchState.Searching:
-                        <div class="govuk-grid-row">
+                        <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
                             <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
                         </div>
                         break;
 
                     case SearchState.ResultsFound:
-                        foreach(var result in _pagedSearch.Results)
+                        foreach(var result in _pagedSearch!.Results)
                         {
                             <FloodLocationInformation SearchResult="result" />
                         }
                         break;
 
                     case SearchState.NoResults:
-                        <p class="govuk-!-font-weight-bold">There are no matching results.</p>
+                        <p class="govuk-!-font-weight-bold govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">There are no matching results.</p>
                         <p>Improve your search results by:</p>
                         <ul class="govuk-list govuk-list--bullet">
                             <li>removing filters</li>
@@ -112,7 +112,7 @@
                     case SearchState.Error:
                         if (_searchErrors?.Count > 0)
                         {
-                            <div class="govuk-error-summary" data-module="govuk-error-summary">
+                            <div class="govuk-error-summary govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3" data-module="govuk-error-summary">
                                 <div role="alert">
                                     <h2 class="govuk-error-summary__title">There is a problem</h2>
                                     <div class="govuk-error-summary__body">
@@ -129,10 +129,7 @@
                         break;
                 }
 
-                @if (true || (_searchState == SearchState.ResultsFound && _pagedSearch.TotalPages > PageSize))
-                {
-                    <PagingNavigation CurrentPage="@_pagedSearch.CurrentPage" TotalPages="@_pagedSearch.TotalPages" OnPageChanged="@OnPageChanged" />
-                }
+                <PagingNavigation CurrentPage="@_pagedSearch!.CurrentPage" TotalPages="@_pagedSearch.TotalPages" OnPageChanged="@OnPageChanged" />
             </div>
         </div>
     </Authorized>

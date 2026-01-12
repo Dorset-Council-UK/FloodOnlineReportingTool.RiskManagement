@@ -5,7 +5,7 @@
 @{
     var (latitude, longitude) = ConvertToWGS84(SearchResult.Geom);
 }
-<div itemscope itemtype="https://schema.org/CreativeWork" class="govuk-!-margin-bottom-3 border-bottom">
+<div itemscope itemtype="https://schema.org/CreativeWork" class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
     <div itemprop="headline">@SearchResult.Title</div>
     <div itemprop="displayLocation" itemscope itemtype="https://schema.org/Place">
         <span itemprop="geo" itemscope itemtype="https://schema.org/GeoCoordinates">
