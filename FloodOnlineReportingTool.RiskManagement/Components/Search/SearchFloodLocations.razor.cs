@@ -14,9 +14,9 @@ public partial class SearchFloodLocations(
     ILogger<SearchFloodLocations> logger,
     IReportStatusClient reportStatusClient,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
-    NavigationManager navigationManager
+    NavigationManager navigationManager,
+    IWebHostEnvironment environment
 ) {
-    // Constants
     private const int PageSize = 20;
 
     // Fields
@@ -69,7 +69,8 @@ public partial class SearchFloodLocations(
         CopyQueryParametersToModel();
 
         // Auto-search if we have URL parameters and haven't searched yet
-        if (_searchState == SearchState.NotStarted && HasSearchQueryParameters())
+        //if (_searchState == SearchState.NotStarted && HasSearchQueryParameters())
+        if (HasSearchQueryParameters())
         {
             await OnSearchFloodLocations();
         }
@@ -79,12 +80,12 @@ public partial class SearchFloodLocations(
     {
         if (Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var searchType))
         {
-            Model.SearchType = searchType;
+            Model!.SearchType = searchType;
         }
 
-        Model.PageNumber = PageNumberQuery;
+        Model!.PageNumber = PageNumberQuery;
 
-        if (searchType == FloodLocationSearchType.ByLocation)
+        if (Model.SearchType == FloodLocationSearchType.ByLocation)
         {
             Model.Easting = EastingQuery;
             Model.EastingText = EastingQuery?.ToString(CultureInfo.InvariantCulture);
@@ -96,13 +97,23 @@ public partial class SearchFloodLocations(
 
     private bool HasSearchQueryParameters()
     {
-        return SearchTypeQuery is not null || PageNumberQuery.HasValue || EastingQuery.HasValue || NorthingQuery.HasValue;
+        if (Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var _))
+        {
+            return false;
+        }
+
+        if (Model!.SearchType == FloodLocationSearchType.ByLocation)
+        {
+            return EastingQuery.HasValue && NorthingQuery.HasValue;
+        }
+
+        return true;
     }
 
     private async Task OnSearch()
     {
         _searchErrors = [];
-        var validated = _editContext.Validate();
+        var validated = _editContext!.Validate();
         if (!validated)
         {
             return;
@@ -111,23 +122,25 @@ public partial class SearchFloodLocations(
         // Update URL with current model state
         UpdateUrlWithModelState();
 
-        await OnSearchFloodLocations();
+        //await OnSearchFloodLocations();
     }
 
     private void UpdateUrlWithModelState()
     {
+        var changedSearchType = !string.Equals(SearchTypeQuery, Model!.SearchType.ToString(), StringComparison.CurrentCultureIgnoreCase);
+        //var changedSearchType = SearchTypeQuery != Model!.SearchType;
         var isByLocation = Model.SearchType == FloodLocationSearchType.ByLocation;
         var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
         {
             { "searchType", Model.SearchType.ToString() },
-            { "page", Model.PageNumber },
+            { "page", changedSearchType ? null : Model.PageNumber },
             { "easting", isByLocation ? Model.Easting : null },
             { "northing", isByLocation ? Model.Northing : null },
             { "buffer", isByLocation ? Model.Buffer : null },
         };
 
         var uri = navigationManager.GetUriWithQueryParameters(parameters);
-        navigationManager.NavigateTo(uri, replace: false);
+        navigationManager.NavigateTo(uri, forceLoad: true, replace: false);
     }
 
     [Authorize]
@@ -138,7 +151,7 @@ public partial class SearchFloodLocations(
 
         try
         {
-            var pageNumber = Model.PageNumber ?? 1;
+            var pageNumber = Model!.PageNumber ?? 1;
 
             _pagedSearch = Model.SearchType switch
             {
@@ -173,6 +186,11 @@ public partial class SearchFloodLocations(
                 "There was a problem searching for flood locations",
                 "Please try again and if the problem persists, contact support.",
             ];
+
+            if (environment.IsDevelopment())
+            {
+                _searchErrors = [.. _searchErrors, ex.Message];
+            }
         }
     }
 
@@ -181,7 +199,7 @@ public partial class SearchFloodLocations(
         const string template1 = "{0} result found";
         const string templateN = "{0} results found";
 
-        var found = _searchState == SearchState.ResultsFound ? _pagedSearch.TotalCount : 0;
+        var found = _searchState == SearchState.ResultsFound ? _pagedSearch!.TotalCount : 0;
         var template = found == 1 ? template1 : templateN;
 
         return string.Format(CultureInfo.InvariantCulture, template, found);
@@ -189,7 +207,7 @@ public partial class SearchFloodLocations(
 
     private async Task OnPageChanged(int newPageNumber)
     {
-        Model.PageNumber = newPageNumber;
+        Model!.PageNumber = newPageNumber == 1 ? null : newPageNumber;
         await OnSearch();
     }
 }
