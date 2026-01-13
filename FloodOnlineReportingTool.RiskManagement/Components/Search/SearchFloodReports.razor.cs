@@ -1,6 +1,6 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using FloodOnlineReportingTool.RiskManagement.Settings;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
@@ -103,7 +103,7 @@ public partial class SearchFloodReports(
     private async Task<SearchResult> SearchFloodReportsByUprn(long uprn)
     {
         var floodReports = await downstreamApi
-            .CallApiForUserAsync<IReadOnlyCollection<TEMP_FloodReport>>(RiskManagementSettings.ReportStatusApi, options =>
+            .CallApiForUserAsync<IReadOnlyCollection<TEMP_FloodReport>>(RiskManagementOptions.ReportStatusApi, options =>
             {
                 options.RelativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/uprn?uprn={uprn}");
             })

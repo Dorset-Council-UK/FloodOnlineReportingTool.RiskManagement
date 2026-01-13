@@ -1,6 +1,6 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Settings;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Options;
 
-public class MessagingSettings
+public class MessagingOptions
 {
     public const string SectionName = "Messaging";
 
