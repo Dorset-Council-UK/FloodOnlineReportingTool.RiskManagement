@@ -1,28 +1,23 @@
 ﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
-@using System.Globalization
-@using NetTopologySuite.Geometries
 
-@{
-    var (latitude, longitude) = ConvertToWGS84(SearchResult.Geom);
-}
 <div itemscope itemtype="https://schema.org/CreativeWork" class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
-    <div itemprop="headline">@SearchResult.Title</div>
+    <h2 class="govuk-heading-m" itemprop="headline">@SearchResult.Title</h2>
     <div itemprop="displayLocation" itemscope itemtype="https://schema.org/Place">
         <span itemprop="geo" itemscope itemtype="https://schema.org/GeoCoordinates">
-            Easting: <span itemprop="@latitude" content="@latitude">@SearchResult.Geom.X</span>
-            Northing: <span itemprop="@longitude" content="@longitude">@SearchResult.Geom.Y</span>
+            Easting: <span itemprop="latitude" content="@SearchResult.Latitude">@SearchResult.Geom.X</span>
+            Northing: <span itemprop="longitude" content="@SearchResult.Longitude">@SearchResult.Geom.Y</span>
         </span>
     </div>
     <div>@SearchResult.FloodReports.Count related flood reports</div>
     @if (SearchResult.UpdatedUtc is not null)
     {
-        <div itemprop="dateModified" content="@SearchResult.UpdatedUtc.Value.ToString("O")">
+        <div itemprop="dateModified" content="@SearchResult.UpdatedUtc.Value.ToString("O")" style="color: var(--govuk-color-dark-grey)" class="govuk-!-padding-top-2">
             Updated @SearchResult.UpdatedUtc.Value.GdsReadable()
         </div>
     }
     else
     {
-        <div itemprop="dateCreated" content="@SearchResult.CreatedUtc.ToString("O")">
+        <div itemprop="dateCreated" content="@SearchResult.CreatedUtc.ToString("O")" style="color: var(--govuk-color-dark-grey)" class="govuk-!-padding-top-2">
             Created @SearchResult.CreatedUtc.GdsReadable()
         </div>
     }
@@ -31,9 +26,4 @@
 @code {
     [Parameter, EditorRequired]
     public SearchResultFloodLocation SearchResult { get; set; }
-
-    private (double latitude, double longitude) ConvertToWGS84(Point eastingNorthing)
-    {
-        return (50.8136, -2.4748);
-    }
 }
