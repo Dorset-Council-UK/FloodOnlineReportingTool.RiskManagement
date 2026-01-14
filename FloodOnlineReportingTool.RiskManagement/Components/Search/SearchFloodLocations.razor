@@ -2,15 +2,36 @@
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
+                    <EditForm EditContext="_editContext" OnSubmit="OnSearch" FormName="SearchFloodLocations">
+<h1>TESTING current Model values</h1>
+<div>RenderMode = @RendererInfo.Name</div>
+<div>IsInteractive = @RendererInfo.IsInteractive</div>
+@if (RendererInfo.IsInteractive)
+{
+    <div>Hydration</div>
+}
+else
+{
+    <div>Prerendering</div>
+}
+
+<div>PageNumber = @Model?.PageNumber</div>
+<div>EastingText = @Model?.EastingText</div>
+<div>Easting = @Model?.Easting</div>
+<div>NorthingText = @Model?.NorthingText</div>
+<div>Northing = @Model?.Northing</div>
+<div>Buffer = @Model?.Buffer</div>
+<div>SearchType = @Model?.SearchType</div>
+
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
         <div class="govuk-grid-row border-bottom">
             <div class="govuk-grid-column-one-third">
                 <div>
                     <h2 class="govuk-heading-m">Flood locations</h2>
-                    <EditForm EditContext="_editContext" OnSubmit="OnSearch" FormName="SearchFloodLocations">
                         <FluentValidationValidator />
-                            
+                        
+
                         @{
                             const string eastingFieldName = nameof(Model.EastingText);
                             const string northingFieldName = nameof(Model.Northing);
@@ -66,16 +87,12 @@
                         </GdsFormGroup>
 
                         <button type="submit" class="govuk-button" data-module="govuk-button">Search</button>
-                    </EditForm>
                 </div>
             </div>
 
             <div class="govuk-grid-column-two-thirds">
                 <div class="govuk-grid-row govuk-!-margin-bottom-3">
                     <div class="govuk-!-font-weight-bold">@ResultsFoundText()</div>
-                </div>
-                <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
-                    <div>TODO: Sort goes here</div>
                 </div>
                 @switch (_searchState)
                 {
@@ -138,3 +155,4 @@
         <GdsWarning Text="Please sign in to search for flood locations" />
     </NotAuthorized>
 </AuthorizeView>
+                    </EditForm>

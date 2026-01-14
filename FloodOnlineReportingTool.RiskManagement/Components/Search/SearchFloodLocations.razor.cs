@@ -17,7 +17,7 @@ public partial class SearchFloodLocations(
     NavigationManager navigationManager,
     IWebHostEnvironment environment
 ) {
-    private const int PageSize = 20;
+    private const int PageSize = 5;
 
     // Fields
     private EditContext? _editContext;
@@ -64,40 +64,54 @@ public partial class SearchFloodLocations(
         ];
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
-        CopyQueryParametersToModel();
+        //var isInteractive = this.RendererInfo.IsInteractive;
 
-        // Auto-search if we have URL parameters and haven't searched yet
-        //if (_searchState == SearchState.NotStarted && HasSearchQueryParameters())
-        if (HasSearchQueryParameters())
+        var searchType = Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var parsedType)
+            ? parsedType
+            : FloodLocationSearchType.All;
+
+        // Update the model from the query parameters
+        Model!.PageNumber = PageNumberQuery is > 1 ? PageNumberQuery : null;
+        if (searchType == FloodLocationSearchType.ByLocation)
         {
-            await OnSearchFloodLocations();
+            Model.EastingText = EastingQuery?.ToString(CultureInfo.InvariantCulture);
+            //Model.Easting = EastingQuery;
+            Model.NorthingText = NorthingQuery?.ToString(CultureInfo.InvariantCulture);
+            //Model.Northing = NorthingQuery;
+            Model.Buffer = BufferQuery;
         }
+        else
+        {
+            Model.EastingText = null;
+            //Model.Easting = null;
+            Model.NorthingText = null;
+            //Model.Northing = null;
+            Model.Buffer = null;
+        }
+        Model.SearchType = searchType;
     }
 
-    private void CopyQueryParametersToModel()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var searchType))
+        if (firstRender)
         {
-            Model!.SearchType = searchType;
+            await OnSearchFloodLocations();
+            //if (_searchState == SearchState.NotStarted && HasSearchQueryParameters())
+            //{
+            //    await OnSearchFloodLocations();
+            //}
         }
-
-        Model!.PageNumber = PageNumberQuery;
-
-        if (Model.SearchType == FloodLocationSearchType.ByLocation)
+        else
         {
-            Model.Easting = EastingQuery;
-            Model.EastingText = EastingQuery?.ToString(CultureInfo.InvariantCulture);
-            Model.Northing = NorthingQuery;
-            Model.NorthingText = NorthingQuery?.ToString(CultureInfo.InvariantCulture);
-            Model.Buffer = BufferQuery;
+            await Task.CompletedTask;
         }
     }
 
     private bool HasSearchQueryParameters()
     {
-        if (Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var _))
+        if (!Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var _))
         {
             return false;
         }
@@ -112,7 +126,6 @@ public partial class SearchFloodLocations(
 
     private async Task OnSearch()
     {
-        _searchErrors = [];
         var validated = _editContext!.Validate();
         if (!validated)
         {
@@ -120,33 +133,49 @@ public partial class SearchFloodLocations(
         }
 
         // Update URL with current model state
-        UpdateUrlWithModelState();
-
-        //await OnSearchFloodLocations();
-    }
-
-    private void UpdateUrlWithModelState()
-    {
-        var changedSearchType = !string.Equals(SearchTypeQuery, Model!.SearchType.ToString(), StringComparison.CurrentCultureIgnoreCase);
-        //var changedSearchType = SearchTypeQuery != Model!.SearchType;
-        var isByLocation = Model.SearchType == FloodLocationSearchType.ByLocation;
+        //UpdateUrlWithModelState();
+        var isByLocation = Model!.SearchType == FloodLocationSearchType.ByLocation;
         var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
         {
-            { "searchType", Model.SearchType.ToString() },
-            { "page", changedSearchType ? null : Model.PageNumber },
+            { "searchType", Model.SearchType == FloodLocationSearchType.All ? null : Model.SearchType.ToString() },
+            { "page", Model.PageNumber is > 1 ? Model.PageNumber : null },
             { "easting", isByLocation ? Model.Easting : null },
             { "northing", isByLocation ? Model.Northing : null },
             { "buffer", isByLocation ? Model.Buffer : null },
         };
 
         var uri = navigationManager.GetUriWithQueryParameters(parameters);
-        navigationManager.NavigateTo(uri, forceLoad: true, replace: false);
+        navigationManager.NavigateTo(uri, replace: false);
+
+        //await OnSearchFloodLocations();
     }
+
+    //private void UpdateUrlWithModelState()
+    //{
+    //    var lastSearchType = SearchTypeQuery;
+    //    lastSearchType ??= nameof(FloodLocationSearchType.All);
+    //    var currentSearchType = Model!.SearchType.ToString();
+
+    //    var changedSearchType = !string.Equals(lastSearchType, currentSearchType, StringComparison.CurrentCultureIgnoreCase);
+    //    var isByLocation = Model.SearchType == FloodLocationSearchType.ByLocation;
+    //    var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
+    //    {
+    //        { "searchType", Model.SearchType.ToString() },
+    //        { "page", changedSearchType ? null : Model.PageNumber },
+    //        { "easting", isByLocation ? Model.Easting : null },
+    //        { "northing", isByLocation ? Model.Northing : null },
+    //        { "buffer", isByLocation ? Model.Buffer : null },
+    //    };
+
+    //    var uri = navigationManager.GetUriWithQueryParameters(parameters);
+    //    navigationManager.NavigateTo(uri, replace: false);
+    //}
 
     [Authorize]
     [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
     private async Task OnSearchFloodLocations()
     {
+        _searchErrors = [];
         _searchState = SearchState.Searching;
 
         try
@@ -207,7 +236,7 @@ public partial class SearchFloodLocations(
 
     private async Task OnPageChanged(int newPageNumber)
     {
-        Model!.PageNumber = newPageNumber == 1 ? null : newPageNumber;
+        Model!.PageNumber = newPageNumber is > 1 ? newPageNumber : null;
         await OnSearch();
     }
 }
