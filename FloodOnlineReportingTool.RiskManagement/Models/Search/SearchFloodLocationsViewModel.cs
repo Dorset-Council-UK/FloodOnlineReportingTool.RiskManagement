@@ -12,7 +12,7 @@ public class SearchFloodLocationsViewModel
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? NorthingText { get; set; }
-    public double? Northing { get; set; } = 10;
+    public double? Northing { get; set; }
 
     [GdsFieldErrorClass(GdsFieldTypes.Select)]
     public double? Buffer { get; set; } = 10;
