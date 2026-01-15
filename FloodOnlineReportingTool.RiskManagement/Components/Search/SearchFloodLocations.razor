@@ -2,43 +2,20 @@
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
-                    <EditForm EditContext="_editContext" OnSubmit="OnSearch" FormName="SearchFloodLocations">
-<h1>TESTING current Model values</h1>
-<div>RenderMode = @RendererInfo.Name</div>
-<div>IsInteractive = @RendererInfo.IsInteractive</div>
-@if (RendererInfo.IsInteractive)
-{
-    <div>Hydration</div>
-}
-else
-{
-    <div>Prerendering</div>
-}
+<EditForm EditContext="_editContext" OnSubmit="OnSearchSubmit" FormName="SearchFloodLocations">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
 
-<div>PageNumber = @Model?.PageNumber</div>
-<div>EastingText = @Model?.EastingText</div>
-<div>Easting = @Model?.Easting</div>
-<div>NorthingText = @Model?.NorthingText</div>
-<div>Northing = @Model?.Northing</div>
-<div>Buffer = @Model?.Buffer</div>
-<div>SearchType = @Model?.SearchType</div>
-
-<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
-    <Authorized>
-        <div class="govuk-grid-row border-bottom">
-            <div class="govuk-grid-column-one-third">
-                <div>
-                    <h2 class="govuk-heading-m">Flood locations</h2>
-                        <FluentValidationValidator />
-                        
-
+    <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+        <Authorized>
+            <div class="govuk-grid-row border-bottom">
+                <div class="govuk-grid-column-one-third">
+                    <div>
+                        <h2 class="govuk-heading-m">Flood locations</h2>
                         @{
                             const string eastingFieldName = nameof(Model.EastingText);
                             const string northingFieldName = nameof(Model.Northing);
                             const string bufferFieldName = nameof(Model.Buffer);
-
-                            // const string pageNumberFieldName = nameof(Model.PageNumberText);
-                            // const string pageSizeFieldName = nameof(Model.PageSize);
                         }
 
                         <GdsFormGroup For="() => Model!.SearchType">
@@ -68,14 +45,16 @@ else
 
                                                         <GdsFormGroup For="() => Model.Buffer" Id="@bufferFieldName">
                                                             <GdsLabel Text="Buffer" />
-                                                            <GdsHint>The distance buffer (in metres) around the Easting and Northing coordinates to include in the search</GdsHint>
                                                             <GdsErrorMessage />
-                                                            <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext!.DescribedBy(bufferFieldName, hasHint: true)">
-                                                                <option value="10">10</option>
-                                                                <option value="25">25</option>
-                                                                <option value="50">50</option>
-                                                                <option value="100">100</option>
-                                                            </InputSelect>
+                                                            <div class="govuk-input__wrapper">
+                                                                <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext!.DescribedBy(bufferFieldName)">
+                                                                    <option value="10">10</option>
+                                                                    <option value="25">25</option>
+                                                                    <option value="50">50</option>
+                                                                    <option value="100">100</option>
+                                                                </InputSelect>
+                                                                <div class="govuk-input__suffix" aria-hidden="true">metres</div>
+                                                            </div>
                                                         </GdsFormGroup>
                                                     </div>
                                                 }
@@ -87,72 +66,65 @@ else
                         </GdsFormGroup>
 
                         <button type="submit" class="govuk-button" data-module="govuk-button">Search</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="govuk-grid-column-two-thirds">
-                <div class="govuk-grid-row govuk-!-margin-bottom-3">
-                    <div class="govuk-!-font-weight-bold">@ResultsFoundText()</div>
-                </div>
-                @switch (_searchState)
-                {
-                    case SearchState.NotStarted:
-                        <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
-                            <p>TODO: Add initial search instructions, if relevant.</p>
-                        </div>
-                        break;
-
-                    case SearchState.Searching:
-                        <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
-                            <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
-                        </div>
-                        break;
-
-                    case SearchState.ResultsFound:
-                        foreach(var result in _pagedSearch!.Results)
-                        {
-                            <FloodLocationInformation SearchResult="result" />
-                        }
-                        break;
-
-                    case SearchState.NoResults:
-                        <p class="govuk-!-font-weight-bold govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">There are no matching results.</p>
-                        <p>Improve your search results by:</p>
-                        <ul class="govuk-list govuk-list--bullet">
-                            <li>removing filters</li>
-                            <li>double-checking your spelling</li>
-                            <li>using fewer keywords</li>
-                            <li>searching for something less specific</li>
-                        </ul>
-                        break;
-
-                    case SearchState.Error:
-                        if (_searchErrors?.Count > 0)
-                        {
-                            <div class="govuk-error-summary govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3" data-module="govuk-error-summary">
-                                <div role="alert">
-                                    <h2 class="govuk-error-summary__title">There is a problem</h2>
-                                    <div class="govuk-error-summary__body">
-                                        <ul class="govuk-list govuk-error-summary__list">
-                                            @foreach (var message in _searchErrors)
-                                            {
-                                                <li>@message</li>
-                                            }
-                                        </ul>
-                                    </div>
-                                </div>
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-grid-row govuk-!-margin-bottom-3">
+                        <div class="govuk-!-font-weight-bold">@ResultsFoundText()</div>
+                    </div>
+                    @switch (_searchState)
+                    {
+                        case SearchState.NotStarted:
+                            <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
+                                <p>TODO: Add initial search instructions, if relevant.</p>
                             </div>
-                        }
-                        break;
-                }
+                            break;
 
-                <PagingNavigation CurrentPage="@_pagedSearch!.CurrentPage" TotalPages="@_pagedSearch.TotalPages" OnPageChanged="@OnPageChanged" />
+                        case SearchState.Searching:
+                            <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
+                                <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
+                            </div>
+                            break;
+
+                        case SearchState.ResultsFound:
+                            foreach(var result in _pagedSearch!.Results)
+                            {
+                                <FloodLocationInformation SearchResult="result" />
+                            }
+                            break;
+
+                        case SearchState.NoResults:
+                            <p class="govuk-!-font-weight-bold govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">There are no matching results.</p>
+                            <p>Improve your search results by:</p>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li>removing filters</li>
+                                <li>double-checking your spelling</li>
+                                <li>using fewer keywords</li>
+                                <li>searching for something less specific</li>
+                            </ul>
+                            break;
+                    }
+
+                    <PagingNavigation CurrentPage="@_pagedSearch!.CurrentPage" TotalPages="@_pagedSearch.TotalPages" OnPageChanged="@OnPageChanged" />
+                </div>
             </div>
-        </div>
-    </Authorized>
+        </Authorized>
 
-    <NotAuthorized>
-        <GdsWarning Text="Please sign in to search for flood locations" />
-    </NotAuthorized>
-</AuthorizeView>
-                    </EditForm>
+        <NotAuthorized>
+            <GdsWarning Text="Please sign in to search for flood locations" />
+        </NotAuthorized>
+    </AuthorizeView>
+
+    <h2 class="govuk-heading-m">TESTING</h2>
+    <div>RenderMode = @RendererInfo.Name</div>
+    <div>IsInteractive = @RendererInfo.IsInteractive</div>
+    <div>PageNumber = @Model?.PageNumber</div>
+    <div>EastingText = @Model?.EastingText</div>
+    <div>Easting = @Model?.Easting</div>
+    <div>NorthingText = @Model?.NorthingText</div>
+    <div>Northing = @Model?.Northing</div>
+    <div>Buffer = @Model?.Buffer</div>
+    <div>SearchType = @Model?.SearchType</div>
+    <div>_searchState = @_searchState</div>
+</EditForm>
