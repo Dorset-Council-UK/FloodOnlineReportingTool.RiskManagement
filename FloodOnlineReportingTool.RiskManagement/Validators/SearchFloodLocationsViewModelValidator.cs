@@ -27,11 +27,15 @@ public partial class SearchFloodLocationsViewModelValidator : AbstractValidator<
 
             RuleFor(o => o.Buffer)
                 .NotNull()
-                .WithMessage("Select a buffer distance");
+                .WithMessage("Select a buffer distance")
+                .GreaterThan(0)
+                .WithMessage("Buffer distance must be greater than 0");
         });
 
         // pagnation validation
         RuleFor(o => o.PageNumber)
+            .NotNull()
+            .WithMessage("Page number must be greater than 0")
             .GreaterThan(0)
             .WithMessage("Page number must be greater than 0");
     }

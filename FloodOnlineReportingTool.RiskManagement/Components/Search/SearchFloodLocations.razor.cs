@@ -21,11 +21,11 @@ public partial class SearchFloodLocations(
 
     // Fields
     private EditContext? _editContext;
+    private ValidationMessageStore? _messageStore;
 
     // Fields - Search state
     private SearchState? _searchState;
     private PagedResult<SearchResultFloodLocation>? _pagedSearch;
-    private ICollection<string>? _searchErrors;
     private IReadOnlyCollection<GdsOptionItem<FloodLocationSearchType>>? _searchTypeOptions;
 
     // Properties
@@ -52,11 +52,11 @@ public partial class SearchFloodLocations(
             _editContext = new(Model);
             _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         }
+        _messageStore ??= new(_editContext);
 
         // Search state
         _searchState ??= SearchState.NotStarted;
         _pagedSearch ??= new([], 0, PageSize, 1, 0);
-        _searchErrors ??= [];
         _searchTypeOptions ??= [
             new ("searchAll", "All", FloodLocationSearchType.All),
             new ("searchWithReports", "Include flood reports", FloodLocationSearchType.WithFloodReports),
@@ -66,14 +66,12 @@ public partial class SearchFloodLocations(
 
     protected override void OnParametersSet()
     {
-        //var isInteractive = this.RendererInfo.IsInteractive;
-
         var searchType = Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var parsedType)
             ? parsedType
             : FloodLocationSearchType.All;
 
         // Update the model from the query parameters
-        Model!.PageNumber = PageNumberQuery is > 1 ? PageNumberQuery : null;
+        Model!.PageNumber = PageNumberQuery is > 1 ? PageNumberQuery : 1;
         if (searchType == FloodLocationSearchType.ByLocation)
         {
             Model.EastingText = EastingQuery?.ToString(CultureInfo.InvariantCulture);
@@ -97,43 +95,33 @@ public partial class SearchFloodLocations(
     {
         if (firstRender)
         {
-            await OnSearchFloodLocations();
-            //if (_searchState == SearchState.NotStarted && HasSearchQueryParameters())
-            //{
-            //    await OnSearchFloodLocations();
-            //}
-        }
-        else
-        {
-            await Task.CompletedTask;
+            await AutoSearch();
+            StateHasChanged();
         }
     }
 
-    private bool HasSearchQueryParameters()
+    private async Task OnSearchSubmit()
     {
-        if (!Enum.TryParse<FloodLocationSearchType>(SearchTypeQuery, ignoreCase: true, out var _))
-        {
-            return false;
-        }
-
-        if (Model!.SearchType == FloodLocationSearchType.ByLocation)
-        {
-            return EastingQuery.HasValue && NorthingQuery.HasValue;
-        }
-
-        return true;
-    }
-
-    private async Task OnSearch()
-    {
-        var validated = _editContext!.Validate();
-        if (!validated)
+        // Reset to first page on new search
+        Model!.PageNumber = 1;
+        if (!ValidSearch())
         {
             return;
         }
+        UpdateUrlAndNavigate();
+    }
 
-        // Update URL with current model state
-        //UpdateUrlWithModelState();
+    private bool ValidSearch()
+    {
+        _messageStore!.Clear();
+        return _editContext!.Validate();
+    }
+
+    /// <summary>
+    /// Updates the browser's URL to reflect the current search parameters and navigates to the updated URL.
+    /// </summary>
+    private void UpdateUrlAndNavigate()
+    {
         var isByLocation = Model!.SearchType == FloodLocationSearchType.ByLocation;
         var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
         {
@@ -145,37 +133,19 @@ public partial class SearchFloodLocations(
         };
 
         var uri = navigationManager.GetUriWithQueryParameters(parameters);
-        navigationManager.NavigateTo(uri, replace: false);
-
-        //await OnSearchFloodLocations();
+        var forceLoad = true; // Allow searching again with the same parameters
+        navigationManager.NavigateTo(uri, forceLoad, replace: false);
     }
-
-    //private void UpdateUrlWithModelState()
-    //{
-    //    var lastSearchType = SearchTypeQuery;
-    //    lastSearchType ??= nameof(FloodLocationSearchType.All);
-    //    var currentSearchType = Model!.SearchType.ToString();
-
-    //    var changedSearchType = !string.Equals(lastSearchType, currentSearchType, StringComparison.CurrentCultureIgnoreCase);
-    //    var isByLocation = Model.SearchType == FloodLocationSearchType.ByLocation;
-    //    var parameters = new Dictionary<string, object?>(StringComparer.CurrentCulture)
-    //    {
-    //        { "searchType", Model.SearchType.ToString() },
-    //        { "page", changedSearchType ? null : Model.PageNumber },
-    //        { "easting", isByLocation ? Model.Easting : null },
-    //        { "northing", isByLocation ? Model.Northing : null },
-    //        { "buffer", isByLocation ? Model.Buffer : null },
-    //    };
-
-    //    var uri = navigationManager.GetUriWithQueryParameters(parameters);
-    //    navigationManager.NavigateTo(uri, replace: false);
-    //}
 
     [Authorize]
     [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
-    private async Task OnSearchFloodLocations()
+    private async Task AutoSearch()
     {
-        _searchErrors = [];
+        if (!ValidSearch())
+        {
+            return;
+        }
+
         _searchState = SearchState.Searching;
 
         try
@@ -211,15 +181,17 @@ public partial class SearchFloodLocations(
 
             _searchState = SearchState.Error;
 
-            _searchErrors = [
+            var formErrorField = FieldIdentifier.Create(() => Model!.PageNumber);
+            _messageStore!.Add(formErrorField,
+            [
                 "There was a problem searching for flood locations",
                 "Please try again and if the problem persists, contact support.",
-            ];
-
+            ]);
             if (environment.IsDevelopment())
             {
-                _searchErrors = [.. _searchErrors, ex.Message];
+                _messageStore.Add(formErrorField, ex.Message);
             }
+            _editContext!.NotifyValidationStateChanged();
         }
     }
 
@@ -236,7 +208,11 @@ public partial class SearchFloodLocations(
 
     private async Task OnPageChanged(int newPageNumber)
     {
-        Model!.PageNumber = newPageNumber is > 1 ? newPageNumber : null;
-        await OnSearch();
+        Model!.PageNumber = newPageNumber is > 1 ? newPageNumber : 1;
+        if (!ValidSearch())
+        {
+            return;
+        }
+        UpdateUrlAndNavigate();
     }
 }
