@@ -35,12 +35,12 @@
     overflow: hidden;
 }
 
-    .searchbox__submit .searchbox__icon {
-        pointer-events: none;
-        position: absolute;
-        height: 100%;
-        width: 100%;
-        top: 0;
-        left: 0;
-        transform: scale(0.5);
-    }
+.searchbox__submit .searchbox__icon {
+    pointer-events: none;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    transform: scale(0.5);
+}
