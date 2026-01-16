@@ -28,3 +28,13 @@
 .border-bottom {
     border-bottom: 1px solid var(--govuk-color-mid-grey);
 }
+
+$govuk-brand-colour: #05476d;
+
+.govuk-template--rebranded .govuk-header {
+    background-color: $govuk-brand-colour;
+}
+
+.govuk-template--rebranded .govuk-header__link--homepage:not(:focus) {
+    background-color: unset;
+}

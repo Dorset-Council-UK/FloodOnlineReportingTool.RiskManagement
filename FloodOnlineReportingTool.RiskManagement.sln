@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36203.30
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FloodOnlineReportingTool.RiskManagement", "FloodOnlineReportingTool.RiskManagement\FloodOnlineReportingTool.RiskManagement.csproj", "{1087F24F-3702-48C1-8F0D-D04DE80228EF}"
 EndProject
