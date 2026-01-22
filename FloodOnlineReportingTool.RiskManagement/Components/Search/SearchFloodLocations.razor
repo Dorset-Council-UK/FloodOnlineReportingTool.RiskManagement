@@ -2,6 +2,11 @@
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
+@if (_editContext is null)
+{
+    return;
+}
+
 <EditForm EditContext="_editContext" OnSubmit="OnSearchSubmit" FormName="SearchFloodLocations">
     <FluentValidationValidator />
     <GdsErrorSummary />
@@ -11,43 +16,43 @@
             <div class="govuk-grid-row border-bottom">
                 <div class="govuk-grid-column-one-third">
                     <div>
-                        <h2 class="govuk-heading-m">Flood locations</h2>
+                        <h2 class="govuk-heading-m">Filter</h2>
                         @{
                             const string eastingFieldName = nameof(Model.EastingText);
                             const string northingFieldName = nameof(Model.Northing);
                             const string bufferFieldName = nameof(Model.Buffer);
                         }
 
-                        <GdsFormGroup For="() => Model!.SearchType">
-                            <InputRadioGroup @bind-Value="Model!.SearchType">
+                        <GdsFormGroup For="() => Model.SearchType">
+                            <InputRadioGroup @bind-Value="Model.SearchType">
                                 <GdsFieldsetGroup>
                                     <Content>
                                         <GdsErrorMessage />
                                         <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
-                                            @foreach (var option in _searchTypeOptions!)
+                                            @foreach (var option in _searchTypeOptions)
                                             {
                                                 var conditionalId = option.Value == FloodLocationSearchType.ByLocation ? $"{option.Id}-conditional" : null;
                                                 <GdsRadio Option="@option" ConditionalId="@conditionalId" />
-                                                if (conditionalId != null)
+                                                if (conditionalId is not null)
                                                 {
                                                     <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
                                                         <GdsFormGroup For="() => Model.EastingText" Id="@eastingFieldName">
                                                             <GdsLabel Text="Easting" />
                                                             <GdsErrorMessage />
-                                                            <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext!.DescribedBy(eastingFieldName)" />
+                                                            <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(eastingFieldName)" />
                                                         </GdsFormGroup>
 
                                                         <GdsFormGroup For="() => Model.NorthingText" Id="@northingFieldName">
                                                             <GdsLabel Text="Northing" />
                                                             <GdsErrorMessage />
-                                                            <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext!.DescribedBy(northingFieldName)" />
+                                                            <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(northingFieldName)" />
                                                         </GdsFormGroup>
 
                                                         <GdsFormGroup For="() => Model.Buffer" Id="@bufferFieldName">
                                                             <GdsLabel Text="Buffer" />
                                                             <GdsErrorMessage />
                                                             <div class="govuk-input__wrapper">
-                                                                <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext!.DescribedBy(bufferFieldName)">
+                                                                <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext.DescribedBy(bufferFieldName)">
                                                                     <option value="10">10</option>
                                                                     <option value="25">25</option>
                                                                     <option value="50">50</option>
@@ -115,16 +120,4 @@
             <GdsWarning Text="Please sign in to search for flood locations" />
         </NotAuthorized>
     </AuthorizeView>
-
-    <h2 class="govuk-heading-m">TESTING</h2>
-    <div>RenderMode = @RendererInfo.Name</div>
-    <div>IsInteractive = @RendererInfo.IsInteractive</div>
-    <div>PageNumber = @Model?.PageNumber</div>
-    <div>EastingText = @Model?.EastingText</div>
-    <div>Easting = @Model?.Easting</div>
-    <div>NorthingText = @Model?.NorthingText</div>
-    <div>Northing = @Model?.Northing</div>
-    <div>Buffer = @Model?.Buffer</div>
-    <div>SearchType = @Model?.SearchType</div>
-    <div>_searchState = @_searchState</div>
 </EditForm>

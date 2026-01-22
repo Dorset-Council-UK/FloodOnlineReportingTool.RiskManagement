@@ -12,7 +12,7 @@
     @if (SearchResult.UpdatedUtc is not null)
     {
         <div itemprop="dateModified" content="@SearchResult.UpdatedUtc.Value.ToString("O")" style="color: var(--govuk-color-dark-grey)" class="govuk-!-padding-top-2">
-            Updated @SearchResult.UpdatedUtc.Value.GdsReadable()
+            Updated @SearchResult.UpdatedUtc.GdsReadable()
         </div>
     }
     else
