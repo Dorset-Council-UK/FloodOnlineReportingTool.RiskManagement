@@ -1,12 +1,9 @@
 ﻿@page "/"
-@using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Flood Reporting Admin</PageTitle>
 
 <h1 class="govuk-heading-l">Flood Reporting Admin</h1>
-
-<SearchFloodLocations />
 
 <div class="govuk-width-container">
     <div class="govuk-grid-row">
@@ -15,7 +12,7 @@
     </div>
     <div class="govuk-grid-row">
         <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
-        <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" />
+        <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new property search" HeaderText="Property Searches" CardStyle="success" LinkURL="search" />
     </div>
 
     <div class="govuk-grid-row">
