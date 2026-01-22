@@ -6,106 +6,117 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 
-#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Microsoft.AspNetCore.Builder;
-#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 internal static class AuthenticationExtensions
 {
-    /// <summary>
-    /// Configures authentication, authorization and policies.
-    /// </summary>
-    internal static TBuilder AddAuthentication<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    extension(IHostApplicationBuilder builder)
     {
-        var azureAdSection = builder.Configuration
-            .GetRequiredSection("FORT")
-            .GetRequiredSection(KeyVaultAzureAdOptions.SectionName);
+        /// <summary>
+        /// Configures authentication, authorization and policies.
+        /// </summary>
+        internal IHostApplicationBuilder AddAuthentication()
+        {
+            var azureAdSection = builder.Configuration
+                .GetRequiredSection("FORT")
+                .GetRequiredSection(KeyVaultAzureAdOptions.SectionName);
 
-        var reportStatusApiSection = builder.Configuration
-            .GetRequiredSection(RiskManagementSettings.SectionName)
-            .GetRequiredSection(RiskManagementSettings.ReportStatusApi);
+            var reportStatusApiSection = builder.Configuration
+                .GetRequiredSection(RiskManagementSettings.SectionName)
+                .GetRequiredSection(RiskManagementSettings.ReportStatusApi);
 
-        // Setup Authentication
-        builder.Services
-            .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(azureAdSection)
-            .EnableTokenAcquisitionToCallDownstreamApi()
-            .AddDownstreamApi(RiskManagementSettings.ReportStatusApi, reportStatusApiSection)
-            .AddInMemoryTokenCaches();
+            // Setup Authentication
+            builder.Services
+                .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApp(azureAdSection)
+                .EnableTokenAcquisitionToCallDownstreamApi()
+                .AddDownstreamApi(RiskManagementSettings.ReportStatusApi, reportStatusApiSection)
+                .AddInMemoryTokenCaches();
 
-        // Configure all HttpClients to be resilient. For example: Identity Web + DownstreamApi
-        builder.Services
-            .AddHttpClient(Options.DefaultName)
-            .AddStandardResilienceHandler();
+            builder.Services.AddResilientHttpClients();
 
-        // Still need to set the back channel client for OpenID Connect to be resilient
-        ConfigureResilientOpenIdConnect(builder.Services);
+            // Add Blazor cascading authentication state
+            builder.Services.AddCascadingAuthenticationState();
 
-        // Add Blazor cascading authentication state
-        builder.Services.AddCascadingAuthenticationState();
+            // Setup Authorization
+            builder.Services
+                .AddAuthorizationBuilder()
+                .AddPolicy(PolicyNames.Reader, policy => policy
+                    .RequireAuthenticatedUser()
+                    .RequireAssertion(context =>
+                        context.User.IsInRole(RoleNames.Reader) ||
+                        context.User.IsInRole(RoleNames.Writer) ||
+                        context.User.IsInRole(RoleNames.Admin)))
+                .AddPolicy(PolicyNames.Writer, policy => policy
+                    .RequireAuthenticatedUser()
+                    .RequireAssertion(context =>
+                        context.User.IsInRole(RoleNames.Writer) ||
+                        context.User.IsInRole(RoleNames.Admin)))
+                .AddPolicy(PolicyNames.Admin, policy => policy
+                    .RequireAuthenticatedUser()
+                    .RequireRole(RoleNames.Admin))
+                .SetFallbackPolicy(policy: null); // Anonymous access allowed unless [Authorize] is used
 
-        // Setup Authorization
-        builder.Services
-            .AddAuthorizationBuilder()
-            .AddPolicy(PolicyNames.Reader, policy => policy
-                .RequireAuthenticatedUser()
-                .RequireAssertion(context =>
-                    context.User.IsInRole(RoleNames.Reader) ||
-                    context.User.IsInRole(RoleNames.Writer) ||
-                    context.User.IsInRole(RoleNames.Admin)))
-            .AddPolicy(PolicyNames.Writer, policy => policy
-                .RequireAuthenticatedUser()
-                .RequireAssertion(context =>
-                    context.User.IsInRole(RoleNames.Writer) ||
-                    context.User.IsInRole(RoleNames.Admin)))
-            .AddPolicy(PolicyNames.Admin, policy => policy
-                .RequireAuthenticatedUser()
-                .RequireRole(RoleNames.Admin))
-            .SetFallbackPolicy(policy: null); // Anonymous access allowed unless [Authorize] is used
-
-        return builder;
+            return builder;
+        }
     }
 
-    /// <summary>
-    /// Configure a resilient OpenID Connect authentication handler.
-    /// </summary>
-    /// <remarks>For example, retrying when .well-known fails to read.</remarks>
-    private static void ConfigureResilientOpenIdConnect(IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        const string clientName = "OpenIdConnectResilient";
+        /// <summary>
+        /// Configures resilient HttpClients for default and OpenIdConnect backchannel.
+        /// </summary>
+        internal IServiceCollection AddResilientHttpClients()
+        {
+            // Default HttpClient resilience
+            services
+                .AddHttpClient(Options.DefaultName)
+                .AddStandardResilienceHandler();
 
-        services
-            .AddHttpClient(clientName)
-            .AddStandardResilienceHandler();
+            // OpenIdConnect backchannel resilience
+            const string clientName = "OpenIdConnectResilient";
+            services
+                .AddHttpClient(clientName)
+                .AddStandardResilienceHandler();
 
-        services
-            .AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
-            .Configure<IHttpClientFactory>((options, httpClientFactory) =>
-            {
-                options.Backchannel = httpClientFactory.CreateClient(clientName);
-            });
+            services
+                .AddOptions<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme)
+                .Configure<IHttpClientFactory>((options, httpClientFactory) =>
+                {
+                    options.Backchannel = httpClientFactory.CreateClient(clientName);
+                });
+
+            return services;
+        }
     }
 
-    internal static WebApplication MapAuthenticationEndpoints(this WebApplication app)
+    extension(WebApplication app)
     {
-        app.MapGet("signin", AccountEndpoints.SignIn)
-            .WithTags("Account")
-            .WithDisplayName("Sign in")
-            .WithSummary("Signs the user into the application")
-            .AllowAnonymous();
+        /// <summary>
+        /// Configures authentication-related HTTP endpoints for the application, including sign in, sign out, and Microsoft Identity challenge routes.
+        /// </summary>
+        /// <returns>The <see cref="WebApplication"/> instance with authentication endpoints mapped.</returns>
+        internal WebApplication MapAuthenticationEndpoints()
+        {
+            app.MapGet("signin", AccountEndpoints.SignIn)
+                .WithTags("Account")
+                .WithDisplayName("Sign in")
+                .WithSummary("Signs the user into the application")
+                .AllowAnonymous();
 
-        app.MapGet("signout", AccountEndpoints.SignOut)
-            .WithTags("Account")
-            .WithDisplayName("Sign out")
-            .WithSummary("Signs the user out of the application.")
-            .AllowAnonymous();
+            app.MapGet("signout", AccountEndpoints.SignOut)
+                .WithTags("Account")
+                .WithDisplayName("Sign out")
+                .WithSummary("Signs the user out of the application.")
+                .AllowAnonymous();
 
-        app.MapGet("MicrosoftIdentity/Account/Challenge", AccountEndpoints.Challenge)
-            .WithTags("Account")
-            .WithDisplayName("Challenges the user.")
-            .WithSummary("Challenge generating a redirect to Azure AD to sign in the user.")
-            .AllowAnonymous();
+            app.MapGet("MicrosoftIdentity/Account/Challenge", AccountEndpoints.Challenge)
+                .WithTags("Account")
+                .WithDisplayName("Challenges the user.")
+                .WithSummary("Challenge generating a redirect to Azure AD to sign in the user.")
+                .AllowAnonymous();
 
-        return app;
+            return app;
+        }
     }
 }
