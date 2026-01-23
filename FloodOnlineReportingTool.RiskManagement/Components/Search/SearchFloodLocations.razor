@@ -75,19 +75,15 @@
                 </div>
 
                 <div class="govuk-grid-column-two-thirds">
-                    <div class="govuk-grid-row govuk-!-margin-bottom-3">
-                        <div class="govuk-!-font-weight-bold">@ResultsFoundText()</div>
-                    </div>
+                    <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@ResultsFoundText()</div>
                     @switch (_searchState)
                     {
                         case SearchState.NotStarted:
-                            <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
-                                <p>TODO: Add initial search instructions, if relevant.</p>
-                            </div>
+                            <div class="govuk-!-padding-top-3 border-top">TODO: Add initial search instructions, if relevant.</div>
                             break;
 
                         case SearchState.Searching:
-                            <div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">
+                            <div class="govuk-!-padding-top-3 govuk-!-padding-bottom-3 border-top">
                                 <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
                             </div>
                             break;
@@ -100,7 +96,7 @@
                             break;
 
                         case SearchState.NoResults:
-                            <p class="govuk-!-font-weight-bold govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3 border-top">There are no matching results.</p>
+                            <p class="govuk-!-font-weight-bold govuk-!-padding-top-3 border-top">There are no matching results.</p>
                             <p>Improve your search results by:</p>
                             <ul class="govuk-list govuk-list--bullet">
                                 <li>removing filters</li>

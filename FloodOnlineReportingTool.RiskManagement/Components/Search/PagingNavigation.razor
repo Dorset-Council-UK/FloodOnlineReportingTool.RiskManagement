@@ -1,34 +1,32 @@
 ﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
 
-<div class="govuk-grid-row govuk-!-margin-top-3 govuk-!-margin-bottom-3 govuk-!-padding-top-3">
-    <nav aria-label="Pagination" class="govuk-pagination govuk-pagination--block">
-        @if (!_isFirstPage)
-        {
-            // Previous page
-            <div class="govuk-pagination__prev">
-                <a href="" @onclick="PreviousPage" @onclick:preventDefault class="govuk-link govuk-link--no-visited-state govuk-pagination__link" role="button">
-                    <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" width="15" height="13" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                        <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
-                    </svg>
-                    <span class="govuk-pagination__link-title">Previous page</span>
-                    <span class="govuk-visually-hidden">:</span>
-                    <span class="govuk-pagination__link-label">@_previousPageNumber of @TotalPages</span>
-                </a>
-            </div>
-        }
-        @if (!_isLastPage)
-        {
-            // Next page
-            <div class="govuk-pagination__next">
-                <a href="" @onclick="NextPage" @onclick:preventDefault class="govuk-link govuk-link--no-visited-state govuk-pagination__link" role="button">
-                    <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" width="15" height="13" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
-                        <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
-                    </svg>
-                    <span class="govuk-pagination__link-title">Next page</span>
-                    <span class="govuk-visually-hidden">:</span>
-                    <span class="govuk-pagination__link-label">@_nextPageNumber of @TotalPages</span>
-                </a>
-            </div>
-        }
-    </nav>
-</div>
+<nav aria-label="Pagination" class="govuk-pagination govuk-pagination--block">
+    @if (!_isFirstPage)
+    {
+        // Previous page
+        <div class="govuk-pagination__prev">
+            <a href="" @onclick="PreviousPage" @onclick:preventDefault class="govuk-link govuk-link--no-visited-state govuk-pagination__link" role="button">
+                <svg class="govuk-pagination__icon govuk-pagination__icon--prev" xmlns="http://www.w3.org/2000/svg" width="15" height="13" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                    <path d="m6.5938-0.0078125-6.7266 6.7266 6.7441 6.4062 1.377-1.449-4.1856-3.9768h12.896v-2h-12.984l4.2931-4.293-1.414-1.414z"></path>
+                </svg>
+                <span class="govuk-pagination__link-title">Previous page</span>
+                <span class="govuk-visually-hidden">:</span>
+                <span class="govuk-pagination__link-label">@_previousPageNumber of @TotalPages</span>
+            </a>
+        </div>
+    }
+    @if (!_isLastPage)
+    {
+        // Next page
+        <div class="govuk-pagination__next">
+            <a href="" @onclick="NextPage" @onclick:preventDefault class="govuk-link govuk-link--no-visited-state govuk-pagination__link" role="button">
+                <svg class="govuk-pagination__icon govuk-pagination__icon--next" xmlns="http://www.w3.org/2000/svg" width="15" height="13" aria-hidden="true" focusable="false" viewBox="0 0 15 13">
+                    <path d="m8.107-0.0078125-1.4136 1.414 4.2926 4.293h-12.986v2h12.896l-4.1855 3.9766 1.377 1.4492 6.7441-6.4062-6.7246-6.7266z"></path>
+                </svg>
+                <span class="govuk-pagination__link-title">Next page</span>
+                <span class="govuk-visually-hidden">:</span>
+                <span class="govuk-pagination__link-label">@_nextPageNumber of @TotalPages</span>
+            </a>
+        </div>
+    }
+</nav>
