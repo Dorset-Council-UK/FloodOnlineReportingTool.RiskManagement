@@ -9,7 +9,7 @@
                 <GdsHeaderNavLink Href="signout" Match="NavLinkMatch.All">Sign out</GdsHeaderNavLink>
             </Authorized>
             <NotAuthorized>
-                <GdsHeaderNavLink Href="signin" Match="NavLinkMatch.All">Sign in</GdsHeaderNavLink>
+                <GdsHeaderNavLink Href="@_signInUrl" Match="NavLinkMatch.All">Sign in</GdsHeaderNavLink>
             </NotAuthorized>
         </AuthorizeView>
     </NavLinks>
@@ -29,8 +29,21 @@
 
 @code {
     [Inject]
-    public IWebHostEnvironment Env { get; set; } = default!;
+    private IWebHostEnvironment Env { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
 
     private GdsPhaseBanner.Phases _phase => Env.IsProduction() ? GdsPhaseBanner.Phases.Alpha : GdsPhaseBanner.Phases.Development;
     private readonly Uri _feedbackUri = new("https://dorset-self.achieveservice.com/service/flood-reporting-tool-feedback");
+    private string _signInUrl
+    {
+        get
+        {
+            var relativePathWithoutBase = Navigation.ToBaseRelativePath(Navigation.Uri);
+            return string.IsNullOrWhiteSpace(relativePathWithoutBase)
+                ? "signin"
+                : $"signin?redirectUri={Uri.EscapeDataString(relativePathWithoutBase)}";
+        }
+    }
 }
