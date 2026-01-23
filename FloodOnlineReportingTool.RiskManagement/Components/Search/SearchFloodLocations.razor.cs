@@ -20,6 +20,8 @@ public partial class SearchFloodLocations(
     ProtectedSessionStorage protectedSessionStore
 ) {
     private const int PageSize = 5;
+    private const string SearchLocationsKey = "search-locations";
+    private const string SearchAgainKey = "search-locations-searchagain";
 
     private EditContext _editContext = null!;
     private ValidationMessageStore _messageStore = null!;
@@ -54,9 +56,30 @@ public partial class SearchFloodLocations(
         ];
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (AuthenticationState is not null)
+            {
+                var authState = await AuthenticationState;
+                if (authState.User.Identity?.IsAuthenticated == true)
+                {
+                    var searchAgain = await GetStoredSearchAgain();
+                    if (searchAgain)
+                    {
+                        await protectedSessionStore.DeleteAsync(SearchAgainKey);
+                        await Search();
+                        StateHasChanged();
+                    }
+                }
+            }
+        }
+    }
+
     private async Task<SearchFloodLocationsViewModel?> GetStoredModel()
     {
-        var result = await protectedSessionStore.GetAsync<SearchFloodLocationsViewModel>("search-locations");
+        var result = await protectedSessionStore.GetAsync<SearchFloodLocationsViewModel>(SearchLocationsKey);
         if (result.Success && result.Value is not null)
         {
             return result.Value;
@@ -65,21 +88,30 @@ public partial class SearchFloodLocations(
         return null;
     }
 
+    private async Task<bool> GetStoredSearchAgain()
+    {
+        var result = await protectedSessionStore.GetAsync<bool>(SearchAgainKey);
+        return result.Success && result.Value;
+    }
+
     private async Task OnSearchSubmit()
     {
         // Reset to first page on new search
         Model.PageNumber = 1;
-        if (ValidSearch())
+        if (!ValidSearch())
         {
-            await protectedSessionStore.SetAsync("search-locations", Model);
-            await Search();
+            _editContext.NotifyValidationStateChanged();
+            return;
         }
+        await Search();
     }
 
     private bool ValidSearch()
     {
         _messageStore.Clear();
-        return _editContext.Validate();
+        var valid = _editContext.Validate();
+        logger.LogDebug("Search flood locations form valid: {IsValid}", valid);
+        return valid;
     }
 
     [Authorize]
@@ -87,6 +119,8 @@ public partial class SearchFloodLocations(
     private async Task Search()
     {
         _searchState = SearchState.Searching;
+        StateHasChanged();
+        await protectedSessionStore.SetAsync(SearchLocationsKey, Model);
 
         try
         {
@@ -113,6 +147,8 @@ public partial class SearchFloodLocations(
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
             logger.LogWarning(ex, "Consent required while searching flood locations");
+            var searchAgain = true;
+            await protectedSessionStore.SetAsync(SearchAgainKey, searchAgain);
             consentHandler.HandleException(ex);
         }
         catch (Exception ex)
@@ -149,10 +185,11 @@ public partial class SearchFloodLocations(
     private async Task OnPageChanged(int newPageNumber)
     {
         Model.PageNumber = newPageNumber is > 1 ? newPageNumber : 1;
-        if (ValidSearch())
+        if (!ValidSearch())
         {
-            await protectedSessionStore.SetAsync("search-locations", Model);
-            await Search();
+            _editContext.NotifyValidationStateChanged();
+            return;
         }
+        await Search();
     }
 }
