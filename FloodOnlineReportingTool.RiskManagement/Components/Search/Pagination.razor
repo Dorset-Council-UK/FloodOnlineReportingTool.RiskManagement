@@ -1,0 +1,25 @@
+﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
+
+<CascadingValue Value="Style" Name="PaginationStyle">
+    <nav class="@navClass" aria-label="Pagination">
+        @ChildContent
+    </nav>
+</CascadingValue>
+
+@code {
+    public enum StyleHuh
+    {
+        Row,
+        Column,
+    }
+
+    [Parameter]
+    public StyleHuh Style { get; set; } = StyleHuh.Row;
+
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; }
+
+    private string navClass => Style == StyleHuh.Row
+        ? "govuk-pagination"
+        : "govuk-pagination govuk-pagination--block";
+}

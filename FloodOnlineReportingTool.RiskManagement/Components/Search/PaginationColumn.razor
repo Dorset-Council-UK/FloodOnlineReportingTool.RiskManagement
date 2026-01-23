@@ -1,0 +1,10 @@
+﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
+
+<nav class="govuk-pagination govuk-pagination--block" aria-label="Pagination">
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; }
+}

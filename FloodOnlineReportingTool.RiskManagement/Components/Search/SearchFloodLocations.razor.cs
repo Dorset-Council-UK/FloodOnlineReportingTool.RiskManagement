@@ -192,4 +192,13 @@ public partial class SearchFloodLocations(
         }
         await Search();
     }
+
+    private async Task OnPreviousPage()
+    {
+
+    }
+
+    private async Task OnNextPage()
+    {
+    }
 }
