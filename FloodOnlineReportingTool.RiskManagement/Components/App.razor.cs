@@ -12,7 +12,7 @@ public partial class App(IOptions<RiskManagementSettings> _settings)
     private HttpContext? HttpContext { get; set; }
 
     // The Render Mode is InteractiveServer most of the time. Except on pages which are set as Static server-side rendering (static SSR)
-    private IComponentRenderMode? PageRenderMode => HttpContext?.AcceptsInteractiveRouting() == true ? new InteractiveServerRenderMode(prerender: true) : null;
+    private IComponentRenderMode? PageRenderMode => HttpContext?.AcceptsInteractiveRouting() == true ? new InteractiveServerRenderMode(prerender: false) : null;
 
     private readonly RiskManagementSettings _riskSettings = _settings.Value;
     private string _pathBase = "/";
