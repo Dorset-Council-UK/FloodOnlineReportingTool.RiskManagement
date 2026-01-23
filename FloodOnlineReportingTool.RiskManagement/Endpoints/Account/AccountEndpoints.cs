@@ -1,48 +1,45 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using FloodOnlineReportingTool.RiskManagement.Settings;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
 
 namespace FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 
 internal static class AccountEndpoints
 {
-    private static bool IsLocalUrl(string? url)
+    private static string? NormaliseRedirectUrl(string? redirectUri, string pathBase)
     {
-        if (string.IsNullOrWhiteSpace(url))
+        if (string.IsNullOrWhiteSpace(redirectUri))
         {
-            return false;
+            return null;
         }
 
-        // Only allow relative URLs that start with a single '/'
-        if (url[0] == '/')
+        if (RedirectHttpResult.IsLocalUrl(redirectUri))
         {
-            if (url.Length == 1)
-            {
-                return true;
-            }
-
-            // "/foo" is local, but "//foo" and "/\foo" are not
-            if (url[1] != '/' && url[1] != '\\')
-            {
-                return true;
-            }
+            return redirectUri;
         }
 
-        // Disallow all other forms, including "~" style and absolute URLs
-        return false;
+        // Convert relative to absolute by prepending /
+        var pathWithoutLeadingSlash = redirectUri.TrimStart('/');
+        var absolutePath = $"/{pathBase}/{pathWithoutLeadingSlash}";
+        return RedirectHttpResult.IsLocalUrl(absolutePath) ? absolutePath : null;
     }
 
     internal static Results<ChallengeHttpResult, UnauthorizedHttpResult, ForbidHttpResult> SignIn(
+        IOptions<RiskManagementSettings> settings,
         string? redirectUri,
         string? loginHint,
         string? domainHint
     ) {
+        var normalisedRedirectUri = NormaliseRedirectUrl(redirectUri, settings.Value.PathBase);
+
         var properties = new AuthenticationProperties
         {
-            RedirectUri = IsLocalUrl(redirectUri) ? redirectUri : "/floodriskmanagement",
+            RedirectUri = normalisedRedirectUri ?? $"/{settings.Value.PathBase}",
             Parameters =
             {
                 { Constants.LoginHint, loginHint },
@@ -53,11 +50,11 @@ internal static class AccountEndpoints
         return TypedResults.Challenge(properties, [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
     }
 
-    internal static Results<SignOutHttpResult, UnauthorizedHttpResult> SignOut()
+    internal static Results<SignOutHttpResult, UnauthorizedHttpResult> SignOut(IOptions<RiskManagementSettings> settings)
     {
         var properties = new AuthenticationProperties
         {
-            RedirectUri = "/floodriskmanagement/account/signed-out",
+            RedirectUri = $"/{settings.Value.PathBase}/account/signed-out",
         };
 
         return TypedResults.SignOut(properties, [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
