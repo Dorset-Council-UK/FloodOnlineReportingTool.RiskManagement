@@ -137,12 +137,9 @@ public partial class SearchFloodLocations(
                 _ => new([], 0, PageSize, pageNumber, 0),
             };
 
-            if (_pagedSearch is null || _pagedSearch.TotalCount == 0)
-            {
-                _searchState = SearchState.NoResults;
-            }
-
-            _searchState = SearchState.ResultsFound;
+            _searchState = _pagedSearch is null || _pagedSearch.TotalCount == 0
+                ? SearchState.NoResults
+                : SearchState.ResultsFound;
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
