@@ -1,0 +1,35 @@
+﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
+
+<nav class="govuk-pagination" aria-label="Pagination">
+    @{
+        var isFirstPage = CurrentPage <= 1;
+        var isLastPage = CurrentPage >= LastPage;
+    }
+
+    @if (!isFirstPage)
+    {
+        <PaginationPrevious OnPreviousPage="OnPreviousPage" />
+    }
+
+    @if (_pageNumbers.Any())
+    {
+        <ul class="govuk-pagination__list">
+            @foreach (var page in _pageNumbers)
+            {
+                if (page.HasValue)
+                {
+                    <PaginationItem PageNumber="@(page.Value)" IsCurrent="@(CurrentPage == page.Value)" OnPageChanged="OnPageChanged" />
+                }
+                else
+                {
+                    <li class="govuk-pagination__item govuk-pagination__item--ellipsis">&ctdot;</li>
+                }
+            }
+        </ul>
+    }
+
+    @if (!isLastPage)
+    {
+        <PaginationNext OnNextPage="OnNextPage" />
+    }
+</nav>
