@@ -107,44 +107,7 @@
                             break;
                     }
 
-                    <PagingNavigation CurrentPage="@_pagedSearch!.CurrentPage" TotalPages="@_pagedSearch.TotalPages" OnPageChanged="@OnPageChanged" />
-
-                    <h2 class="govuk-heading-m">TESTING</h2>
-                    @*
-                    <PaginationColumn>
-                        <Previous Title="Previous" Label="Applying for a provisional lorry or bus licence" OnPrevious="OnPreviousPage" />
-                        <Next Title="Next" Label="Driver CPC part 1 test: theory" OnNext="OnNextPage" />
-                    </PaginationColumn>
-                    *@
-
-                    <h2 class="govuk-heading-m">TESTING ROW</h2>
-                    <Pagination>
-                        <Previous Label="Applying for a provisional lorry or bus licence" OnPrevious="OnPreviousPage" />
-                        <ul class="govuk-pagination__list">
-                            <li class="govuk-pagination__item">
-                                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 1">
-                                    1
-                                </a>
-                            </li>
-                            <li class="govuk-pagination__item govuk-pagination__item--current">
-                                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 2" aria-current="page">
-                                    2
-                                </a>
-                            </li>
-                            <li class="govuk-pagination__item">
-                                <a class="govuk-link govuk-pagination__link" href="#" aria-label="Page 3">
-                                    3
-                                </a>
-                            </li>
-                        </ul>
-                        <Next Label="Driver CPC part 1 test: theory" OnNext="OnNextPage" />
-                    </Pagination>
-
-                    <h2 class="govuk-heading-m">TESTING COLUMN</h2>
-                    <Pagination Style="Pagination.StyleHuh.Column">
-                        <Previous Label="Applying for a provisional lorry or bus licence" OnPrevious="OnPreviousPage" />
-                        <Next Label="Driver CPC part 1 test: theory" OnNext="OnNextPage" />
-                    </Pagination>
+                    <PaginationRow CurrentPage="@_pagedSearch.CurrentPage" LastPage="@_pagedSearch.TotalPages" OnPageChanged="OnPageChanged" />
                 </div>
             </div>
         </Authorized>

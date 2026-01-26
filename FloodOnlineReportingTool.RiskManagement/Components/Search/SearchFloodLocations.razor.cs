@@ -184,21 +184,12 @@ public partial class SearchFloodLocations(
 
     private async Task OnPageChanged(int newPageNumber)
     {
-        Model.PageNumber = newPageNumber is > 1 ? newPageNumber : 1;
+        Model.PageNumber = newPageNumber;
         if (!ValidSearch())
         {
             _editContext.NotifyValidationStateChanged();
             return;
         }
         await Search();
-    }
-
-    private async Task OnPreviousPage()
-    {
-
-    }
-
-    private async Task OnNextPage()
-    {
     }
 }
