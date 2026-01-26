@@ -1,5 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Settings;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
 using NetTopologySuite.IO.Converters;
 using System.Globalization;
@@ -17,7 +17,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     private async Task<PagedResult<T>?> GetSearchResults<T>(string relativePath, CancellationToken ct)
     {
         return await downstreamApi
-            .CallApiForUserAsync<PagedResult<T>>(RiskManagementSettings.ReportStatusApi, options =>
+            .CallApiForUserAsync<PagedResult<T>>(RiskManagementOptions.ReportStatusApi, options =>
             {
                 options.RelativePath = relativePath;
                 options.Deserializer = (content) =>

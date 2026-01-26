@@ -1,6 +1,6 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Settings;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Options;
 
-public class RiskManagementSettings
+public class RiskManagementOptions
 {
     public const string SectionName = "RiskManagement";
     public const string ReportStatusApi = "ReportStatusApi";

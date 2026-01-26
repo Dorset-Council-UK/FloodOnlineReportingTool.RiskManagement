@@ -1,4 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Settings;
+﻿using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -30,16 +30,16 @@ internal static class AccountEndpoints
     }
 
     internal static Results<ChallengeHttpResult, UnauthorizedHttpResult, ForbidHttpResult> SignIn(
-        IOptions<RiskManagementSettings> settings,
+        IOptions<RiskManagementOptions> options,
         string? redirectUri,
         string? loginHint,
         string? domainHint
     ) {
-        var normalisedRedirectUri = NormaliseRedirectUrl(redirectUri, settings.Value.PathBase);
+        var normalisedRedirectUri = NormaliseRedirectUrl(redirectUri, options.Value.PathBase);
 
         var properties = new AuthenticationProperties
         {
-            RedirectUri = normalisedRedirectUri ?? $"/{settings.Value.PathBase}",
+            RedirectUri = normalisedRedirectUri ?? $"/{options.Value.PathBase}",
             Parameters =
             {
                 { Constants.LoginHint, loginHint },
@@ -50,11 +50,11 @@ internal static class AccountEndpoints
         return TypedResults.Challenge(properties, [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);
     }
 
-    internal static Results<SignOutHttpResult, UnauthorizedHttpResult> SignOut(IOptions<RiskManagementSettings> settings)
+    internal static Results<SignOutHttpResult, UnauthorizedHttpResult> SignOut(IOptions<RiskManagementOptions> options)
     {
         var properties = new AuthenticationProperties
         {
-            RedirectUri = $"/{settings.Value.PathBase}/account/signed-out",
+            RedirectUri = $"/{options.Value.PathBase}/account/signed-out",
         };
 
         return TypedResults.SignOut(properties, [CookieAuthenticationDefaults.AuthenticationScheme, OpenIdConnectDefaults.AuthenticationScheme]);

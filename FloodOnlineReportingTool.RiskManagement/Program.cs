@@ -7,13 +7,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Settings
 builder.AddFORTAzureKeyVault();
-var proxySettings = builder.AddProxySettings();
-var riskManagementSettings = builder.AddSettings();
-var messagingSettings = builder.AddMessagingSettings();
+var (riskManagementOptions, proxyOptions, messagingOptions) = builder.AddRiskManagementOptions();
 
 builder.AddAuthentication();
 builder.AddRiskManagementHealthChecks();
-builder.AddMessageSystem(messagingSettings);
+builder.AddMessageSystem(messagingOptions);
 builder.AddDatabase();
 
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
@@ -29,7 +27,7 @@ builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
 var app = builder.Build();
 
-app.UsePathBase($"/{riskManagementSettings?.PathBase}");
+app.UsePathBase($"/{riskManagementOptions?.PathBase}");
 
 app.UseForwardedHeaders();
 
@@ -44,7 +42,7 @@ else
     app.UseHsts();
 }
 
-var useHttpRedirection = proxySettings?.UseHttpsRedirection ?? true;
+var useHttpRedirection = proxyOptions?.UseHttpsRedirection ?? true;
 if (useHttpRedirection)
 {
     app.UseHttpsRedirection();

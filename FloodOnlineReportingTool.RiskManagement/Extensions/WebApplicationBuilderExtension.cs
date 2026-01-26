@@ -7,37 +7,37 @@ namespace Microsoft.AspNetCore.Builder;
 
 internal static class WebApplicationBuilderExtension
 {
-    extension(WebApplicationBuilder builder)
+    private static void TestKeyVaults(KeyVaultOptions keyVaultOptions, X509Certificate2 x509Certificate)
     {
-        private static void TestKeyVaults(KeyVaultOptions keyVaultOptions, X509Certificate2 x509Certificate)
+        //Generate a credential and use it to test for the health check settings in each KeyVault
+        var credential = new ClientCertificateCredential(
+            keyVaultOptions.AzureAd.DirectoryId,
+            keyVaultOptions.AzureAd.ApplicationId,
+            x509Certificate);
+
+        try
         {
-            //Generate a credential and use it to test for the health check settings in each KeyVault
-            var credential = new ClientCertificateCredential(
-                keyVaultOptions.AzureAd.DirectoryId,
-                keyVaultOptions.AzureAd.ApplicationId,
-                x509Certificate);
-
-            try
-            {
-                var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
-                var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Shared Key Vault access failed", ex);
-            }
-
-            try
-            {
-                var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
-                var projectHealthCheck = projectClient.GetSecret("HealthCheckSecret").Value;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Project Key Vault access failed", ex);
-            }
+            var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+            var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Shared Key Vault access failed", ex);
         }
 
+        try
+        {
+            var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
+            var projectHealthCheck = projectClient.GetSecret("HealthCheckSecret").Value;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Project Key Vault access failed", ex);
+        }
+    }
+
+    extension(WebApplicationBuilder builder)
+    {
         /// <summary>
         /// Set up Azure Key Vault if a KeyVault name is provided in the configuration
         /// </summary>
@@ -63,7 +63,7 @@ internal static class WebApplicationBuilderExtension
                 .OfType<X509Certificate2>()
                 .Single();
 
-            //This KeyVault has settings shared over multiple projects
+            //This KeyVault has options shared over multiple projects
             builder.Configuration.AddAzureKeyVault(
                 new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"),
                 new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
@@ -76,6 +76,16 @@ internal static class WebApplicationBuilderExtension
             TestKeyVaults(keyVaultOptions, x509Certificate);
 
             return builder;
+        }
+
+        internal (RiskManagementOptions RiskManagement, ProxyOptions? Proxy, MessagingOptions Messaging) AddRiskManagementOptions()
+        {
+
+            var riskManagementOptions = builder.AddProjectOptions();
+            var proxyOptions = builder.AddProxyOptions();
+            var messagingOptions = builder.AddMessagingOptions();
+
+            return (riskManagementOptions, proxyOptions, messagingOptions);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 using FloodOnlineReportingTool.RiskManagement.Options;
-using FloodOnlineReportingTool.RiskManagement.Settings;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
@@ -18,19 +17,18 @@ internal static class AuthenticationExtensions
         internal IHostApplicationBuilder AddAuthentication()
         {
             var azureAdSection = builder.Configuration
-                .GetRequiredSection("FORT")
-                .GetRequiredSection(KeyVaultAzureAdOptions.SectionName);
+                .GetRequiredSection(Constants.AzureAd);
 
             var reportStatusApiSection = builder.Configuration
-                .GetRequiredSection(RiskManagementSettings.SectionName)
-                .GetRequiredSection(RiskManagementSettings.ReportStatusApi);
+                .GetRequiredSection(RiskManagementOptions.SectionName)
+                .GetRequiredSection(RiskManagementOptions.ReportStatusApi);
 
             // Setup Authentication
             builder.Services
                 .AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApp(azureAdSection)
                 .EnableTokenAcquisitionToCallDownstreamApi()
-                .AddDownstreamApi(RiskManagementSettings.ReportStatusApi, reportStatusApiSection)
+                .AddDownstreamApi(RiskManagementOptions.ReportStatusApi, reportStatusApiSection)
                 .AddInMemoryTokenCaches();
 
             builder.Services.AddResilientHttpClients();
