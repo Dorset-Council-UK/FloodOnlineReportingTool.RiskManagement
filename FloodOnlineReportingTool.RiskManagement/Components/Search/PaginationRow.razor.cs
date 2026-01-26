@@ -15,12 +15,9 @@ public partial class PaginationRow
 
     private IReadOnlyList<int?> _pageNumbers = [];
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
-        if (!_pageNumbers.Any())
-        {
-            _pageNumbers = GeneratePageNumbers();
-        }
+        _pageNumbers = GeneratePageNumbers();
     }
 
     private async Task OnPreviousPage()
