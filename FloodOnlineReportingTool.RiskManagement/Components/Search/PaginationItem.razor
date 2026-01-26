@@ -1,5 +1,5 @@
 ﻿<li class="@ItemClass">
-    <a class="govuk-link govuk-pagination__link" href="" aria-label="@AriaLabel" aria-current="@AriaCurrent" @onclick="HandleClick">
+    <a class="govuk-link govuk-pagination__link" href="@Navigation.ToBaseRelativePath(Navigation.Uri)" aria-label="@AriaLabel" aria-current="@AriaCurrent" @onclick="HandleClick" @onclick:preventDefault>
         @PageNumber
     </a>
 </li>
@@ -16,6 +16,9 @@
 
     [Parameter, EditorRequired]
     public EventCallback<int> OnPageChanged { get; set; }
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
 
     private string? AriaCurrent => IsCurrent ? "page" : null;
 
