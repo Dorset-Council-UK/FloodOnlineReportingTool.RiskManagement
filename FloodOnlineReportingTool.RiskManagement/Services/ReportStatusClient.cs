@@ -67,7 +67,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Searching flood locations by point: PageNumber={PageNumber}, PageSize={PageSize}, Easting={Easting}, Northing={Northing}, Buffer={Buffer}", pageNumber, pageSize, easting, northing, buffer);
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodlocations/by-point?pageNumber={pageNumber}&pageSize={pageSize},easting={easting},northing={northing},buffer={buffer}");
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodlocations/by-point?pageNumber={pageNumber}&pageSize={pageSize}&easting={easting}&northing={northing}&buffer={buffer}");
         var pagedResults = await GetSearchResults<SearchResultFloodLocation>(relativePath, ct);
 
         if (pagedResults is null)
@@ -135,7 +135,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Searching flood reports within metres: PageNumber={PageNumber}, PageSize={PageSize}, Easting={Easting}, Northing={Northing}, Metres={Metres}", pageNumber, pageSize, easting, northing, metres);
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/within-metres?pageNumber={pageNumber}&pageSize={pageSize},easting={easting},northing={northing},metres={metres}");
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/within-metres?pageNumber={pageNumber}&pageSize={pageSize}&easting={easting}&northing={northing}&metres={metres}");
         var pagedResults = await GetSearchResults<SearchResultFloodReport>(relativePath, ct);
 
         if (pagedResults is null)
@@ -152,7 +152,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Searching flood reports by UPRN: PageNumber={PageNumber}, PageSize={PageSize}, UPRN={UPRN}", pageNumber, pageSize, uprn);
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/uprn?pageNumber={pageNumber}&pageSize={pageSize},uprn={uprn}");
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/uprn?pageNumber={pageNumber}&pageSize={pageSize}&uprn={uprn}");
         var pagedResults = await GetSearchResults<SearchResultFloodReport>(relativePath, ct);
 
         if (pagedResults is null)
@@ -169,7 +169,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Searching flood reports by USRN: PageNumber={PageNumber}, PageSize={PageSize}, USRN={Usrn}", pageNumber, pageSize, usrn);
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/usrn?pageNumber={pageNumber}&pageSize={pageSize},usrn={usrn}");
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/usrn?pageNumber={pageNumber}&pageSize={pageSize}&usrn={usrn}");
         var pagedResults = await GetSearchResults<SearchResultFloodReport>(relativePath, ct);
 
         if (pagedResults is null)
@@ -203,7 +203,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Searching flood roads with flood reports: PageNumber={PageNumber}, PageSize={PageSize}", pageNumber, pageSize);
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodroads?pageNumber={pageNumber}&pageSize={pageSize}");
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodroads/with-floodreports?pageNumber={pageNumber}&pageSize={pageSize}");
         var pagedResults = await GetSearchResults<SearchResultFloodRoad>(relativePath, ct);
 
         if (pagedResults is null)

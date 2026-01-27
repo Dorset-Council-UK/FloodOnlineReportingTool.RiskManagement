@@ -88,7 +88,7 @@ public interface IReportStatusClient
     Task<PagedResult<SearchResultFloodRoad>> SearchFloodRoads(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
 
     /// <summary>
-    /// Searches for flood roadsand related flood reports using the downstream API with pagination
+    /// Searches for flood roads and related flood reports using the downstream API with pagination
     /// </summary>
     /// <remarks>
     /// Exceptions must be handled by Blazor to allow the use of <see cref="Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException"/>

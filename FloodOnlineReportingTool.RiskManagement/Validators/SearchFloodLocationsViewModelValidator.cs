@@ -32,7 +32,7 @@ public partial class SearchFloodLocationsViewModelValidator : AbstractValidator<
                 .WithMessage("Buffer distance must be greater than 0");
         });
 
-        // pagnation validation
+        // pagination validation
         RuleFor(o => o.PageNumber)
             .NotNull()
             .WithMessage("Page number must be greater than 0")

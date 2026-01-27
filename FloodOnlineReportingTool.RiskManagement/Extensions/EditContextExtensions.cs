@@ -32,10 +32,8 @@ internal static class EditContextExtensions
         /// </returns>
         public string? DescribedBy(FieldIdentifier fieldIdentifier, bool hasHint = false)
         {
-            ArgumentNullException.ThrowIfNull(editContext);
-
             var fieldName = fieldIdentifier.FieldName;
-            var hasErrors = !editContext.IsValid(fieldIdentifier);
+            var hasErrors = editContext.IsValid(fieldIdentifier);
 
             return (hasHint, hasErrors) switch
             {
