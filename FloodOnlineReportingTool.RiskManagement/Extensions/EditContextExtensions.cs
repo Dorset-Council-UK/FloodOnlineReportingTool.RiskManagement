@@ -8,7 +8,6 @@ internal static class EditContextExtensions
         /// Returns the aria-describedby attribute value for a form field, combining hint and error IDs as appropriate.
         /// Follows the GOV.UK Design System pattern for accessible form fields.
         /// </summary>
-        /// <param name="editContext">The edit context containing form state.</param>
         /// <param name="fieldName">The name of the field.</param>
         /// <param name="hasHint">Whether the field has a GDS hint element.</param>
         /// <returns>
@@ -24,7 +23,6 @@ internal static class EditContextExtensions
         /// Returns the aria-describedby attribute value for a form field, combining hint and error IDs as appropriate.
         /// Follows the GOV.UK Design System pattern for accessible form fields.
         /// </summary>
-        /// <param name="editContext">The edit context containing form state.</param>
         /// <param name="fieldIdentifier">The field identifier for the field.</param>
         /// <param name="hasHint">Whether the field has a GDS hint element.</param>
         /// <returns>
