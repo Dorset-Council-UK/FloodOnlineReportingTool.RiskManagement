@@ -1,7 +1,7 @@
-﻿<div class="govuk-form-group searchbox govuk-grid-column-two-thirds">
-    <GdsLabel For="@Id" Text="@LabelText"></GdsLabel>
+﻿<GdsFormGroup For="() => SearchText" AdditionalCssClasses="searchbox govuk-grid-column-two-thirds">
+    <GdsLabel Text="@LabelText" />
     <div class="searchbox__wrapper">
-        <GdsInputText @bind-Value=Id type="search" spellcheck="false" autocomplete="off" class="searchbox__input govuk-input"></GdsInputText>
+        <GdsInputText @bind-Value=SearchText type="search" spellcheck="false" autocomplete="off" class="searchbox__input govuk-input"></GdsInputText>
         <div class="searchbox__input searchbox__button">
             <button class="searchbox__submit" type="submit" enterkeyhint="search">
                 <span class="govuk-visually-hidden">Search</span>
@@ -12,6 +12,4 @@
             </button>
         </div>
     </div>
-</div>
-
-
+</GdsFormGroup>

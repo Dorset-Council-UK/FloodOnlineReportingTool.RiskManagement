@@ -9,44 +9,11 @@
     <FluentValidationValidator />
     <GdsErrorSummary />
 
-    <GdsSpinner Show="_isLoading" ShowMessage="true" />
-
-    <GdsFormGroup For="() => Model.Something" Show="!_isLoading">
+    <GdsFormGroup For="() => Model!.Something">
         <GdsLabel Text="Temp Id" AdditionalCssClasses="govuk-label--m" />
         <GdsErrorMessage />
-        <GdsInputText @bind-Value=Model.Something class="govuk-input" />
+        <GdsInputText @bind-Value=Model!.Something class="govuk-input" />
     </GdsFormGroup>
-
-    @*
-    <GdsFormGroup For="@(() => Model.ResponsibleAuthorityIds)" Show="FloodAuthorityOptions.Count > 0">
-        <GdsLabel Text="Who is the responsible organisation?" AdditionalCssClasses="govuk-label--m" />
-        <InputRadioGroup @bind-Value="Model.ResponsibleAuthorityIds">
-            <GdsFieldsetGroup>
-                <Content>
-                    <GdsErrorMessage />
-                    <div class="govuk-radios" data-module="govuk-checkboxes">
-                        @foreach (var option in FloodAuthorityOptions)
-                        {
-                            var ConditionalId = option.Value == Guid.Empty ? "Authority-known" : null;
-                            <GdsCheckbox Option="option" ConditionalId="@ConditionalId" />
-                            if (ConditionalId != null)
-                            {
-                                <div class="govuk-checkboxes__conditional govuk-checkboxes__conditional--hidden" id="@ConditionalId">
-                                    <div>
-                                        <GdsFormGroup For="@(() => Model.ResponsibleAuthorityOther)">
-                                            <GdsLabel Text="Who is responsible?" />
-                                            <GdsInputText @bind-Value=Model.ResponsibleAuthorityOther class="govuk-input"></GdsInputText>
-                                        </GdsFormGroup>   
-                                    </div>
-                                </div>
-                            }
-                        }
-                    </div>
-                </Content>
-            </GdsFieldsetGroup>
-        </InputRadioGroup>
-    </GdsFormGroup>
-    *@
 
     @* TODO - add in map *@
     <GdsFormGroup For="@(() => Model)">
@@ -55,8 +22,5 @@
         <img src="https://imageplaceholder.net/800x400/eeeeee/131313?text=Map+here" />
     </GdsFormGroup> 
 
-    @if (!_isLoading)
-    {
-        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
-    }
+    <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Continue</button></p>
 </EditForm>

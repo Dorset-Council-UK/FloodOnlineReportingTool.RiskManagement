@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Components;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using FluentValidation;
 using Microsoft.Identity.Web;
 
@@ -13,12 +14,13 @@ builder.AddRiskManagementHealthChecks();
 builder.AddMessageSystem(messagingOptions);
 builder.AddDatabase();
 
+builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
+
 // Add Blazor services
 builder.Services
     .AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddMicrosoftIdentityConsentHandler();
-builder.Services.AddScoped<GdsBlazorComponents.IGdsJsInterop, GdsBlazorComponents.GdsJsInterop>();
 
 // Add all the validation rules
 builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
@@ -59,5 +61,4 @@ app.MapRazorComponents<App>()
    .AddInteractiveServerRenderMode();
 app.MapAuthenticationEndpoints();
 
-await app.RunAsync()
-         .ConfigureAwait(false);
+await app.RunAsync();

@@ -9,14 +9,11 @@
     <Authorized>
         <h1 class="govuk-heading-xl">Flood report @FloodEventId</h1>
 
-        <GdsSpinner Show="_isLoading" ShowMessage="true" />
-
         <GdsWarning Text="TODO: Something could not be found" />
     </Authorized>
 </AuthorizeView>
 
 @code{
-    bool _isLoading = false;
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
         new ("", "Home"),
     ];

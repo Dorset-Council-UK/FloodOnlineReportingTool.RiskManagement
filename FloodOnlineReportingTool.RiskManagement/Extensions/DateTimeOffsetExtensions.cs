@@ -1,39 +1,28 @@
 ﻿using System.Globalization;
 
-#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace System;
-#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 internal static class DateTimeOffsetExtensions
 {
-    internal static string GdsReadable(this DateTimeOffset? dateTimeOffset)
+    extension(DateTimeOffset dateTimeOffset)
     {
-        return dateTimeOffset.GdsReadable(showYear: true);
-    }
-
-    internal static string GdsReadable(this DateTimeOffset? dateTimeOffset, bool showYear)
-    {
-        if (dateTimeOffset is null)
+        internal string GdsReadable(bool showYear = true)
         {
-            return string.Empty;
+            var format = showYear ? "d MMMM yyyy" : "d MMMM";
+            return dateTimeOffset.ToString(format, CultureInfo.CurrentCulture);
         }
-
-        return GdsReadable(dateTimeOffset.Value, showYear);
     }
 
-    internal static string GdsReadable(this DateTimeOffset dateTimeOffset)
+    extension(DateTimeOffset? dateTimeOffset)
     {
-        return dateTimeOffset.GdsReadable(showYear: true);
-    }
-
-    internal static string GdsReadable(this DateTimeOffset dateTimeOffset, bool showYear)
-    {
-
-        if (showYear)
+        internal string GdsReadable(bool showYear = true)
         {
-            return dateTimeOffset.ToString("d MMMM yyyy", CultureInfo.CurrentCulture);
-        }
+            if (dateTimeOffset is null)
+            {
+                return string.Empty;
+            }
 
-        return dateTimeOffset.ToString("d MMMM", CultureInfo.CurrentCulture);
+            return dateTimeOffset.Value.GdsReadable(showYear);
+        }
     }
 }

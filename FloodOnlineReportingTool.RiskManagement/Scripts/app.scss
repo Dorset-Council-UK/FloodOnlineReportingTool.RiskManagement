@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --govuk-colour-red: #d4351c;
     --govuk-colour-yellow: #ffdd00;
     --govuk-color-green: #00703c;
@@ -19,4 +19,22 @@
     --govuk-color-brown: #b58840;
     --govuk-color-light-green: #85994b;
     --govuk-color-turquoise: #28a197;
+}
+
+.border-top {
+    border-top: 1px solid var(--govuk-color-mid-grey);
+}
+
+.border-bottom {
+    border-bottom: 1px solid var(--govuk-color-mid-grey);
+}
+
+$govuk-brand-colour: #05476d;
+
+.govuk-template--rebranded .govuk-header {
+    background-color: $govuk-brand-colour;
+}
+
+.govuk-template--rebranded .govuk-header__link--homepage:not(:focus) {
+    background-color: unset;
 }

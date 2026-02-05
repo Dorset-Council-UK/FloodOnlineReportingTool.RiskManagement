@@ -1,0 +1,119 @@
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Search
+@using Microsoft.AspNetCore.Components.Authorization
+
+@if (_editContext is null)
+{
+    return;
+}
+
+<EditForm EditContext="_editContext" OnSubmit="OnSearchSubmit" FormName="SearchFloodLocations">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
+
+    <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+        <Authorized>
+            <div class="govuk-grid-row border-bottom">
+                <div class="govuk-grid-column-one-third">
+                    <div>
+                        <h2 class="govuk-heading-m">Filter</h2>
+                        @{
+                            const string eastingFieldName = nameof(Model.EastingText);
+                            const string northingFieldName = nameof(Model.Northing);
+                            const string bufferFieldName = nameof(Model.Buffer);
+                        }
+
+                        <GdsFormGroup For="() => Model.SearchType">
+                            <InputRadioGroup @bind-Value="Model.SearchType">
+                                <GdsFieldsetGroup>
+                                    <Content>
+                                        <GdsErrorMessage />
+                                        <div class="govuk-radios govuk-radios--small" data-module="govuk-radios">
+                                            @foreach (var option in _searchTypeOptions)
+                                            {
+                                                var conditionalId = option.Value == FloodLocationSearchType.ByLocation ? $"{option.Id}-conditional" : null;
+                                                <GdsRadio Option="@option" ConditionalId="@conditionalId" />
+                                                if (conditionalId is not null)
+                                                {
+                                                    <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
+                                                        <GdsFormGroup For="() => Model.EastingText" Id="@eastingFieldName">
+                                                            <GdsLabel Text="Easting" />
+                                                            <GdsErrorMessage />
+                                                            <GdsInputNumber @bind-Value=Model.EastingText @bind-NumberValue=Model.Easting class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(eastingFieldName)" />
+                                                        </GdsFormGroup>
+
+                                                        <GdsFormGroup For="() => Model.NorthingText" Id="@northingFieldName">
+                                                            <GdsLabel Text="Northing" />
+                                                            <GdsErrorMessage />
+                                                            <GdsInputNumber @bind-Value=Model.NorthingText @bind-NumberValue=Model.Northing class="govuk-input govuk-input--width-10" aria-describedby="@_editContext.DescribedBy(northingFieldName)" />
+                                                        </GdsFormGroup>
+
+                                                        <GdsFormGroup For="() => Model.Buffer" Id="@bufferFieldName">
+                                                            <GdsLabel Text="Buffer" />
+                                                            <GdsErrorMessage />
+                                                            <div class="govuk-input__wrapper">
+                                                                <InputSelect id="@bufferFieldName" @bind-Value="Model.Buffer" class="govuk-select" aria-describedby="@_editContext.DescribedBy(bufferFieldName)">
+                                                                    <option value="10">10</option>
+                                                                    <option value="25">25</option>
+                                                                    <option value="50">50</option>
+                                                                    <option value="100">100</option>
+                                                                </InputSelect>
+                                                                <div class="govuk-input__suffix" aria-hidden="true">metres</div>
+                                                            </div>
+                                                        </GdsFormGroup>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                    </Content>
+                                </GdsFieldsetGroup>
+                            </InputRadioGroup>
+                        </GdsFormGroup>
+
+                        <button type="submit" class="govuk-button" data-module="govuk-button">Search</button>
+                    </div>
+                </div>
+
+                <div class="govuk-grid-column-two-thirds">
+                    <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@ResultsFoundText()</div>
+                    @switch (_searchState)
+                    {
+                        case SearchState.NotStarted:
+                            <div class="govuk-!-padding-top-3 border-top">TODO: Add initial search instructions, if relevant.</div>
+                            break;
+
+                        case SearchState.Searching:
+                            <div class="govuk-!-padding-top-3 govuk-!-padding-bottom-3 border-top">
+                                <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
+                            </div>
+                            break;
+
+                        case SearchState.ResultsFound:
+                            foreach(var result in _pagedSearch!.Results)
+                            {
+                                <FloodLocationInformation SearchResult="result" />
+                            }
+                            break;
+
+                        case SearchState.NoResults:
+                            <p class="govuk-!-font-weight-bold govuk-!-padding-top-3 border-top">There are no matching results.</p>
+                            <p>Improve your search results by:</p>
+                            <ul class="govuk-list govuk-list--bullet">
+                                <li>removing filters</li>
+                                <li>double-checking your spelling</li>
+                                <li>using fewer keywords</li>
+                                <li>searching for something less specific</li>
+                            </ul>
+                            break;
+                    }
+
+                    <PaginationRow CurrentPage="@_pagedSearch.CurrentPage" LastPage="@_pagedSearch.TotalPages" OnPageChanged="OnPageChanged" />
+                </div>
+            </div>
+        </Authorized>
+
+        <NotAuthorized>
+            <GdsWarning Text="Please sign in to search for flood locations" />
+        </NotAuthorized>
+    </AuthorizeView>
+</EditForm>

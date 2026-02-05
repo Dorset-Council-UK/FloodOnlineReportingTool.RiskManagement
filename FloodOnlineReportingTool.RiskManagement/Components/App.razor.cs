@@ -6,15 +6,15 @@ using Microsoft.Extensions.Options;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components;
 
-public partial class App(IOptions<RiskManagementOptions> _options, GdsBlazorComponents.IGdsJsInterop gdsJs)
+public partial class App(IOptions<RiskManagementOptions> options)
 {
     [CascadingParameter]
     private HttpContext? HttpContext { get; set; }
 
     // The Render Mode is InteractiveServer most of the time. Except on pages which are set as Static server-side rendering (static SSR)
-    private IComponentRenderMode? PageRenderMode => HttpContext?.AcceptsInteractiveRouting() == true ? RenderMode.InteractiveServer : null;
+    private IComponentRenderMode? PageRenderMode => HttpContext?.AcceptsInteractiveRouting() == true ? new InteractiveServerRenderMode(prerender: false) : null;
 
-    private readonly RiskManagementOptions _riskManagementOptions = _options.Value;
+    private readonly RiskManagementOptions _riskManagementOptions = options.Value;
     private string _pathBase = "/";
 
     protected override void OnInitialized()
@@ -23,14 +23,6 @@ public partial class App(IOptions<RiskManagementOptions> _options, GdsBlazorComp
         if (pathBase != null)
         {
             _pathBase = $"/{pathBase}/";
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await gdsJs.InitGds();
         }
     }
 }

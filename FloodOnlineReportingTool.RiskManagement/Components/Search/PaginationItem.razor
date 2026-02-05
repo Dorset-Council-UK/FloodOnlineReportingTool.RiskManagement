@@ -1,0 +1,36 @@
+﻿<li class="@ItemClass">
+    <a class="govuk-link govuk-pagination__link" href="@Navigation.ToBaseRelativePath(Navigation.Uri)" aria-label="@AriaLabel" aria-current="@AriaCurrent" @onclick="HandleClick" @onclick:preventDefault>
+        @PageNumber
+    </a>
+</li>
+
+@code {
+    [Parameter]
+    public bool IsCurrent { get; set; } = false;
+
+    [Parameter, EditorRequired]
+    public int PageNumber { get; set; }
+
+    [Parameter]
+    public string? AriaLabel { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<int> OnPageChanged { get; set; }
+
+    [Inject]
+    private NavigationManager Navigation { get; set; } = null!;
+
+    private string? AriaCurrent => IsCurrent ? "page" : null;
+
+    private string ItemClass => IsCurrent ? "govuk-pagination__item govuk-pagination__item--current" : "govuk-pagination__item";
+
+    protected override void OnInitialized()
+    {
+        AriaLabel ??= $"Page {PageNumber}";
+    }
+
+    private async Task HandleClick()
+    {
+        await OnPageChanged.InvokeAsync(PageNumber);
+    }
+}
