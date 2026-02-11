@@ -11,10 +11,10 @@ public class SearchOptionsViewModel
     public FloodLocationSearchType? SearchType { get; set; }
 
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
-    public GdsDate? FromDate { get; set; }
+    public GdsDate FromDate { get; set; } = new();
 
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
-    public GdsDate? ToDate { get; set; }
+    public GdsDate ToDate { get; set; } = new();
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? ByPostcode { get; set; }

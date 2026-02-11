@@ -20,11 +20,12 @@ public partial class Options(
     public IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
         GeneralPages.Home.ToGdsBreadcrumb(),
         SearchPages.Home.ToGdsBreadcrumb(),
+        SearchPages.Options.ToGdsBreadcrumb(),
     ];
 
-    private Models.Search.SearchOptionsViewModel Model { get; set; } = default!;
+    private SearchOptionsViewModel Model { get; set; } = default!;
 
-    private EditContext editContext = default!;
+    private EditContext searchContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
@@ -32,8 +33,8 @@ public partial class Options(
     {
         // Setup model and edit context
         Model ??= new();
-        editContext = new(Model);
-        editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        searchContext = new(Model);
+        searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -50,6 +51,7 @@ public partial class Options(
             Model.EastingText = options.EastingText;
             Model.NorthingText = options.NorthingText;
             Model.BufferText = options.BufferText;
+            Model.Buffer = options.Buffer;
 
             _isLoading = false;
             StateHasChanged();
@@ -72,7 +74,8 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
-        //await protectedSessionStorage.SetAsync(SessionConstants.EligibilityCheck, updatedEligibilityCheck);
+        //Store the search options in session storage for retrieval on the next page
+        await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
 
         // Go to the next page or pass back to the summary
         var nextPage = GetNextPage();

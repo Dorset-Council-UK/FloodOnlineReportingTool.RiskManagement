@@ -1,65 +1,138 @@
 ﻿@page "/search/options"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>@Title</PageTitle>
 
 <GdsBreadcrumbs Items="Breadcrumbs" />
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+    <Authorized>
+        <EditForm EditContext="searchContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
 
-<EditForm EditContext="editContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
-    <FluentValidationValidator />
-    <GdsErrorSummary />
+            <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-    <GdsSpinner Show="_isLoading" ShowMessage="true" />
+            <div class="govuk-width-container">
+                <div class="govuk-grid-row">
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                                <h2 class="govuk-fieldset__heading">Search for reports by date</h2>
+                            </legend>
+                            <div class="govuk-grid-row">
+                                <div class="govuk-grid-column-one-half">
+                                    <GdsInputDate Id="search-start" For="() => Model.FromDate" Show="!_isLoading">
+                                        <Heading>
+                                            <GdsLabel For="Model.FromDate" Text="Reports from" />
+                                        </Heading>
+                                    </GdsInputDate>
+                                </div>
+                                <div class="govuk-grid-column-one-half">
+                                    <GdsInputDate Id="search-end" For="() => Model.ToDate" Show="!_isLoading">
+                                        <Heading>
+                                            <GdsLabel For="Model.ToDate" Text="Report until" />
+                                        </Heading>
+                                    </GdsInputDate>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="govuk-grid-row">
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                                <h2 class="govuk-fieldset__heading">Other search options</h2>
+                            </legend>
+                            <div class="govuk-grid-row">
+                                <div class="govuk-grid-column-one-half">
+                                    <GdsFormGroup For="() => Model.ByName">
+                                        <GdsLabel Text="Search for reports by the persons name" />
+                                        <GdsErrorMessage />
+                                        <GdsInputText @bind-Value=Model.ByName class="govuk-input govuk-input--width-50" />
+                                    </GdsFormGroup>
+                                        </div>
+                                    <div class="govuk-grid-column-one-half">
+                                    <GdsFormGroup For="() => Model.ByPostcode">
+                                        <GdsLabel Text="Search by affected postcode" />
+                                        <GdsErrorMessage />
+                                        <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
+                                    </GdsFormGroup>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
 
-    <GdsInputDate Id="search-start" For="() => Model.FromDate" Show="!_isLoading">
-        <Heading>
-            <h1 class="govuk-fieldset__heading">Reports on or after?</h1>
-        </Heading>
-        <Hint>For example, 27 3 2024</Hint>
-    </GdsInputDate>
+                <div class="govuk-grid-row">
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                                <h2 class="govuk-fieldset__heading">Spatial search options</h2>
+                            </legend>
+                            <div class="govuk-grid-row">
+                                <div class="govuk-grid-column-one-half">
+                                    Insert map bit here
+                                </div>
+                                <div class="govuk-grid-column-one-half">
+                                    <GdsFormGroup For="() => Model.Buffer">
+                                        <GdsLabel Text="Add a search buffer in metres" />
+                                        <GdsHint>This will only apply if searching with a point from the map</GdsHint>
+                                        <GdsErrorMessage />
+                                        <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
+                                    </GdsFormGroup>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
 
-    <GdsInputDate Id="search-end" For="() => Model.ToDate" Show="!_isLoading">
-        <Heading>
-            <h1 class="govuk-fieldset__heading">Reports on or before?</h1>
-        </Heading>
-        <Hint>For example, 27 3 2024</Hint>
-    </GdsInputDate>
+                <div class="govuk-grid-row">
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                                <h2 class="govuk-fieldset__heading">Result options</h2>
+                            </legend>
+                            <div class="govuk-grid-row">
+                                <div class="govuk-grid-column-full">
+                                    <GdsFormGroup For="() => Model.SearchType">
+                                        <GdsLabel Text="Limit search to" />
+                                        <GdsErrorMessage />
+                                        <InputSelect @bind-Value="Model.SearchType" class="govuk-select">
+                                            <option value="">Select an option</option>
+                                            @foreach (var searchType in Enum.GetValues<FloodLocationSearchType>())
+                                            {
+                                                <option value="@searchType">@searchType</option>
+                                            }
+                                        </InputSelect>
+                                    </GdsFormGroup>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="govuk-grid-row">
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <div class="govuk-grid-row">
+                                <div class="govuk-grid-column-full">
+                                    @if (!_isLoading)
+                                    {
+                                        <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button>
+                                    }
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
 
-    <GdsFormGroup For="() => Model.ByName">
-        <GdsLabel Text="Search for reports by the persons name" />
-        <GdsErrorMessage />
-        <GdsInputText @bind-Value=Model.ByName class="govuk-input govuk-input--width-50" />
-    </GdsFormGroup>
+        </EditForm>
+    </Authorized>
 
-    <GdsFormGroup For="() => Model.ByPostcode">
-        <GdsLabel Text="Search by affected postcode" />
-        <GdsErrorMessage />
-        <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
-    </GdsFormGroup>
-
-    <GdsFormGroup For="() => Model.Buffer">
-        <GdsLabel Text="Add a search buffer in metres" />
-        <GdsHint>This will only apply if searching by a point on the map</GdsHint>
-        <GdsErrorMessage />
-        <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
-    </GdsFormGroup>
-
-    <GdsFormGroup For="() => Model.SearchType">
-        <GdsLabel Text="Limit search to" />
-        <GdsErrorMessage />
-        <InputSelect @bind-Value="Model.SearchType" class="govuk-select">
-            <option value="">Select an option</option>
-            @foreach (var searchType in Enum.GetValues<FloodLocationSearchType>())
-            {
-                <option value="@searchType">@searchType</option>
-            }
-        </InputSelect>
-    </GdsFormGroup>
-
-    @if (!_isLoading)
-    {
-        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button></p>
-    }
-</EditForm>
-
+    <NotAuthorized>
+        <GdsWarning Text="Please sign in to search for flood locations" />
+    </NotAuthorized>
+</AuthorizeView>
