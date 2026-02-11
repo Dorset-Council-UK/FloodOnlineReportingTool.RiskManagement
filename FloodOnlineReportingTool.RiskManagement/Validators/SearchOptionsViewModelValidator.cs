@@ -1,5 +1,6 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FluentValidation;
+using GdsBlazorComponents;
 
 namespace FloodOnlineReportingTool.RiskManagement.Validators;
 
@@ -15,8 +16,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .WithMessage("Enter a report reference");
 
             // All other fields must be null/empty when searching by report reference
-            RuleFor(o => o.FromDate).Null().WithMessage("From date must not be set when searching by report reference");
-            RuleFor(o => o.ToDate).Null().WithMessage("To date must not be set when searching by report reference");
+            // Note: FromDate and ToDate are non-nullable so we don't validate them here
             RuleFor(o => o.ByPostcode).Empty().WithMessage("Postcode must not be set when searching by report reference");
             RuleFor(o => o.ByName).Empty().WithMessage("Name must not be set when searching by report reference");
             RuleFor(o => o.Easting).Null().WithMessage("Easting must not be set when searching by report reference");
@@ -32,8 +32,10 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
 
             // At least one of the other fields must be populated
             RuleFor(o => o)
-                .Must(o => o.FromDate != null || o.ToDate != null || !string.IsNullOrWhiteSpace(o.ByPostcode) ||
-                           !string.IsNullOrWhiteSpace(o.ByName) || o.Easting.HasValue || o.Northing.HasValue ||
+                .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
+                           !string.IsNullOrWhiteSpace(o.ByPostcode) ||
+                           !string.IsNullOrWhiteSpace(o.ByName) ||
+                           o.Easting.HasValue || o.Northing.HasValue ||
                            !string.IsNullOrWhiteSpace(o.ByAreaWkt))
                 .WithMessage("Enter at least one search criterion")
                 .WithName("SearchCriteria");
@@ -54,5 +56,12 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                     .WithMessage("Select a buffer distance");
             });
         });
+    }
+
+    private static bool IsDateSet(GdsDate date)
+    {
+        // Check if the date has been set by the user (not just the default empty date)
+        var defaultDate = new GdsDate();
+        return date.Day != defaultDate.Day || date.Month != defaultDate.Month || date.Year != defaultDate.Year;
     }
 }
