@@ -60,13 +60,17 @@ public partial class Index(
         try
         {
             await _cts.CancelAsync();
-            _cts.Dispose();
         }
-        catch (Exception)
+        catch (ObjectDisposedException)
         {
+            // Cancellation token source already disposed; nothing to do.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while disposing {ComponentName}.", nameof(Index));
         }
 
-        GC.SuppressFinalize(this);
+        _cts.Dispose();
     }
 
     private async Task OnSubmit()

@@ -65,11 +65,14 @@ public partial class Options(
             await _cts.CancelAsync();
             _cts.Dispose();
         }
-        catch (Exception)
+        catch (OperationCanceledException)
         {
+            // Expected during normal cancellation; no action required.
         }
-
-        GC.SuppressFinalize(this);
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Options));
+        }
     }
 
     private async Task OnSubmit()
