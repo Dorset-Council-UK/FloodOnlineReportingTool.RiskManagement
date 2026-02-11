@@ -1,0 +1,31 @@
+﻿using GdsBlazorComponents;
+
+namespace FloodOnlineReportingTool.RiskManagement.Models.Order;
+
+internal record PageInfo
+{
+    public string Url { get; }
+    public string Title { get; }
+
+    public void Deconstruct(out string url, out string title)
+    {
+        url = Url;
+        title = Title;
+    }
+
+    public PageInfo(ReadOnlySpan<char> url, ReadOnlySpan<char> title)
+    {
+        // Efficient allocation at construction only
+        Url = url.ToString();
+        Title = title.ToString();
+    }
+
+    public PageInfo(ReadOnlySpan<char> baseUrl, ReadOnlySpan<char> path, ReadOnlySpan<char> title)
+    {
+        // Efficient allocation at construction only
+        Url = string.Concat(baseUrl, path);
+        Title = title.ToString();
+    }
+
+    public GdsBreadcrumb ToGdsBreadcrumb() => new(Url, Title);
+}

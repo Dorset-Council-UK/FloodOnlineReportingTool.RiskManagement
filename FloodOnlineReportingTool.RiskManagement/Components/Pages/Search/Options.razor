@@ -1,0 +1,65 @@
+﻿@page "/search/options"
+@using FloodOnlineReportingTool.RiskManagement.Models.Search
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>@Title</PageTitle>
+
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<EditForm EditContext="editContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
+    <FluentValidationValidator />
+    <GdsErrorSummary />
+
+    <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+    <GdsInputDate Id="search-start" For="() => Model.FromDate" Show="!_isLoading">
+        <Heading>
+            <h1 class="govuk-fieldset__heading">Reports on or after?</h1>
+        </Heading>
+        <Hint>For example, 27 3 2024</Hint>
+    </GdsInputDate>
+
+    <GdsInputDate Id="search-end" For="() => Model.ToDate" Show="!_isLoading">
+        <Heading>
+            <h1 class="govuk-fieldset__heading">Reports on or before?</h1>
+        </Heading>
+        <Hint>For example, 27 3 2024</Hint>
+    </GdsInputDate>
+
+    <GdsFormGroup For="() => Model.ByName">
+        <GdsLabel Text="Search for reports by the persons name" />
+        <GdsErrorMessage />
+        <GdsInputText @bind-Value=Model.ByName class="govuk-input govuk-input--width-50" />
+    </GdsFormGroup>
+
+    <GdsFormGroup For="() => Model.ByPostcode">
+        <GdsLabel Text="Search by affected postcode" />
+        <GdsErrorMessage />
+        <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
+    </GdsFormGroup>
+
+    <GdsFormGroup For="() => Model.Buffer">
+        <GdsLabel Text="Add a search buffer in metres" />
+        <GdsHint>This will only apply if searching by a point on the map</GdsHint>
+        <GdsErrorMessage />
+        <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
+    </GdsFormGroup>
+
+    <GdsFormGroup For="() => Model.SearchType">
+        <GdsLabel Text="Limit search to" />
+        <GdsErrorMessage />
+        <InputSelect @bind-Value="Model.SearchType" class="govuk-select">
+            <option value="">Select an option</option>
+            @foreach (var searchType in Enum.GetValues<FloodLocationSearchType>())
+            {
+                <option value="@searchType">@searchType</option>
+            }
+        </InputSelect>
+    </GdsFormGroup>
+
+    @if (!_isLoading)
+    {
+        <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button></p>
+    }
+</EditForm>
+
