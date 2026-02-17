@@ -18,7 +18,7 @@ internal static class AccountEndpoints
             return null;
         }
 
-        if (redirectUri.Contains("signed-out", StringComparison.OrdinalIgnoreCase))
+        if (redirectUri.EndsWith("account/signed-out", StringComparison.OrdinalIgnoreCase))
         {
             //null out the redirect uri as we don't want to redirect a signed in user to the signed out page
             return null;
