@@ -18,6 +18,12 @@ internal static class AccountEndpoints
             return null;
         }
 
+        if (redirectUri.Contains("signed-out", StringComparison.OrdinalIgnoreCase))
+        {
+            //null out the redirect uri as we don't want to redirect a signed in user to the signed out page
+            return null;
+        }
+
         if (RedirectHttpResult.IsLocalUrl(redirectUri))
         {
             return redirectUri;
