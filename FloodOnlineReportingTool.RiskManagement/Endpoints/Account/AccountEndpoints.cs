@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Options;
+﻿using FloodOnlineReportingTool.RiskManagement.Authentication;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -11,9 +12,33 @@ namespace FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 
 internal static class AccountEndpoints
 {
+    /// <summary>
+    /// Determines whether the specified path represents an authentication-related flow.
+    /// </summary>
+    /// <remarks>The method checks for common authentication-related path prefixes, including 'signin', 'signout', 'signedout', and their 'account/' variants.</remarks>
+    /// <returns>true if the path starts with a recognized authentication flow segment; otherwise, false.</returns>
+    private static bool IsAuthenticationFlowPath(ReadOnlySpan<char> relativePath)
+    {
+        foreach (var authPath in AuthenticationFlow.AuthPaths)
+        {
+            if (relativePath.StartsWith(authPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static string? NormaliseRedirectUrl(string? redirectUri, string pathBase)
     {
         if (string.IsNullOrWhiteSpace(redirectUri))
+        {
+            return null;
+        }
+
+        // Don't redirect to authentication-related paths to avoid loops
+        if (IsAuthenticationFlowPath(redirectUri))
         {
             return null;
         }
