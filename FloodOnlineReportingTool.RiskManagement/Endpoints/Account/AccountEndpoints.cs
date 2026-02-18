@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Options;
+﻿using FloodOnlineReportingTool.RiskManagement.Authentication;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -18,16 +19,7 @@ internal static class AccountEndpoints
     /// <returns>true if the path starts with a recognized authentication flow segment; otherwise, false.</returns>
     private static bool IsAuthenticationFlowPath(ReadOnlySpan<char> relativePath)
     {
-        ReadOnlySpan<string> authPaths = [
-            "account/signin",
-            "account/sign-in",
-            "account/signout",
-            "account/sign-out",
-            "account/signedout",
-            "account/signed-out",
-        ];
-
-        foreach (var authPath in authPaths)
+        foreach (var authPath in AuthenticationFlow.AuthPaths)
         {
             if (relativePath.StartsWith(authPath, StringComparison.OrdinalIgnoreCase))
             {

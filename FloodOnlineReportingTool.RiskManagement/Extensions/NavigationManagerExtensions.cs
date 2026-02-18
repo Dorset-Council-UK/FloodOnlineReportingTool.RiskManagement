@@ -1,4 +1,6 @@
-﻿namespace Microsoft.AspNetCore.Components;
+﻿using FloodOnlineReportingTool.RiskManagement.Authentication;
+
+namespace Microsoft.AspNetCore.Components;
 
 internal static class NavigationManagerExtensions
 {
@@ -46,16 +48,7 @@ internal static class NavigationManagerExtensions
         /// <returns>true if the path starts with a recognized authentication flow segment; otherwise, false.</returns>
         private static bool IsAuthenticationFlowPath(ReadOnlySpan<char> relativePath)
         {
-            ReadOnlySpan<string> authPaths = [
-                "account/signin",
-                "account/sign-in",
-                "account/signout",
-                "account/sign-out",
-                "account/signedout",
-                "account/signed-out",
-            ];
-
-            foreach (var authPath in authPaths)
+            foreach (var authPath in AuthenticationFlow.AuthPaths)
             {
                 if (relativePath.StartsWith(authPath, StringComparison.OrdinalIgnoreCase))
                 {
