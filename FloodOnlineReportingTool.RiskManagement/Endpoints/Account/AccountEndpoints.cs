@@ -11,6 +11,33 @@ namespace FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 
 internal static class AccountEndpoints
 {
+    /// <summary>
+    /// Determines whether the specified path represents an authentication-related flow.
+    /// </summary>
+    /// <remarks>The method checks for common authentication-related path prefixes, including 'signin', 'signout', 'signedout', and their 'account/' variants.</remarks>
+    /// <returns>true if the path starts with a recognized authentication flow segment; otherwise, false.</returns>
+    private static bool IsAuthenticationFlowPath(ReadOnlySpan<char> relativePath)
+    {
+        ReadOnlySpan<string> authPaths = [
+            "account/signin",
+            "account/sign-in",
+            "account/signout",
+            "account/sign-out",
+            "account/signedout",
+            "account/signed-out",
+        ];
+
+        foreach (var authPath in authPaths)
+        {
+            if (relativePath.StartsWith(authPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static string? NormaliseRedirectUrl(string? redirectUri, string pathBase)
     {
         if (string.IsNullOrWhiteSpace(redirectUri))
@@ -18,9 +45,9 @@ internal static class AccountEndpoints
             return null;
         }
 
-        if (redirectUri.EndsWith("account/signed-out", StringComparison.OrdinalIgnoreCase))
+        // Don't redirect to authentication-related paths to avoid loops
+        if (IsAuthenticationFlowPath(redirectUri))
         {
-            //null out the redirect uri as we don't want to redirect a signed in user to the signed out page
             return null;
         }
 
