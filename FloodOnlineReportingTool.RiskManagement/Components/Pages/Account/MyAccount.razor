@@ -4,38 +4,93 @@
 
 <AuthorizeView>
     <Authorized>
-        @if (context.User.IsAuthenticated)
+        <h1>Manage your account</h1>
+
+        <table class="govuk-table">
+            <caption class="govuk-table__caption govuk-table__caption--m">Manage your account</caption>
+            <thead class="govuk-table__head">
+                <tr class="govuk-table__row">
+                    <th scope="col" class="govuk-table__header">User Data</th>
+                    <th scope="col" class="govuk-table__header">Value</th>
+                </tr>
+            </thead>
+            <tbody class="govuk-table__body">
+                <tr class="govuk-table__row">
+                    <th scope="row" class="govuk-table__header">Display Name</th>
+                    <td class="govuk-table__cell">@UserDisplayName</td>
+                </tr>
+                <tr class="govuk-table__row">
+                    <th scope="row" class="govuk-table__header">Email</th>
+                    <td class="govuk-table__cell">@UserPrimaryEmailAddress</td>
+                </tr>
+                <tr class="govuk-table__row">
+                    <th scope="row" class="govuk-table__header">Identity Provider</th>
+                    <td class="govuk-table__cell">@UserIdentityProvider</td>
+                </tr>
+                <tr class="govuk-table__row">
+                    <th scope="row" class="govuk-table__header">User ID</th>
+                    <td class="govuk-table__cell">@UserID</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Your roles</h2>
+        @if (UserRoles is not null && UserRoles.Count() != 0)
         {
-            <table class="govuk-table">
-                <caption class="govuk-table__caption govuk-table__caption--m">Manage your account</caption>
-                <thead class="govuk-table__head">
-                    <tr class="govuk-table__row">
-                        <th scope="col" class="govuk-table__header">User Data</th>
-                        <th scope="col" class="govuk-table__header">Value</th>
-                    </tr>
-                </thead>
-                <tbody class="govuk-table__body">
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Display Name</th>
-                        <td class="govuk-table__cell">@context.User.DisplayName</td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Email</th>
-                        <td class="govuk-table__cell">@context.User.Email</td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">Identity Provider</th>
-                        <td class="govuk-table__cell">@context.User.IdentityProvider</td>
-                    </tr>
-                    <tr class="govuk-table__row">
-                        <th scope="row" class="govuk-table__header">User ID</th>
-                        <td class="govuk-table__cell">@context.User.UserId</td>
-                    </tr>
-                </tbody>
-            </table>
+            <ul class="govuk-list govuk-list--bullet">
+                @foreach (Claim role in UserRoles)
+                {
+                    <li>@role.Value</li>
+                }
+            </ul>
         }
+        else
+        {
+            <GdsWarning Text="You have no assigned roles." />
+        }
+
+        <GdsTable T="Claim" Items="@UserClaims" Caption="Users authorization claims" CaptionSize="GdsTableCaptionSize.Medium">
+            <HeaderContent>
+                <GdsTableTh>Type</GdsTableTh>
+                <GdsTableTh>Value</GdsTableTh>
+            </HeaderContent>
+            <RowTemplate Context="item">
+                <GdsTableTd Value="@item.Type" />
+                <GdsTableTd Value="@item.Value"/>
+            </RowTemplate>
+        </GdsTable>
+        
+
     </Authorized>
     <NotAuthorized>
         <GdsWarning Text="You are not signed in." />
     </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private bool AuthClaimsOpen = false;
+    private string? UserID{ get; set; }
+    private string? UserDisplayName{ get; set; }
+    private string? UserPrimaryEmailAddress { get; set; }
+    private string? UserIdentityProvider{ get; set; }
+    private IEnumerable<System.Security.Claims.Claim>? UserClaims{ get; set; }
+    private IEnumerable<System.Security.Claims.Claim>? UserRoles { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationStateTask != null)
+        {
+            var authState = await AuthenticationStateTask;
+
+            UserID = authState.User.UserId;
+            UserDisplayName = authState.User.DisplayName;
+            UserPrimaryEmailAddress = authState.User.Email;
+            UserIdentityProvider = authState.User.IdentityProvider;
+            UserClaims = authState.User.Claims;
+            UserRoles = UserClaims.Where(c => c.Type == ClaimTypes.Role);
+        }
+    }
+}
