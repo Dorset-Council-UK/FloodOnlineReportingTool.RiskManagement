@@ -2,6 +2,8 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
+<PageTitle>Manage your account</PageTitle>
+
 <AuthorizeView>
     <Authorized>
         <h1>Manage your account</h1>
@@ -28,7 +30,7 @@
         <p>
             These are the roles that have been assigned to you by your system administrator. They control what you can and can't do in the app.
         </p>
-        @if (UserRoles is not null && UserRoles.Count() != 0)
+        @if (UserRoles is not null && UserRoles.Any())
         {
             <ul class="govuk-list govuk-list--bullet">
                 @foreach (Claim role in UserRoles)
@@ -45,11 +47,13 @@
         <details class="govuk-details">
             <summary class="govuk-details__summary">
                 <span class="govuk-details__summary-text">
-                    Detailed authorization claims (for support and debugging purposes)
+                    Detailed authorisation claims (for support and debugging purposes)
                 </span>
             </summary>
             <div class="govuk-details__text">
-                <GdsTable T="Claim" Items="@UserClaims" Caption="Users authorization claims" CaptionSize="GdsTableCaptionSize.Medium">
+                @if (UserClaims is not null)
+                {
+                <GdsTable T="Claim" Items="@UserClaims" Caption="User's authorisation claims" CaptionSize="GdsTableCaptionSize.Medium">
                     <HeaderContent>
                         <GdsTableTh>Type</GdsTableTh>
                         <GdsTableTh>Value</GdsTableTh>
@@ -59,6 +63,11 @@
                         <GdsTableTd Value="@item.Value" />
                     </RowTemplate>
                 </GdsTable>
+                }
+                else
+                {
+                    <GdsWarning Text="No authorisation claims found." />
+                }
             </div>
         </details>
 
@@ -72,7 +81,6 @@
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
-    private bool AuthClaimsOpen = false;
     private string? UserID{ get; set; }
     private string? UserDisplayName{ get; set; }
     private string? UserPrimaryEmailAddress { get; set; }
