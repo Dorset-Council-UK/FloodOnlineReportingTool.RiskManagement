@@ -62,9 +62,6 @@
             </div>
         </details>
 
-        
-        
-
     </Authorized>
     <NotAuthorized>
         <GdsWarning Text="You are not signed in." />
@@ -79,7 +76,6 @@
     private string? UserID{ get; set; }
     private string? UserDisplayName{ get; set; }
     private string? UserPrimaryEmailAddress { get; set; }
-    private string? UserIdentityProvider{ get; set; }
     private IEnumerable<System.Security.Claims.Claim>? UserClaims{ get; set; }
     private IEnumerable<System.Security.Claims.Claim>? UserRoles { get; set; }
 
@@ -92,7 +88,6 @@
             UserID = authState.User.UserId;
             UserDisplayName = authState.User.DisplayName;
             UserPrimaryEmailAddress = authState.User.Email;
-            UserIdentityProvider = authState.User.IdentityProvider;
             UserClaims = authState.User.Claims;
             UserRoles = UserClaims.Where(c => c.Type == ClaimTypes.Role);
         }
