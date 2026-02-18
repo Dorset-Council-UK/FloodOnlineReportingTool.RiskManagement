@@ -5,15 +5,9 @@
 <AuthorizeView>
     <Authorized>
         <h1>Manage your account</h1>
-
+        <p>Your account details and password are managed by your identity provider.</p>
         <table class="govuk-table">
-            <caption class="govuk-table__caption govuk-table__caption--m">Manage your account</caption>
-            <thead class="govuk-table__head">
-                <tr class="govuk-table__row">
-                    <th scope="col" class="govuk-table__header">User Data</th>
-                    <th scope="col" class="govuk-table__header">Value</th>
-                </tr>
-            </thead>
+            <caption class="govuk-table__caption govuk-table__caption--m">Basic details</caption>
             <tbody class="govuk-table__body">
                 <tr class="govuk-table__row">
                     <th scope="row" class="govuk-table__header">Display Name</th>
@@ -24,10 +18,6 @@
                     <td class="govuk-table__cell">@UserPrimaryEmailAddress</td>
                 </tr>
                 <tr class="govuk-table__row">
-                    <th scope="row" class="govuk-table__header">Identity Provider</th>
-                    <td class="govuk-table__cell">@UserIdentityProvider</td>
-                </tr>
-                <tr class="govuk-table__row">
                     <th scope="row" class="govuk-table__header">User ID</th>
                     <td class="govuk-table__cell">@UserID</td>
                 </tr>
@@ -35,6 +25,9 @@
         </table>
 
         <h2>Your roles</h2>
+        <p>
+            These are the roles that have been assigned to you by your system administrator. They control what you can and can't do in the app.
+        </p>
         @if (UserRoles is not null && UserRoles.Count() != 0)
         {
             <ul class="govuk-list govuk-list--bullet">
@@ -49,16 +42,27 @@
             <GdsWarning Text="You have no assigned roles." />
         }
 
-        <GdsTable T="Claim" Items="@UserClaims" Caption="Users authorization claims" CaptionSize="GdsTableCaptionSize.Medium">
-            <HeaderContent>
-                <GdsTableTh>Type</GdsTableTh>
-                <GdsTableTh>Value</GdsTableTh>
-            </HeaderContent>
-            <RowTemplate Context="item">
-                <GdsTableTd Value="@item.Type" />
-                <GdsTableTd Value="@item.Value"/>
-            </RowTemplate>
-        </GdsTable>
+        <details class="govuk-details">
+            <summary class="govuk-details__summary">
+                <span class="govuk-details__summary-text">
+                    Detailed authorization claims (for support and debugging purposes)
+                </span>
+            </summary>
+            <div class="govuk-details__text">
+                <GdsTable T="Claim" Items="@UserClaims" Caption="Users authorization claims" CaptionSize="GdsTableCaptionSize.Medium">
+                    <HeaderContent>
+                        <GdsTableTh>Type</GdsTableTh>
+                        <GdsTableTh>Value</GdsTableTh>
+                    </HeaderContent>
+                    <RowTemplate Context="item">
+                        <GdsTableTd Value="@item.Type" />
+                        <GdsTableTd Value="@item.Value" />
+                    </RowTemplate>
+                </GdsTable>
+            </div>
+        </details>
+
+        
         
 
     </Authorized>
