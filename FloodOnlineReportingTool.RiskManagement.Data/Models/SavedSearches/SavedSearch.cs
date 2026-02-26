@@ -23,14 +23,14 @@ public record SavedSearch
     public DateTimeOffset? ResultsFrom { get; init; }
     public DateTimeOffset? ResultsTo { get; init; }
     // List of Contracts.Shared.PrimaryCauseIds
-    public ICollection<Guid> FloodPrimaryCauses { get; set; } = [];
+    public ICollection<Guid> FloodPrimaryCauses { get; init; } = [];
     // List of Contracts.Shared.SecondaryCauseIds
     public ICollection<Guid> FloodSecondaryCauses { get; init; } = [];
     public long? UPRN { get; init; } 
     public long? USRN { get; init; }
     public string Postcode { get; init; } = string.Empty;
     public string ReporterString { get; init; } = string.Empty;
-    public MultiPolygon? Geom { get; set; }
+    public MultiPolygon? Geom { get; init; }
     // Also known as buffer (in metres) around the search geometry (foreign key)
     public double? SearchRadius { get; init; }
 
