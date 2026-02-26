@@ -49,10 +49,10 @@ internal static class InitialData
     internal static LkInvestigationStatus[] InvestigationStatusData()
     {
         return [
-            new LkInvestigationStatus(Section19StatusIds.NoSection19, "No Section 19 report", 1),
-            new LkInvestigationStatus(Section19StatusIds.Section19Required, "Section 19 report required", 2),
-            new LkInvestigationStatus(Section19StatusIds.Section19InProgress, "Section 19 report in progress", 3),
-            new LkInvestigationStatus(Section19StatusIds.Section19Included, "Included in Section 19 report", 4)
+            new LkInvestigationStatus(Section19StatusIds.NoSection19,"No Investigation", "No Section 19 report", 1),
+            new LkInvestigationStatus(Section19StatusIds.Section19Required,"Investigation Required", "Section 19 report required", 2),
+            new LkInvestigationStatus(Section19StatusIds.Section19InProgress,"In Progress", "Section 19 report in progress", 3),
+            new LkInvestigationStatus(Section19StatusIds.Section19Included,"Report Available", "Included in Section 19 report", 4)
         ];
     }
 

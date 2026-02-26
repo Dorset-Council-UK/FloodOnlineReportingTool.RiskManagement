@@ -9,12 +9,12 @@ public record LkInvestigationStatus
         Order = order;
     }
 
-    public LkInvestigationStatus(Guid id, string text, int order, string description)
+    public LkInvestigationStatus(Guid id, string text, string description, int order)
     {
         Id = id;
         Text = text;
-        Order = order;
         Description = description;
+        Order = order;
     }
 
     public Guid Id { get; init; } = Guid.CreateVersion7();
