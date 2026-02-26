@@ -7,7 +7,7 @@ public record FloodEvent
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
-    public ConditionalOptions MitigationTaken { get; init; }
+    public ConditionalOptions MitigationTaken { get; init; } = ConditionalOptions.No;
     // Values from Contracts.Shared.EventStatusIds
     public Guid RecordStatus { get; init; } = EventStatusIds.RecoveryPhase;
     // Values from Contracts.Shared.EventStatusIds
