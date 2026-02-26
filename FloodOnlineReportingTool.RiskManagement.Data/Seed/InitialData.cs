@@ -88,7 +88,7 @@ internal static class InitialData
         return [
             new LkCommentType((int)CommentType.PublicComment, "Public Comment", 1, "A comment made by a member of the public"),
             new LkCommentType((int)CommentType.UserComment, "Logged in User Comment", 2, "A comment made by a logged in user"),
-            new LkCommentType((int)CommentType.ProblemComment, "Problem Comment", 3, "A comment describing a problems caused by the flood"),
+            new LkCommentType((int)CommentType.ProblemComment, "Problem Comment", 3, "A comment describing problems caused by the flood"),
             new LkCommentType((int)CommentType.ImpactComment, "Impact Comment", 4, "A comment about the impact of the flood event"),
             new LkCommentType((int)CommentType.DescriptionComment, "Description Comment", 5, "A comment providing a description of the flood event"),
             new LkCommentType((int)CommentType.HistoryComment, "History Comment", 6, "A comment about the history of the flood event"),
