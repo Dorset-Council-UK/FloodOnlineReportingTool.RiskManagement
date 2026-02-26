@@ -1,5 +1,6 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
@@ -20,6 +21,11 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(SchemaNames.RiskManagement);
+
+        // Add the inbox and outbox pattern messaging tables
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(RiskManagementDbContext).Assembly);
     }

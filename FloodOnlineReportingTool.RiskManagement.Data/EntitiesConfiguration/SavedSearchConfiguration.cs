@@ -8,6 +8,8 @@ internal class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
 {
     public void Configure(EntityTypeBuilder<SavedSearch> builder)
     {
+        builder.HasKey(e => e.Id);
+
         // Store enums as integers in the database
         builder.Property(e => e.ShowResultsAs)
                 .HasConversion<int>();

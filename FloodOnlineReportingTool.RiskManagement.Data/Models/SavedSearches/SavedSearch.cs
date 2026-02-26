@@ -30,7 +30,7 @@ public record SavedSearch
     public long? USRN { get; init; }
     public string Postcode { get; init; } = string.Empty;
     public string ReporterString { get; init; } = string.Empty;
-    public MultiPolygon? Geom { get; set; } = default!;
+    public MultiPolygon? Geom { get; set; }
     // Also known as buffer (in metres) around the search geometry (foreign key)
     public double? SearchRadius { get; init; }
 
