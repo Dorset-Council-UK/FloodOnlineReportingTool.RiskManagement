@@ -17,5 +17,5 @@ public record FloodEventComment
 
     // Foreign key
     public Guid FloodEventId { get; init; }
-    public FloodEvent FloodEvent { get; init; }
+    public required FloodEvent FloodEvent { get; init; }
 }
