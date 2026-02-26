@@ -1,11 +1,11 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 
 /// <summary>
 /// Represents specific problems caused by a flood, such as structural damage, water contamination, etc.
 /// </summary>
-public record LkFloodProblem
+public record FloodProblem
 {
-    public LkFloodProblem(Guid id, string category, string? typeName, string typeDescription, int optionOrder)
+    public FloodProblem(Guid id, string category, string? typeName, string typeDescription, int optionOrder)
     {
         Id = id;
         Category = category;

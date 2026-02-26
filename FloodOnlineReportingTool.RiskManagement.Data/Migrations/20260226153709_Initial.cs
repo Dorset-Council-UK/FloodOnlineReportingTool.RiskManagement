@@ -80,7 +80,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "LkCommentTypes",
+                name: "Lk_CommentTypes",
                 schema: "fortriskmanagement",
                 columns: table => new
                 {
@@ -91,12 +91,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LkCommentTypes", x => x.Id);
+                    table.PrimaryKey("PK_Lk_CommentTypes", x => x.Id);
                 },
                 comment: "All possible comment types and their user friendly descriptions");
 
             migrationBuilder.CreateTable(
-                name: "LkEventStatuses",
+                name: "Lk_EventStatuses",
                 schema: "fortriskmanagement",
                 columns: table => new
                 {
@@ -107,12 +107,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LkEventStatuses", x => x.Id);
+                    table.PrimaryKey("PK_Lk_EventStatuses", x => x.Id);
                 },
                 comment: "All possible event statuses and their user friendly descriptions");
 
             migrationBuilder.CreateTable(
-                name: "LkFloodProblems",
+                name: "Lk_FloodProblems",
                 schema: "fortriskmanagement",
                 columns: table => new
                 {
@@ -124,12 +124,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LkFloodProblems", x => x.Id);
+                    table.PrimaryKey("PK_Lk_FloodProblems", x => x.Id);
                 },
                 comment: "All possible flood problems and their user friendly descriptions");
 
             migrationBuilder.CreateTable(
-                name: "LkFloodStatuses",
+                name: "Lk_FloodStatuses",
                 schema: "fortriskmanagement",
                 columns: table => new
                 {
@@ -140,12 +140,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LkFloodStatuses", x => x.Id);
+                    table.PrimaryKey("PK_Lk_FloodStatuses", x => x.Id);
                 },
                 comment: "All possible flood statuses and their user friendly descriptions");
 
             migrationBuilder.CreateTable(
-                name: "LkInvestigationStatuses",
+                name: "Lk_InvestigationStatuses",
                 schema: "fortriskmanagement",
                 columns: table => new
                 {
@@ -156,12 +156,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LkInvestigationStatuses", x => x.Id);
+                    table.PrimaryKey("PK_Lk_InvestigationStatuses", x => x.Id);
                 },
                 comment: "All possible investigation statuses and their user friendly descriptions");
 
             migrationBuilder.CreateTable(
-                name: "LkReportStatuses",
+                name: "Lk_ReportStatuses",
                 schema: "fortriskmanagement",
                 columns: table => new
                 {
@@ -172,7 +172,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LkReportStatuses", x => x.Id);
+                    table.PrimaryKey("PK_Lk_ReportStatuses", x => x.Id);
                 },
                 comment: "All possible report statuses and their user friendly descriptions");
 
@@ -304,13 +304,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             migrationBuilder.InsertData(
                 schema: "fortriskmanagement",
-                table: "LkCommentTypes",
+                table: "Lk_CommentTypes",
                 columns: new[] { "Id", "Description", "Order", "Text" },
                 values: new object[,]
                 {
                     { 0, "A comment made by a member of the public", 1, "Public Comment" },
                     { 1, "A comment made by a logged in user", 2, "Logged in User Comment" },
-                    { 2, "A comment describing a problems caused by the flood", 3, "Problem Comment" },
+                    { 2, "A comment describing problems caused by the flood", 3, "Problem Comment" },
                     { 3, "A comment about the impact of the flood event", 4, "Impact Comment" },
                     { 4, "A comment providing a description of the flood event", 5, "Description Comment" },
                     { 5, "A comment about the history of the flood event", 6, "History Comment" },
@@ -322,7 +322,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             migrationBuilder.InsertData(
                 schema: "fortriskmanagement",
-                table: "LkEventStatuses",
+                table: "Lk_EventStatuses",
                 columns: new[] { "Id", "Description", "Order", "Text" },
                 values: new object[,]
                 {
@@ -334,7 +334,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             migrationBuilder.InsertData(
                 schema: "fortriskmanagement",
-                table: "LkFloodProblems",
+                table: "Lk_FloodProblems",
                 columns: new[] { "Id", "Category", "OptionOrder", "TypeDescription", "TypeName" },
                 values: new object[,]
                 {
@@ -361,7 +361,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             migrationBuilder.InsertData(
                 schema: "fortriskmanagement",
-                table: "LkFloodStatuses",
+                table: "Lk_FloodStatuses",
                 columns: new[] { "Id", "Description", "Order", "Text" },
                 values: new object[,]
                 {
@@ -376,19 +376,19 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             migrationBuilder.InsertData(
                 schema: "fortriskmanagement",
-                table: "LkInvestigationStatuses",
+                table: "Lk_InvestigationStatuses",
                 columns: new[] { "Id", "Description", "Order", "Text" },
                 values: new object[,]
                 {
-                    { new Guid("018febeb-0880-7532-b583-3d9502dffd7b"), null, 1, "No Section 19 report" },
-                    { new Guid("018febeb-f2e0-7d1d-89a3-b76b1fe98343"), null, 2, "Section 19 report required" },
-                    { new Guid("018febec-dd40-7863-b45c-e7b9546f588c"), null, 3, "Section 19 report in progress" },
-                    { new Guid("018febed-c7a0-7994-8c44-4623142fdfb1"), null, 4, "Included in Section 19 report" }
+                    { new Guid("018febeb-0880-7532-b583-3d9502dffd7b"), "No Section 19 report", 1, "No Investigation" },
+                    { new Guid("018febeb-f2e0-7d1d-89a3-b76b1fe98343"), "Section 19 report required", 2, "Investigation Required" },
+                    { new Guid("018febec-dd40-7863-b45c-e7b9546f588c"), "Section 19 report in progress", 3, "In Progress" },
+                    { new Guid("018febed-c7a0-7994-8c44-4623142fdfb1"), "Included in Section 19 report", 4, "Report Available" }
                 });
 
             migrationBuilder.InsertData(
                 schema: "fortriskmanagement",
-                table: "LkReportStatuses",
+                table: "Lk_ReportStatuses",
                 columns: new[] { "Id", "Description", "Order", "Text" },
                 values: new object[,]
                 {
@@ -459,27 +459,27 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(
-                name: "LkCommentTypes",
+                name: "Lk_CommentTypes",
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(
-                name: "LkEventStatuses",
+                name: "Lk_EventStatuses",
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(
-                name: "LkFloodProblems",
+                name: "Lk_FloodProblems",
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(
-                name: "LkFloodStatuses",
+                name: "Lk_FloodStatuses",
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(
-                name: "LkInvestigationStatuses",
+                name: "Lk_InvestigationStatuses",
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(
-                name: "LkReportStatuses",
+                name: "Lk_ReportStatuses",
                 schema: "fortriskmanagement");
 
             migrationBuilder.DropTable(

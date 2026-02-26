@@ -1,14 +1,15 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
 
-internal class LkInvestigationStatusConfiguration : IEntityTypeConfiguration<LkInvestigationStatus>
+internal class InvestigationStatusConfiguration : IEntityTypeConfiguration<InvestigationStatus>
 {
-    public void Configure(EntityTypeBuilder<LkInvestigationStatus> builder)
+    public void Configure(EntityTypeBuilder<InvestigationStatus> builder)
     {
+        builder.ToTable("Lk_InvestigationStatuses");
         builder
             .Property(o => o.Id)
             .ValueGeneratedNever();

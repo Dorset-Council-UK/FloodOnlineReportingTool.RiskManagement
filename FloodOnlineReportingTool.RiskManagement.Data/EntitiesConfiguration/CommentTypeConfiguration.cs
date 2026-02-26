@@ -1,14 +1,15 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
 
-internal class LkCommentTypeConfiguration : IEntityTypeConfiguration<LkCommentType>
+internal class CommentTypeConfiguration : IEntityTypeConfiguration<CommentType>
 {
-    public void Configure(EntityTypeBuilder<LkCommentType> builder)
+    public void Configure(EntityTypeBuilder<CommentType> builder)
     {
+        builder.ToTable("Lk_CommentTypes");
         builder
             .Property(o => o.Id)
             .ValueGeneratedNever();
