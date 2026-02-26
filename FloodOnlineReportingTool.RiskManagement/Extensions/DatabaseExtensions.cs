@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -25,6 +26,9 @@ internal static class DatabaseExtensions
                 });
                 options.EnableSensitiveDataLogging(logSensitiveData);
             });
+
+            // Register repositories
+            builder.Services.AddScoped<ICommonRepository, CommonRepository>();
 
             return builder;
         }

@@ -70,19 +70,86 @@
                     <div class="govuk-form-group">
                         <fieldset class="govuk-fieldset">
                             <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                                <h2 class="govuk-fieldset__heading">Spatial search options</h2>
+                                <h2 class="govuk-fieldset__heading">Filters</h2>
                             </legend>
                             <div class="govuk-grid-row">
                                 <div class="govuk-grid-column-one-half">
-                                    Insert map bit here
+                                    <div class="govuk-accordion" data-module="govuk-accordion" id="accordion-with-summary-sections">
+                                        <div class="govuk-accordion__section">
+                                            <div class="govuk-accordion__section-header">
+                                                <h2 class="govuk-accordion__section-heading">
+                                                    <span class="govuk-accordion__section-button" id="accordion-with-summary-sections-heading-1">
+                                                        Flood Source
+                                                    </span>
+                                                </h2>
+                                                <div class="govuk-accordion__section-summary govuk-body" id="accordion-with-summary-sections-summary-1">
+                                                    Filter by results by the cause of flooding
+                                                </div>
+                                            </div>
+                                            <div id="accordion-with-summary-sections-content-1" class="govuk-accordion__section-content">
+                                                <GdsHint>Select all that apply</GdsHint>
+                                                <GdsErrorMessage />
+                                                <GdsCheckboxes Options="_floodSourceOptions" />
+                                            </div>
+                                        </div>
+                                        <div class="govuk-accordion__section">
+                                            <div class="govuk-accordion__section-header">
+                                                <h2 class="govuk-accordion__section-heading">
+                                                    <span class="govuk-accordion__section-button" id="accordion-with-summary-sections-heading-2">
+                                                        Spatial area
+                                                    </span>
+                                                </h2>
+                                                <div class="govuk-accordion__section-summary govuk-body" id="accordion-with-summary-sections-summary-2">
+                                                    Filter by regions
+                                                </div>
+                                            </div>
+                                            <div id="accordion-with-summary-sections-content-2" class="govuk-accordion__section-content">
+                                                <GdsFormGroup For="() => _parishSearchTerm">
+                                                    <GdsLabel Text="Search for parish" />
+                                                    <GdsErrorMessage />
+                                                    <GdsInputText Value="@_parishSearchTerm" 
+                                                                  ValueChanged="OnParishSearchChanged" 
+                                                                  ValueExpression="() => _parishSearchTerm"
+                                                                  class="govuk-input govuk-input--width-50" />
+                                                </GdsFormGroup>
+
+                                                @if (_isSearchingParishes)
+                                                {
+                                                    <div class="govuk-hint">
+                                                        <span class="govuk-!-font-size-16">Searching...</span>
+                                                    </div>
+                                                }
+
+                                                @if (_parishResults.Any())
+                                                {
+                                                    <div class="govuk-form-group">
+                                                        <label class="govuk-label">Select a parish</label>
+                                                        <select class="govuk-select" @onchange="OnParishSelected">
+                                                            <option value="">-- Select --</option>
+                                                            @foreach (var parish in _parishResults)
+                                                            {
+                                                                <option value="@parish">@parish</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="govuk-grid-column-one-half">
-                                    <GdsFormGroup For="() => Model.Buffer">
-                                        <GdsLabel Text="Add a search buffer in metres" />
-                                        <GdsHint>This will only apply if searching with a point from the map</GdsHint>
-                                        <GdsErrorMessage />
-                                        <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
-                                    </GdsFormGroup>
+                                    <div class="govuk-grid-row">
+                                        Replace this with something functional
+                                        <img class="img img-fluid" src="https://gi.dorsetcouncil.gov.uk/geoserver/background_maps_open/wms?LAYERS=openzoomstack&amp;AUTHKEY=977fe821-a19b-4187-80a2-b34c0243b9d1&amp;SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;srs=epsg%3a27700&amp;format=image%2fjpeg&amp;width=300&amp;height=300&amp;bbox=385764,109522,385864,109622&amp;format_options=layout%3apin_os_copyright&amp;styles=ozs_group_road" alt="Map image of flood record point location" width="300" height="300">
+                                    </div>
+                                    <div class="govuk-grid-row">
+                                        <GdsFormGroup For="() => Model.Buffer">
+                                            <GdsLabel Text="Add a search buffer in metres" />
+                                            <GdsHint>This will only apply if searching with a point from the map</GdsHint>
+                                            <GdsErrorMessage />
+                                            <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
+                                        </GdsFormGroup>
+                                    </div>
                                 </div>
                             </div>
                         </fieldset>

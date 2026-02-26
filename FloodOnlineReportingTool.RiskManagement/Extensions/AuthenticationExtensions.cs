@@ -1,6 +1,8 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Authorization;
+﻿using FloodOnlineReportingTool.Public.Options;
+using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
 using FloodOnlineReportingTool.RiskManagement.Options;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
@@ -20,8 +22,11 @@ internal static class AuthenticationExtensions
                 .GetRequiredSection(Constants.AzureAd);
 
             var reportStatusApiSection = builder.Configuration
-                .GetRequiredSection(RiskManagementOptions.SectionName)
-                .GetRequiredSection(RiskManagementOptions.ReportStatusApi);
+                .GetRequiredSection(DownstreamAPIOptions.SectionName)
+                .GetRequiredSection(DownstreamAPIOptions.ReportStatusApi);
+            var geoserverApiSection = builder.Configuration
+                .GetRequiredSection(DownstreamAPIOptions.SectionName)
+                .GetRequiredSection(DownstreamAPIOptions.GeoServerApi);
 
             // Setup Authentication
             builder.Services
@@ -29,6 +34,7 @@ internal static class AuthenticationExtensions
                 .AddMicrosoftIdentityWebApp(azureAdSection)
                 .EnableTokenAcquisitionToCallDownstreamApi()
                 .AddDownstreamApi(RiskManagementOptions.ReportStatusApi, reportStatusApiSection)
+                .AddDownstreamApi(DownstreamAPIOptions.GeoServerApi, geoserverApiSection)
                 .AddInMemoryTokenCaches();
 
             builder.Services.AddResilientHttpClients();
@@ -54,6 +60,21 @@ internal static class AuthenticationExtensions
                     .RequireAuthenticatedUser()
                     .RequireRole(RoleNames.Admin))
                 .SetFallbackPolicy(policy: null); // Anonymous access allowed unless [Authorize] is used
+
+            // Register token service (scoped for Blazor circuit)
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddTransient<GeoServerTokenHandler>();
+
+            // Register GeoServer client
+            var geoServerBaseUrl = geoserverApiSection.GetValue<string>("BaseUrl") 
+                ?? throw new InvalidOperationException("GeoServer BaseUrl is not configured");
+
+            builder.Services.AddHttpClient<IGeoServerClient, GeoServerClient>(client =>
+            {
+                client.BaseAddress = new Uri(geoServerBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(2);
+            })
+            .AddHttpMessageHandler<GeoServerTokenHandler>();
 
             return builder;
         }

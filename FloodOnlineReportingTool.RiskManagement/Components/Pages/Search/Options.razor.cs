@@ -1,6 +1,10 @@
+using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -11,6 +15,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class Options(
     ILogger<Options> logger,
+    ICommonRepository commonRepository,
+    IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
     ProtectedSessionStorage protectedSessionStorage
 ) : IPageOrder, IAsyncDisposable
@@ -28,6 +34,13 @@ public partial class Options(
     private EditContext searchContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
+
+    private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
+    private string _parishSearchTerm = string.Empty;
+    private bool _isSearchingParishes = false;
+    private IReadOnlyList<string> _parishResults = Array.Empty<string>();
+    private CancellationTokenSource? _searchCts;
+    private System.Timers.Timer? _searchDebounceTimer;
 
     protected override void OnInitialized()
     {
@@ -53,6 +66,7 @@ public partial class Options(
             Model.BufferText = options.BufferText;
             Model.Buffer = options.Buffer;
 
+            _floodSourceOptions = await CreateFloodSourceOptions(Model.FloodProblemIds);
             _isLoading = false;
             StateHasChanged();
         }
@@ -62,6 +76,10 @@ public partial class Options(
     {
         try
         {
+            _searchDebounceTimer?.Dispose();
+            _searchCts?.Cancel();
+            _searchCts?.Dispose();
+
             await _cts.CancelAsync();
             _cts.Dispose();
         }
@@ -117,5 +135,92 @@ public partial class Options(
 
         logger.LogWarning("Search options were not found in the protected storage.");
         return new SearchOptionsViewModel();
+    }
+
+    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions(IList<Guid> selectedValues)
+    {
+        const string idPrefix = "flood-source";
+        var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
+        return [.. floodProblems.Select((o, idx) => CreateOption(o, idPrefix, selectedValues))];
+    }
+
+    private static GdsOptionItem<Guid> CreateOption(FloodProblem floodProblem, string idPrefix, IList<Guid> selectedValues)
+    {
+        var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
+        var label = floodProblem.TypeName.AsSpan();
+        var selected = selectedValues.Contains(floodProblem.Id);
+
+        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
+    }
+
+    private void OnParishSearchChanged(string value)
+    {
+        _parishSearchTerm = value;
+        
+        // Cancel any pending search
+        _searchDebounceTimer?.Stop();
+        _searchCts?.Cancel();
+        
+        // Clear results if search term is too short
+        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+        {
+            _parishResults = Array.Empty<string>();
+            StateHasChanged();
+            return;
+        }
+        
+        // Debounce: wait 400ms after user stops typing
+        _searchDebounceTimer = new System.Timers.Timer(400);
+        _searchDebounceTimer.Elapsed += async (s, e) =>
+        {
+            await InvokeAsync(async () =>
+            {
+                await SearchParishesAsync(value);
+            });
+        };
+        _searchDebounceTimer.AutoReset = false;
+        _searchDebounceTimer.Start();
+    }
+
+    private async Task SearchParishesAsync(string searchTerm)
+    {
+        _searchCts?.Cancel();
+        _searchCts = new CancellationTokenSource();
+        
+        try
+        {
+            _isSearchingParishes = true;
+            StateHasChanged();
+            
+            _parishResults = await geoServerClient.SearchParishNameAsync(searchTerm, _searchCts.Token);
+            
+            logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}", 
+                _parishResults.Count, searchTerm);
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogDebug("Parish search cancelled for term: {SearchTerm}", searchTerm);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to search parishes for term: {SearchTerm}", searchTerm);
+            _parishResults = Array.Empty<string>();
+        }
+        finally
+        {
+            _isSearchingParishes = false;
+            StateHasChanged();
+        }
+    }
+
+    private void OnParishSelected(ChangeEventArgs e)
+    {
+        var selectedParish = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(selectedParish))
+        {
+            logger.LogInformation("User selected parish: {Parish}", selectedParish);
+            // Store selection in your model
+            // Model.SelectedParish = selectedParish;
+        }
     }
 }

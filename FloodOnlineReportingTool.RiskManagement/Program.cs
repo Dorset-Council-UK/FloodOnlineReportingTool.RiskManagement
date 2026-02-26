@@ -5,6 +5,9 @@ using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add HttpContextAccessor for Blazor Server
+builder.Services.AddHttpContextAccessor();
+
 // Settings
 builder.AddFORTAzureKeyVault();
 var (riskManagementOptions, proxyOptions, messagingOptions) = builder.AddRiskManagementOptions();

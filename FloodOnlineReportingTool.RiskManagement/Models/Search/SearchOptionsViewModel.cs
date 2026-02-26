@@ -16,6 +16,8 @@ public class SearchOptionsViewModel
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
     public GdsDate ToDate { get; set; } = new();
 
+    public IList<Guid> FloodProblemIds { get; set; } = [];
+
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? ByPostcode { get; set; }
 
@@ -41,7 +43,6 @@ public class SearchOptionsViewModel
     // Do we need a geometry property or is Well Known Text enough?
 
     // Other possible search criteria:
-    // - By cause of flooding - select many
     // - By responsible organisation...or is this dealt with by using users properties?
     // - Internal / External flooding
 }
