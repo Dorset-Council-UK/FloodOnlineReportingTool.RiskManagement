@@ -17,7 +17,7 @@ public record LkReportStatus
         Description = description;
     }
 
-    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid Id { get; init; }
     public string? Text { get; init; } // Was TypeName
     public string? Description { get; init; } // Was TypeDescription
     public int Order { get; init; } // Was OptionOrder
