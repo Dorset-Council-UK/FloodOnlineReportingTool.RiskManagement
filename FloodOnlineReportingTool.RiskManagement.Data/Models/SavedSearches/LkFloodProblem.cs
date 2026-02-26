@@ -14,7 +14,7 @@ public record LkFloodProblem
         OptionOrder = optionOrder;
     }
 
-    public Guid Id { get; init; } = Guid.CreateVersion7();
+    public Guid Id { get; init; }
     public string? Category { get; init; }
     public string? TypeName { get; init; }
     public string? TypeDescription { get; init; }
