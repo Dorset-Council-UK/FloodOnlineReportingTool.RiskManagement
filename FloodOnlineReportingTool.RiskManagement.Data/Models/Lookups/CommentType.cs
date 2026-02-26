@@ -1,15 +1,15 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 
-public record LkCommentType
+public record CommentType
 {
-    public LkCommentType(int id, string text, int order)
+    public CommentType(int id, string text, int order)
     {
         Id = id;
         Text = text;
         Order = order;
     }
 
-    public LkCommentType(int id, string text, int order, string description)
+    public CommentType(int id, string text, int order, string description)
     {
         Id = id;
         Text = text;

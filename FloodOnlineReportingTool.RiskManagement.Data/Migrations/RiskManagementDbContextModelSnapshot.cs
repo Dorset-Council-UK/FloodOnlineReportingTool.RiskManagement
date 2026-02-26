@@ -147,7 +147,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.ToTable("FloodEventComments", "fortriskmanagement");
                 });
 
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.LkCommentType", b =>
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.CommentType", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("integer");
@@ -163,7 +163,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LkCommentTypes", "fortriskmanagement", t =>
+                    b.ToTable("Lk_CommentTypes", "fortriskmanagement", t =>
                         {
                             t.HasComment("All possible comment types and their user friendly descriptions");
                         });
@@ -186,7 +186,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         new
                         {
                             Id = 2,
-                            Description = "A comment describing a problems caused by the flood",
+                            Description = "A comment describing problems caused by the flood",
                             Order = 3,
                             Text = "Problem Comment"
                         },
@@ -241,7 +241,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.LkEventStatus", b =>
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.EventStatus", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -257,7 +257,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LkEventStatuses", "fortriskmanagement", t =>
+                    b.ToTable("Lk_EventStatuses", "fortriskmanagement", t =>
                         {
                             t.HasComment("All possible event statuses and their user friendly descriptions");
                         });
@@ -293,121 +293,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.LkFloodStatus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Text")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LkFloodStatuses", "fortriskmanagement", t =>
-                        {
-                            t.HasComment("All possible flood statuses and their user friendly descriptions");
-                        });
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("018feb7d-2b80-7da6-bd00-dd2c83fa2a2e"),
-                            Order = 1,
-                            Text = "Flood Expected: No Flood"
-                        },
-                        new
-                        {
-                            Id = new Guid("018feb7e-15e0-7a9d-ac21-bc1cc63e081c"),
-                            Order = 2,
-                            Text = "Flood Expected: Help Given"
-                        },
-                        new
-                        {
-                            Id = new Guid("018feb7f-0040-7d3f-ae3c-796c50850cbe"),
-                            Order = 3,
-                            Text = "Properties Affected"
-                        },
-                        new
-                        {
-                            Id = new Guid("018feb7f-eaa0-7507-af59-497aac53467d"),
-                            Order = 4,
-                            Text = "Properties Affected: Help Given"
-                        },
-                        new
-                        {
-                            Id = new Guid("018feb80-d500-7aa7-b155-b6c3218ff2cc"),
-                            Order = 5,
-                            Text = "Buildings Flooded"
-                        },
-                        new
-                        {
-                            Id = new Guid("018feb81-bf60-788d-86c9-ec5f1cc1871c"),
-                            Order = 6,
-                            Text = "Buildings Flooded: Help Given"
-                        },
-                        new
-                        {
-                            Id = new Guid("018feb82-a9c0-7d33-bbf1-64422e309748"),
-                            Order = 7,
-                            Text = "No Flooding Occurred"
-                        });
-                });
-
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.LkInvestigationStatus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Text")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("LkInvestigationStatuses", "fortriskmanagement", t =>
-                        {
-                            t.HasComment("All possible investigation statuses and their user friendly descriptions");
-                        });
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("018febeb-0880-7532-b583-3d9502dffd7b"),
-                            Order = 1,
-                            Text = "No Section 19 report"
-                        },
-                        new
-                        {
-                            Id = new Guid("018febeb-f2e0-7d1d-89a3-b76b1fe98343"),
-                            Order = 2,
-                            Text = "Section 19 report required"
-                        },
-                        new
-                        {
-                            Id = new Guid("018febec-dd40-7863-b45c-e7b9546f588c"),
-                            Order = 3,
-                            Text = "Section 19 report in progress"
-                        },
-                        new
-                        {
-                            Id = new Guid("018febed-c7a0-7994-8c44-4623142fdfb1"),
-                            Order = 4,
-                            Text = "Included in Section 19 report"
-                        });
-                });
-
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.LkFloodProblem", b =>
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.FloodProblem", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -426,7 +312,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LkFloodProblems", "fortriskmanagement", t =>
+                    b.ToTable("Lk_FloodProblems", "fortriskmanagement", t =>
                         {
                             t.HasComment("All possible flood problems and their user friendly descriptions");
                         });
@@ -586,7 +472,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.LkReportStatus", b =>
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.FloodStatus", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -602,7 +488,125 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("LkReportStatuses", "fortriskmanagement", t =>
+                    b.ToTable("Lk_FloodStatuses", "fortriskmanagement", t =>
+                        {
+                            t.HasComment("All possible flood statuses and their user friendly descriptions");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("018feb7d-2b80-7da6-bd00-dd2c83fa2a2e"),
+                            Order = 1,
+                            Text = "Flood Expected: No Flood"
+                        },
+                        new
+                        {
+                            Id = new Guid("018feb7e-15e0-7a9d-ac21-bc1cc63e081c"),
+                            Order = 2,
+                            Text = "Flood Expected: Help Given"
+                        },
+                        new
+                        {
+                            Id = new Guid("018feb7f-0040-7d3f-ae3c-796c50850cbe"),
+                            Order = 3,
+                            Text = "Properties Affected"
+                        },
+                        new
+                        {
+                            Id = new Guid("018feb7f-eaa0-7507-af59-497aac53467d"),
+                            Order = 4,
+                            Text = "Properties Affected: Help Given"
+                        },
+                        new
+                        {
+                            Id = new Guid("018feb80-d500-7aa7-b155-b6c3218ff2cc"),
+                            Order = 5,
+                            Text = "Buildings Flooded"
+                        },
+                        new
+                        {
+                            Id = new Guid("018feb81-bf60-788d-86c9-ec5f1cc1871c"),
+                            Order = 6,
+                            Text = "Buildings Flooded: Help Given"
+                        },
+                        new
+                        {
+                            Id = new Guid("018feb82-a9c0-7d33-bbf1-64422e309748"),
+                            Order = 7,
+                            Text = "No Flooding Occurred"
+                        });
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.InvestigationStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lk_InvestigationStatuses", "fortriskmanagement", t =>
+                        {
+                            t.HasComment("All possible investigation statuses and their user friendly descriptions");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("018febeb-0880-7532-b583-3d9502dffd7b"),
+                            Description = "No Section 19 report",
+                            Order = 1,
+                            Text = "No Investigation"
+                        },
+                        new
+                        {
+                            Id = new Guid("018febeb-f2e0-7d1d-89a3-b76b1fe98343"),
+                            Description = "Section 19 report required",
+                            Order = 2,
+                            Text = "Investigation Required"
+                        },
+                        new
+                        {
+                            Id = new Guid("018febec-dd40-7863-b45c-e7b9546f588c"),
+                            Description = "Section 19 report in progress",
+                            Order = 3,
+                            Text = "In Progress"
+                        },
+                        new
+                        {
+                            Id = new Guid("018febed-c7a0-7994-8c44-4623142fdfb1"),
+                            Description = "Included in Section 19 report",
+                            Order = 4,
+                            Text = "Report Available"
+                        });
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.ReportStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lk_ReportStatuses", "fortriskmanagement", t =>
                         {
                             t.HasComment("All possible report statuses and their user friendly descriptions");
                         });

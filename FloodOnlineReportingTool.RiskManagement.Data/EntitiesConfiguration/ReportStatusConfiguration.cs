@@ -1,14 +1,17 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+﻿using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Reflection.Emit;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
 
-internal class LkReportStatusConfiguration : IEntityTypeConfiguration<LkReportStatus>
+internal class ReportStatusConfiguration : IEntityTypeConfiguration<ReportStatus>
 {
-    public void Configure(EntityTypeBuilder<LkReportStatus> builder)
+    public void Configure(EntityTypeBuilder<ReportStatus> builder)
     {
+        builder.ToTable("Lk_ReportStatuses");
         builder
             .Property(o => o.Id)
             .ValueGeneratedNever();

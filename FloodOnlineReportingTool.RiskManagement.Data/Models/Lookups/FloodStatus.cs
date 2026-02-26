@@ -1,15 +1,15 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 
-public record LkEventStatus
+public record FloodStatus
 {
-    public LkEventStatus(Guid id, string text, int order)
+    public FloodStatus(Guid id, string text, int order)
     {
         Id = id;
         Text = text;
         Order = order;
     }
 
-    public LkEventStatus(Guid id, string text, int order, string description)
+    public FloodStatus(Guid id, string text, int order, string description)
     {
         Id = id;
         Text = text;

@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +12,12 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<FloodEvent> FloodEvents { get; set; }
     public DbSet<FloodEventComment> FloodEventComments { get; set; }
 
-    public DbSet<LkCommentType> LkCommentTypes { get; set; }
-    public DbSet<LkEventStatus> LkEventStatuses { get; set; }
-    public DbSet<LkFloodStatus> LkFloodStatuses { get; set; }
-    public DbSet<LkInvestigationStatus> LkInvestigationStatuses { get; set; }
-    public DbSet<LkFloodProblem> LkFloodProblems { get; set; }
-    public DbSet<LkReportStatus> LkReportStatuses { get; set; }
+    public DbSet<CommentType> CommentTypes { get; set; }
+    public DbSet<EventStatus> EventStatuses { get; set; }
+    public DbSet<FloodStatus> FloodStatuses { get; set; }
+    public DbSet<InvestigationStatus> InvestigationStatuses { get; set; }
+    public DbSet<FloodProblem> FloodProblems { get; set; }
+    public DbSet<ReportStatus> ReportStatuses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
