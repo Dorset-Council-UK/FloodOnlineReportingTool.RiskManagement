@@ -21,6 +21,7 @@ internal static class DatabaseExtensions
                 {
                     o.EnableRetryOnFailure(3);
                     o.MigrationsHistoryTable("__EFMigrationsHistory", SchemaNames.RiskManagement);
+                    o.UseNetTopologySuite();
                 });
                 options.EnableSensitiveDataLogging(logSensitiveData);
             });
@@ -49,7 +50,7 @@ internal static class DatabaseExtensions
             {
                 throw new ConfigurationMissingException("Missing configuration setting: The connection string for the database needs a schema set in the Search Path parameter.");
             }
-            if (!connectionStringBuilder.SearchPath.Equals(SchemaNames.RiskManagement, StringComparison.Ordinal))
+            if (!connectionStringBuilder.SearchPath.Contains(SchemaNames.RiskManagement, StringComparison.Ordinal))
             {
                 throw new ConfigurationMissingException($"Invalid configuration setting: The connection string for the database has an invalid schema set in the Search Path parameter. Expected '{SchemaNames.RiskManagement}', but found '{connectionStringBuilder.SearchPath}'.");
             }
