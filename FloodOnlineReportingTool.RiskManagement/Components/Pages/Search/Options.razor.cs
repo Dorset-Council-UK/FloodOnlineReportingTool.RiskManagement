@@ -1,4 +1,3 @@
-using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models;
@@ -38,7 +37,7 @@ public partial class Options(
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
     private string _parishSearchTerm = string.Empty;
     private bool _isSearchingParishes = false;
-    private IReadOnlyList<string> _parishResults = Array.Empty<string>();
+    private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
     private System.Timers.Timer? _searchDebounceTimer;
 
@@ -76,12 +75,16 @@ public partial class Options(
     {
         try
         {
-            _searchDebounceTimer?.Dispose();
-            _searchCts?.Cancel();
-            _searchCts?.Dispose();
-
             await _cts.CancelAsync();
             _cts.Dispose();
+
+            _searchDebounceTimer?.Dispose();
+            
+            if (_searchCts != null)
+            {
+                await _searchCts.CancelAsync();
+                _searchCts.Dispose();
+            }
         }
         catch (OperationCanceledException)
         {
@@ -153,18 +156,16 @@ public partial class Options(
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
 
-    private void OnParishSearchChanged(string value)
-    {
-        _parishSearchTerm = value;
-        
+    private async Task OnParishSearchChanged()
+    {      
         // Cancel any pending search
         _searchDebounceTimer?.Stop();
         _searchCts?.Cancel();
         
         // Clear results if search term is too short
-        if (string.IsNullOrWhiteSpace(value) || value.Length < 3)
+        if (string.IsNullOrWhiteSpace(_parishSearchTerm) || _parishSearchTerm.Length < 3)
         {
-            _parishResults = Array.Empty<string>();
+            _parishResults = new List<GdsOptionItem<string>>();
             StateHasChanged();
             return;
         }
@@ -175,7 +176,7 @@ public partial class Options(
         {
             await InvokeAsync(async () =>
             {
-                await SearchParishesAsync(value);
+                await SearchParishesAsync(_parishSearchTerm);
             });
         };
         _searchDebounceTimer.AutoReset = false;
@@ -204,7 +205,7 @@ public partial class Options(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to search parishes for term: {SearchTerm}", searchTerm);
-            _parishResults = Array.Empty<string>();
+            _parishResults = new List<GdsOptionItem<string>>();
         }
         finally
         {

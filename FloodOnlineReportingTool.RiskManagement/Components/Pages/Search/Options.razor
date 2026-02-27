@@ -101,16 +101,35 @@
                                                 </h2>
                                                 <div class="govuk-accordion__section-summary govuk-body" id="accordion-with-summary-sections-summary-2">
                                                     Filter by regions
+
+                                                    <GdsFormGroup For="() => _parishSearchTerm">
+                                                        <GdsLabel Text="Search for parish" />
+                                                        <GdsErrorMessage />
+                                                        <GdsInputTextSearch @bind-Value="_parishSearchTerm" OnClick="@OnParishSearchChanged" />
+                                                    </GdsFormGroup>
+
+                                                    @if (_isSearchingParishes)
+                                                    {
+                                                        <div class="govuk-hint">
+                                                            <span class="govuk-!-font-size-16">Searching...</span>
+                                                        </div>
+                                                    }
+
+                                                    @if (_parishResults.Any())
+                                                    {
+                                                        <div class="govuk-form-group">
+                                                            <label class="govuk-label">Select a parish</label>
+
+                                                            <GdsSelect Options="@_parishResults" OnChange="@OnParishSelected" />
+                                                        </div>
+                                                    }
                                                 </div>
                                             </div>
                                             <div id="accordion-with-summary-sections-content-2" class="govuk-accordion__section-content">
                                                 <GdsFormGroup For="() => _parishSearchTerm">
                                                     <GdsLabel Text="Search for parish" />
                                                     <GdsErrorMessage />
-                                                    <GdsInputText Value="@_parishSearchTerm" 
-                                                                  ValueChanged="OnParishSearchChanged" 
-                                                                  ValueExpression="() => _parishSearchTerm"
-                                                                  class="govuk-input govuk-input--width-50" />
+                                                    <GdsInputTextSearch @bind-Value="_parishSearchTerm" OnClick="@OnParishSearchChanged" /> 
                                                 </GdsFormGroup>
 
                                                 @if (_isSearchingParishes)
@@ -124,6 +143,7 @@
                                                 {
                                                     <div class="govuk-form-group">
                                                         <label class="govuk-label">Select a parish</label>
+                                                        
                                                         <select class="govuk-select" @onchange="OnParishSelected">
                                                             <option value="">-- Select --</option>
                                                             @foreach (var parish in _parishResults)

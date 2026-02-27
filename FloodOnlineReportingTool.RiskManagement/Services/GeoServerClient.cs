@@ -1,3 +1,8 @@
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using GdsBlazorComponents;
+using Microsoft.Azure.Amqp.Framing;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Web;
 
@@ -7,7 +12,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
 {
     private const string WfsPath = "/geoserver/boundaryline/ows";
     
-    public async Task<IReadOnlyList<string>> SearchParishNameAsync(string searchTerm, CancellationToken ct = default)
+    public async Task<IReadOnlyCollection<GdsOptionItem<string>>> SearchParishNameAsync(string searchTerm, CancellationToken ct = default)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
@@ -39,7 +44,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
             
             if (response?.Features == null)
             {
-                return Array.Empty<string>();
+                return new List<GdsOptionItem<string>>();
             }
             
             // Extract names, remove duplicates, and sort
@@ -52,19 +57,26 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
             
             logger.LogInformation("GeoServer query completed in {ElapsedMs}ms, returned {Count} results", 
                 stopwatch.ElapsedMilliseconds, results.Count);
-                
-            return results;
+
+            // Create option items with "-- Select --" as the first option
+            var optionItems = new List<GdsOptionItem<string>>
+            {
+                new GdsOptionItem<string>("0".AsSpan(), "-- Select --", string.Empty, false)
+            };
+            optionItems.AddRange(results.Select((o, idx) => new GdsOptionItem<string>((idx + 1).ToString().AsSpan(), o, o, false)));
+
+            return optionItems;
         }
         catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
         {
             logger.LogWarning("GeoServer request timed out after {ElapsedMs}ms for search term: {SearchTerm}", 
                 stopwatch.ElapsedMilliseconds, searchTerm);
-            return Array.Empty<string>();
+            return new List<GdsOptionItem<string>>();
         }
         catch (HttpRequestException ex)
         {
             logger.LogError(ex, "Failed to query GeoServer for parish names with search term: {SearchTerm}", searchTerm);
-            return Array.Empty<string>();
+            return new List<GdsOptionItem<string>>();
         }
     }
     
