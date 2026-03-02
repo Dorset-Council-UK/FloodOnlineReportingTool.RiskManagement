@@ -65,10 +65,16 @@ public partial class Options(
             Model.BufferText = options.BufferText;
             Model.Buffer = options.Buffer;
 
-            _floodSourceOptions = await CreateFloodSourceOptions(Model.FloodProblemIds);
             _isLoading = false;
             StateHasChanged();
         }
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+        _floodSourceOptions = await CreateFloodSourceOptions(Model.FloodProblemIds);
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()

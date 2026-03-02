@@ -58,10 +58,10 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
             logger.LogInformation("GeoServer query completed in {ElapsedMs}ms, returned {Count} results", 
                 stopwatch.ElapsedMilliseconds, results.Count);
 
-            // Create option items with "-- Select --" as the first option
+            // Create option items with "Select an option" as the first option
             var optionItems = new List<GdsOptionItem<string>>
             {
-                new GdsOptionItem<string>("0".AsSpan(), "-- Select --", string.Empty, false)
+                new GdsOptionItem<string>("0".AsSpan(), "Select an option", string.Empty, false)
             };
             optionItems.AddRange(results.Select((o, idx) => new GdsOptionItem<string>((idx + 1).ToString().AsSpan(), o, o, false)));
 
