@@ -105,7 +105,10 @@
                                                     <GdsFormGroup For="() => _parishSearchTerm">
                                                         <GdsLabel Text="Search for parish" />
                                                         <GdsErrorMessage />
-                                                        <GdsInputTextSearch @bind-Value="_parishSearchTerm" OnClick="@OnParishSearchChanged" />
+                                                        <div class="govuk-input__wrapper">
+                                                            <GdsInputText @bind-Value="_parishSearchTerm" class="govuk-input govuk-input--width-10" />
+                                                            <GdsButton class="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnParishSearchChanged" />
+                                                        </div>
                                                     </GdsFormGroup>
 
                                                     @if (_isSearchingParishes)
@@ -129,7 +132,7 @@
                                                 <GdsFormGroup For="() => _parishSearchTerm">
                                                     <GdsLabel Text="Search for parish" />
                                                     <GdsErrorMessage />
-                                                    <GdsInputTextSearch @bind-Value="_parishSearchTerm" OnClick="@OnParishSearchChanged" /> 
+                                                    
                                                 </GdsFormGroup>
 
                                                 @if (_isSearchingParishes)
