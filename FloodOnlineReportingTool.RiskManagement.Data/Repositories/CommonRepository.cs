@@ -16,4 +16,12 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
             .OrderBy(o => o.OptionOrder)
             .ToListAsync(ct);
     }
+
+    public async Task<DownstreamApiLayer?> GetDownstreamApiLayers(string apiSourceRecord, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        return await context.DownstreamApiLayers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == apiSourceRecord, ct);
+    }
 }

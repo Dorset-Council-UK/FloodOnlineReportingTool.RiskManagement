@@ -8,37 +8,60 @@ using System.Web;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
-public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> logger) : IGeoServerClient
-{
-    private const string WfsPath = "/geoserver/boundaryline/ows";
-    
+public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> logger, ICommonRepository commonRepository) : IGeoServerClient
+{   
     public async Task<IReadOnlyCollection<GdsOptionItem<string>>> SearchParishNameAsync(string searchTerm, CancellationToken ct = default)
     {
+        // Get the Layer details from the database and fail if missing
+        DownstreamApiLayer? layerConfig = await commonRepository.GetDownstreamApiLayers("parish", ct);
+
+        if (layerConfig == null)
+        {
+            logger.LogError("No GeoServer API layer configuration found in the database.");
+            return new List<GdsOptionItem<string>>();
+        }
+
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         try
         {
             // Build CQL filter for case-insensitive LIKE query that matches anywhere in the string
-            var cqlFilter = string.IsNullOrWhiteSpace(searchTerm) 
-                ? "name IS NOT NULL" 
-                : $"strToLowerCase(name) LIKE '%{EscapeCql(searchTerm.ToLowerInvariant())}%'" ;
-            
-            var queryParams = new Dictionary<string, string>
+            var cqlFilter = string.IsNullOrWhiteSpace(searchTerm)
+                ? "name IS NOT NULL"
+                : $"strToLowerCase(name) LIKE '%{EscapeCql(searchTerm.ToLowerInvariant())}%'";
+
+            string requestUri = string.Empty;
+            if (layerConfig.RequestMethod == Data.Models.Enums.RequestMethods.WFS)
             {
-                ["service"] = "WFS",
-                ["version"] = "1.0.0",
-                ["request"] = "GetFeature",
-                ["typeName"] = "boundaryline:parish",
-                ["outputFormat"] = "application/json",
-                ["maxFeatures"] = "100",
-                ["CQL_FILTER"] = cqlFilter,
-                ["propertyName"] = "name" // Only return the name property for efficiency
-            };
-            
-            var queryString = string.Join("&", queryParams.Select(kvp => 
-                $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
-            
-            var requestUri = $"{WfsPath}?{queryString}";
-            
+                if( layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0)
+                {
+                    string WfsPath = $"{layerConfig.ApiPath}/ows";
+
+                    // Only return the name property for efficiency
+                    var queryParams = new Dictionary<string, string>
+                    {
+                        ["service"] = "WFS",
+                        ["version"] = "1.1.0",
+                        ["request"] = "GetFeature",
+                        ["typeName"] = layerConfig.LayerName,
+                        ["outputFormat"] = "application/json",
+                        ["maxFeatures"] = "100",
+                        ["CQL_FILTER"] = cqlFilter,
+                        ["propertyName"] = layerConfig.FeatureIdentifier 
+                    };
+
+                    var queryString = string.Join("&", queryParams.Select(kvp =>
+                        $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
+
+                    requestUri = $"{WfsPath}?{queryString}";
+                }     
+            } 
+
+            if (requestUri == string.Empty)
+            {
+                logger.LogError("No GeoServer API layer configuration found in the database.");
+                return new List<GdsOptionItem<string>>();
+            }
+
             // HttpClient will automatically include the Bearer token via GeoServerTokenHandler
             var response = await httpClient.GetFromJsonAsync<GeoJsonFeatureCollection>(requestUri, ct);
             
@@ -52,7 +75,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
                 .Select(f => f.Properties?.Name)
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => layerConfig.OrderBy, StringComparer.OrdinalIgnoreCase)
                 .ToList()!;
             
             logger.LogInformation("GeoServer query completed in {ElapsedMs}ms, returned {Count} results", 

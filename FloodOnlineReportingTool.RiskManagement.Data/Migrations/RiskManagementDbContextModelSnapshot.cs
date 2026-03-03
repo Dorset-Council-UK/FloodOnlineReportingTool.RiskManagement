@@ -241,6 +241,74 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.DownstreamApiLayer", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApiPath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApiSource")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FeatureIdentifier")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LayerName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("RequestMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RequestVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lk_DownstreamApiLayers", "fortriskmanagement", t =>
+                        {
+                            t.HasComment("All possible downstream API layers and their user friendly descriptions");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "parish",
+                            ApiPath = "/geoserver/ows",
+                            ApiSource = "GeoServer",
+                            FeatureIdentifier = "name",
+                            LayerName = "",
+                            OrderBy = "name",
+                            RequestMethod = 0,
+                            RequestVersion = 0,
+                            SortOrder = 0
+                        },
+                        new
+                        {
+                            Id = "ward",
+                            ApiPath = "/geoserver/ows",
+                            ApiSource = "GeoServer",
+                            FeatureIdentifier = "name",
+                            LayerName = "",
+                            OrderBy = "name",
+                            RequestMethod = 0,
+                            RequestVersion = 0,
+                            SortOrder = 0
+                        });
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.EventStatus", b =>
                 {
                     b.Property<Guid>("Id")

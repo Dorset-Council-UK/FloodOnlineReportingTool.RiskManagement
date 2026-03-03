@@ -69,9 +69,6 @@
                 <div class="govuk-grid-row">
                     <div class="govuk-form-group">
                         <fieldset class="govuk-fieldset">
-                            <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                                <h2 class="govuk-fieldset__heading">Filters</h2>
-                            </legend>
                             <div class="govuk-grid-row">
                                 <div class="govuk-grid-column-one-half">
                                     <div class="govuk-accordion" data-module="govuk-accordion" id="accordion-with-summary-sections">
@@ -89,7 +86,7 @@
                                             <div id="accordion-with-summary-sections-content-1" class="govuk-accordion__section-content">
                                                 <GdsHint>Select all that apply</GdsHint>
                                                 <GdsErrorMessage />
-                                                <GdsCheckboxes Options="_floodSourceOptions" />
+                                                <GdsCheckboxes Smaller="true" Options="_floodSourceOptions" />
                                             </div>
                                         </div>
                                         <div class="govuk-accordion__section">
@@ -102,37 +99,16 @@
                                                 <div class="govuk-accordion__section-summary govuk-body" id="accordion-with-summary-sections-summary-2">
                                                     Filter by regions
 
-                                                    <GdsFormGroup For="() => _parishSearchTerm">
-                                                        <GdsLabel Text="Search for parish" />
-                                                        <GdsErrorMessage />
-                                                        <div class="govuk-input__wrapper">
-                                                            <GdsInputText @bind-Value="_parishSearchTerm" class="govuk-input govuk-input--width-10" />
-                                                            <GdsButton class="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnParishSearchChanged" />
-                                                        </div>
-                                                    </GdsFormGroup>
-
-                                                    @if (_isSearchingParishes)
-                                                    {
-                                                        <div class="govuk-hint">
-                                                            <span class="govuk-!-font-size-16">Searching...</span>
-                                                        </div>
-                                                    }
-
-                                                    @if (_parishResults.Any())
-                                                    {
-                                                        <div class="govuk-form-group">
-                                                            <label class="govuk-label">Select a parish</label>
-
-                                                            <GdsSelect Options="@_parishResults" OnChange="@OnParishSelected" />
-                                                        </div>
-                                                    }
                                                 </div>
                                             </div>
                                             <div id="accordion-with-summary-sections-content-2" class="govuk-accordion__section-content">
                                                 <GdsFormGroup For="() => _parishSearchTerm">
-                                                    <GdsLabel Text="Search for parish" />
+                                                    <GdsLabel Text="Search for parish or ward" />
                                                     <GdsErrorMessage />
-                                                    
+                                                    <div class="govuk-input__wrapper">
+                                                        <GdsInputText @bind-Value="_parishSearchTerm" class="govuk-input govuk-input--width-10" />
+                                                        <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnParishSearchChanged" />
+                                                    </div>
                                                 </GdsFormGroup>
 
                                                 @if (_isSearchingParishes)
@@ -146,14 +122,8 @@
                                                 {
                                                     <div class="govuk-form-group">
                                                         <label class="govuk-label">Select a parish</label>
-                                                        
-                                                        <select class="govuk-select" @onchange="OnParishSelected">
-                                                            <option value="">-- Select --</option>
-                                                            @foreach (var parish in _parishResults)
-                                                            {
-                                                                <option value="@parish">@parish</option>
-                                                            }
-                                                        </select>
+
+                                                        <GdsSelect Options="@_parishResults" OnChange="@OnParishSelected" />
                                                     </div>
                                                 }
                                             </div>
