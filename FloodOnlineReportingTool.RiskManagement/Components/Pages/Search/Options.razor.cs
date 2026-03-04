@@ -200,8 +200,8 @@ public partial class Options(
             _isSearching = true;
             StateHasChanged();
             
-            _parishResults = await geoServerClient.SearchParishNameAsync(searchTerm, _searchCts.Token);
-            _wardResults = await geoServerClient.SearchWardNameAsync(searchTerm, _searchCts.Token);
+            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, _searchCts.Token);
+            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, _searchCts.Token);
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
                 _parishResults.Count, searchTerm);
@@ -224,25 +224,31 @@ public partial class Options(
         }
     }
 
-    private void OnParishSelected(ChangeEventArgs e)
+    private async void OnParishSelected(ChangeEventArgs e)
     {
         var selectedParish = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selectedParish))
         {
             logger.LogInformation("User selected parish: {Parish}", selectedParish);
+
             // Store selection in your model
-            // Model.SelectedParish = selectedParish;
+            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, _cts.Token);
+
+            Model.ByAreaWkt = geometry;
         }
     }
 
-    private void OnWardSelected(ChangeEventArgs e)
+    private async void OnWardSelected(ChangeEventArgs e)
     {
         var selectedWard = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selectedWard))
         {
             logger.LogInformation("User selected ward: {Ward}", selectedWard);
+
             // Store selection in your model
-            // Model.SelectedWard = selectedWard;
+            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, _cts.Token);
+
+            Model.ByAreaWkt = geometry;
         }
     }
 }
