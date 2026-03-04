@@ -2,6 +2,7 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using GdsBlazorComponents;
 using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
@@ -72,7 +73,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
         }
     }
 
-    public async Task<string?> GetGeometryFromSourceBySearch(string apiSource, string searchTerm, CancellationToken ct)     
+    public async Task<Geometry?> GetGeometryFromSourceBySearch(string apiSource, string searchTerm, CancellationToken ct)     
     {
         var layerConfig = await commonRepository.GetDownstreamApiLayers(apiSource, ct);
         var stopwatch = Stopwatch.StartNew();
@@ -108,14 +109,10 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
                 logger.LogInformation("GeoServer geometry found for {ApiSource}, type: {GeomType}",
                     apiSource, firstFeature.Geometry.GeometryType);
 
-                // Return as WKT or GeoJSON
-                var geometryWkt = firstFeature.Geometry.ToText(); // WKT format
-                // OR: var geometryGeoJson = _geoJsonSerializer.Serialize(firstFeature.Geometry); // GeoJSON format
-
                 logger.LogInformation("GeoServer geometry query completed in {ElapsedMs}ms",
                     stopwatch.ElapsedMilliseconds);
 
-                return geometryWkt;
+                return firstFeature.Geometry;
             }
             else
             {

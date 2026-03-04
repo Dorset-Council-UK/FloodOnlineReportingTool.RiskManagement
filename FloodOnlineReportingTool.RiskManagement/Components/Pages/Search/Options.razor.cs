@@ -8,7 +8,11 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using Microsoft.Azure.Amqp.Framing;
+using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Utilities;
+using System.Text;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
@@ -17,7 +21,8 @@ public partial class Options(
     ICommonRepository commonRepository,
     IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage
+    ProtectedSessionStorage protectedSessionStorage,
+    IConfiguration configuration
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
@@ -41,6 +46,8 @@ public partial class Options(
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
     private System.Timers.Timer? _searchDebounceTimer;
+    private string _searchArea = "365955,77709,375836,92362";
+    private string _mapURL = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -65,6 +72,7 @@ public partial class Options(
             Model.NorthingText = options.NorthingText;
             Model.BufferText = options.BufferText;
             Model.Buffer = options.Buffer;
+            GenerateMapURL();
 
             _isLoading = false;
             StateHasChanged();
@@ -234,7 +242,22 @@ public partial class Options(
             // Store selection in your model
             var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, _cts.Token);
 
-            Model.ByAreaWkt = geometry;
+            if (Model.ByAreaGeom != null)
+            {
+                Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
+            } else
+            {
+                Model.ByAreaGeom = geometry;
+            }
+            if (Model.ByAreaGeom != null)
+            {
+                Envelope envelope = Model.ByAreaGeom.EnvelopeInternal;
+                double bufferDistance = 100.0;
+                envelope.ExpandBy(bufferDistance);
+                _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
+                GenerateMapURL();
+            }
+            StateHasChanged();
         }
     }
 
@@ -248,7 +271,69 @@ public partial class Options(
             // Store selection in your model
             var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, _cts.Token);
 
-            Model.ByAreaWkt = geometry;
+            if (Model.ByAreaGeom != null)
+            {
+                Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
+            }
+            else
+            {
+                Model.ByAreaGeom = geometry;
+            }
+            if (Model.ByAreaGeom != null)
+            {
+                Envelope envelope = Model.ByAreaGeom.EnvelopeInternal;
+                double bufferDistance = 100.0;
+                envelope.ExpandBy(bufferDistance);
+                _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
+                GenerateMapURL();
+            }
+            StateHasChanged();
         }
+    }
+
+    private void ResetGeom()
+    {
+        Model.ByAreaGeom = null;
+        StateHasChanged();
+    }
+
+    private string GetSvgViewBox()
+    {
+        if (Model.ByAreaGeom == null) return "0 0 500 300";
+
+        var envelope = Model.ByAreaGeom.EnvelopeInternal;
+        double bufferDistance = 100.0;
+        envelope.ExpandBy(bufferDistance);
+
+        return $"0 0 {envelope.Width:F2} {envelope.Height:F2}";
+    }
+
+    private string GenerateSvgPoints()
+    {
+        if (Model.ByAreaGeom == null) return string.Empty;
+
+        var envelope = Model.ByAreaGeom.EnvelopeInternal;
+        double bufferDistance = 100.0;
+        envelope.ExpandBy(bufferDistance);
+
+        var coordinates = Model.ByAreaGeom.Coordinates;
+        var points = new StringBuilder();
+
+        foreach (var coord in coordinates)
+        {
+            double x = coord.X - envelope.MinX;
+            double y = envelope.MaxY - coord.Y; // Flip Y
+
+            if (points.Length > 0) points.Append(' ');
+            points.Append($"{x:F2},{y:F2}");
+        }
+
+        return points.ToString();
+    }
+
+    private void GenerateMapURL()
+    {
+        string MiniMapBaseUrl = configuration["RiskManagement:MiniMapBaseUrl"] ?? "";
+        _mapURL = $"{MiniMapBaseUrl}&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&srs=epsg%3a27700&format=image%2fjpeg&width=500&height=300&bbox={_searchArea}";
     }
 }

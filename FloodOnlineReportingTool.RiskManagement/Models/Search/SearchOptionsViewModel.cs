@@ -1,4 +1,5 @@
 ﻿using GdsBlazorComponents;
+using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
 
@@ -38,9 +39,7 @@ public class SearchOptionsViewModel
     public string? BufferText { get; set; }
     public int? Buffer { get; set; }
 
-    public string? ByAreaWkt { get; set; }
-
-    // Do we need a geometry property or is Well Known Text enough?
+    public Geometry? ByAreaGeom { get; set; }
 
     // Other possible search criteria:
     // - By responsible organisation...or is this dealt with by using users properties?

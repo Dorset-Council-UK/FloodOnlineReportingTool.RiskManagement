@@ -141,8 +141,33 @@
                                 </div>
                                 <div class="govuk-grid-column-one-half">
                                     <div class="govuk-grid-row">
-                                        Replace this with something functional
-                                        <img class="img img-fluid" src="https://gi.dorsetcouncil.gov.uk/geoserver/background_maps_open/wms?LAYERS=openzoomstack&amp;AUTHKEY=977fe821-a19b-4187-80a2-b34c0243b9d1&amp;SERVICE=WMS&amp;VERSION=1.1.1&amp;REQUEST=GetMap&amp;srs=epsg%3a27700&amp;format=image%2fjpeg&amp;width=300&amp;height=300&amp;bbox=385764,109522,385864,109622&amp;format_options=layout%3apin_os_copyright&amp;styles=ozs_group_road" alt="Map image of flood record point location" width="300" height="300">
+                                        <div style="position: relative; width: 500px; height: 300px;">
+                                            <img class="img img-fluid"
+                                                 src="@_mapURL"
+                                                 alt="Map image of flood record point location"
+                                                 width="500"
+                                                 height="300"
+                                                 style="display: block;" />
+
+                                            @if (Model.ByAreaGeom != null)
+                                            {
+                                                <svg viewBox="@GetSvgViewBox()"
+                                                     width="500"
+                                                     height="300"
+                                                     style="position: absolute; top: 0; left: 0; pointer-events: none;"
+                                                     preserveAspectRatio="none">
+                                                    <polygon points="@GenerateSvgPoints()"
+                                                             fill="orange"
+                                                             fill-opacity="0.3"
+                                                             stroke="orange"
+                                                             stroke-width="2" />
+                                                </svg>
+                                            }
+                                        </div>
+                                        <br />
+                                        @if (Model.ByAreaGeom!=null){
+                                            <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
+                                        }
                                     </div>
                                     <div class="govuk-grid-row">
                                         <GdsFormGroup For="() => Model.Buffer">
