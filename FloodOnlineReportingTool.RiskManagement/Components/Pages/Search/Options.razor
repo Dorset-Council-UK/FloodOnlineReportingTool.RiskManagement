@@ -102,16 +102,16 @@
                                                 </div>
                                             </div>
                                             <div id="accordion-with-summary-sections-content-2" class="govuk-accordion__section-content">
-                                                <GdsFormGroup For="() => _parishSearchTerm">
+                                                <GdsFormGroup For="() => _searchTerm">
                                                     <GdsLabel Text="Search for parish or ward" />
                                                     <GdsErrorMessage />
                                                     <div class="govuk-input__wrapper">
-                                                        <GdsInputText @bind-Value="_parishSearchTerm" class="govuk-input govuk-input--width-10" />
-                                                        <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnParishSearchChanged" />
+                                                        <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" />
+                                                        <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnSearchChanged" />
                                                     </div>
                                                 </GdsFormGroup>
 
-                                                @if (_isSearchingParishes)
+                                                @if (_isSearching)
                                                 {
                                                     <div class="govuk-hint">
                                                         <span class="govuk-!-font-size-16">Searching...</span>
@@ -124,6 +124,15 @@
                                                         <label class="govuk-label">Select a parish</label>
 
                                                         <GdsSelect Options="@_parishResults" OnChange="@OnParishSelected" />
+                                                    </div>
+                                                }
+
+                                                @if (_wardResults.Any())
+                                                {
+                                                    <div class="govuk-form-group">
+                                                        <label class="govuk-label">Select a ward</label>
+
+                                                        <GdsSelect Options="@_wardResults" OnChange="@OnWardSelected" />
                                                     </div>
                                                 }
                                             </div>

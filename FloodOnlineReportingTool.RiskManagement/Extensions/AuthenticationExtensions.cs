@@ -6,6 +6,7 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
+using Polly;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -66,7 +67,15 @@ internal static class AuthenticationExtensions
             builder.Services.AddTransient<GeoServerTokenHandler>();
 
             // Register GeoServer client
-            var geoServerBaseUrl = geoserverApiSection.GetValue<string>("BaseUrl") 
+            builder.AddGeoServerAuthentication(geoserverApiSection);
+
+            return builder;
+        }
+
+        internal IHostApplicationBuilder AddGeoServerAuthentication(IConfigurationSection geoserverApiSection)
+        {
+            
+            var geoServerBaseUrl = geoserverApiSection.GetValue<string>("BaseUrl")
                 ?? throw new InvalidOperationException("GeoServer BaseUrl is not configured");
 
             builder.Services.AddHttpClient<IGeoServerClient, GeoServerClient>(client =>
@@ -74,11 +83,18 @@ internal static class AuthenticationExtensions
                 client.BaseAddress = new Uri(geoServerBaseUrl);
                 client.Timeout = TimeSpan.FromSeconds(2);
             })
-            .AddHttpMessageHandler<GeoServerTokenHandler>();
+            .AddHttpMessageHandler<GeoServerTokenHandler>()
+            .AddStandardResilienceHandler(options =>
+            {
+                options.Retry.MaxRetryAttempts = 3;
+                options.Retry.BackoffType = DelayBackoffType.Exponential;
+            });
 
             return builder;
         }
     }
+
+    
 
     extension(IServiceCollection services)
     {

@@ -35,9 +35,10 @@ public partial class Options(
     private bool _isLoading = true;
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
-    private string _parishSearchTerm = string.Empty;
-    private bool _isSearchingParishes = false;
+    private string _searchTerm = string.Empty;
+    private bool _isSearching = false;
     private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
+    private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
     private System.Timers.Timer? _searchDebounceTimer;
 
@@ -162,14 +163,14 @@ public partial class Options(
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
 
-    private async Task OnParishSearchChanged()
+    private async Task OnSearchChanged()
     {      
         // Cancel any pending search
         _searchDebounceTimer?.Stop();
         _searchCts?.Cancel();
         
         // Clear results if search term is too short
-        if (string.IsNullOrWhiteSpace(_parishSearchTerm) || _parishSearchTerm.Length < 3)
+        if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)
         {
             _parishResults = new List<GdsOptionItem<string>>();
             StateHasChanged();
@@ -182,40 +183,43 @@ public partial class Options(
         {
             await InvokeAsync(async () =>
             {
-                await SearchParishesAsync(_parishSearchTerm);
+                await SearchAsync(_searchTerm);
             });
         };
         _searchDebounceTimer.AutoReset = false;
         _searchDebounceTimer.Start();
     }
 
-    private async Task SearchParishesAsync(string searchTerm)
+    private async Task SearchAsync(string searchTerm)
     {
         _searchCts?.Cancel();
         _searchCts = new CancellationTokenSource();
         
         try
         {
-            _isSearchingParishes = true;
+            _isSearching = true;
             StateHasChanged();
             
             _parishResults = await geoServerClient.SearchParishNameAsync(searchTerm, _searchCts.Token);
-            
-            logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}", 
+            _wardResults = await geoServerClient.SearchWardNameAsync(searchTerm, _searchCts.Token);
+
+            logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
                 _parishResults.Count, searchTerm);
+            logger.LogInformation("Ward search returned {Count} results for term: {SearchTerm}",
+                _wardResults.Count, searchTerm);
         }
         catch (OperationCanceledException)
         {
-            logger.LogDebug("Parish search cancelled for term: {SearchTerm}", searchTerm);
+            logger.LogDebug("Search cancelled for term");
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to search parishes for term: {SearchTerm}", searchTerm);
+            logger.LogError(ex, "Failed to search for term: {SearchTerm}", searchTerm);
             _parishResults = new List<GdsOptionItem<string>>();
         }
         finally
         {
-            _isSearchingParishes = false;
+            _isSearching = false;
             StateHasChanged();
         }
     }
@@ -228,6 +232,17 @@ public partial class Options(
             logger.LogInformation("User selected parish: {Parish}", selectedParish);
             // Store selection in your model
             // Model.SelectedParish = selectedParish;
+        }
+    }
+
+    private void OnWardSelected(ChangeEventArgs e)
+    {
+        var selectedWard = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(selectedWard))
+        {
+            logger.LogInformation("User selected ward: {Ward}", selectedWard);
+            // Store selection in your model
+            // Model.SelectedWard = selectedWard;
         }
     }
 }
