@@ -44,7 +44,6 @@ internal static class WebApplicationBuilderExtension
         internal WebApplicationBuilder AddFORTAzureKeyVault()
         {
             var section = builder.Configuration
-                .GetSection("FORT")
                 .GetSection(KeyVaultOptions.SectionName);
 
             var keyVaultOptions = section.Get<KeyVaultOptions>();

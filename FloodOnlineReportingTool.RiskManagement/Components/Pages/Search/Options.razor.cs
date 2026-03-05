@@ -45,7 +45,7 @@ public partial class Options(
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
     private System.Timers.Timer? _searchDebounceTimer;
-    private string _searchArea = "365955,77709,375836,92362";
+    private string _searchArea = string.Empty;
     private string _mapURL = string.Empty;
 
     protected override void OnInitialized()
@@ -54,6 +54,7 @@ public partial class Options(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _searchArea = configuration["RiskManagement:DefaultMapBoundingBox"] ?? "365955,77709,375836,92362";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
