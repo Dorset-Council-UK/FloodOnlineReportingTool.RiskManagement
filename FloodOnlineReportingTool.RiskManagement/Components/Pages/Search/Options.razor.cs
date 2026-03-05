@@ -8,7 +8,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.Azure.Amqp.Framing;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
@@ -46,7 +45,7 @@ public partial class Options(
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
     private System.Timers.Timer? _searchDebounceTimer;
-    private string _searchArea = "365955,77709,375836,92362";
+    private string _searchArea = string.Empty;
     private string _mapURL = string.Empty;
 
     protected override void OnInitialized()
@@ -55,6 +54,7 @@ public partial class Options(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _searchArea = configuration["RiskManagement:DefaultMapBoundingBox"] ?? "365955,77709,375836,92362";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -232,7 +232,7 @@ public partial class Options(
         }
     }
 
-    private async void OnParishSelected(ChangeEventArgs e)
+    private async Task OnParishSelected(ChangeEventArgs e)
     {
         var selectedParish = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selectedParish))
@@ -261,7 +261,7 @@ public partial class Options(
         }
     }
 
-    private async void OnWardSelected(ChangeEventArgs e)
+    private async Task OnWardSelected(ChangeEventArgs e)
     {
         var selectedWard = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selectedWard))
@@ -325,7 +325,7 @@ public partial class Options(
             double y = envelope.MaxY - coord.Y; // Flip Y
 
             if (points.Length > 0) points.Append(' ');
-            points.Append($"{x:F2},{y:F2}");
+            points.Append(FormattableString.Invariant($"{x:F2},{y:F2}"));
         }
 
         return points.ToString();

@@ -31,7 +31,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
 
         try
         {
-            var cqlFilter = ContructSearchCql(searchTerm, layerConfig, false);
+            var cqlFilter = ConstructSearchCql(searchTerm, layerConfig, false);
             string requestUri = ConstructSearchRequestUri(layerConfig, cqlFilter, true);
             
             if (string.IsNullOrEmpty(requestUri))
@@ -47,7 +47,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
             var jsonString = await httpResponse.Content.ReadAsStringAsync(ct);
             var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(jsonString, _geoJsonOptions);
 
-            if (featureCollection?.Count == 0)
+            if (featureCollection == null || featureCollection.Count == 0)
             {
                 return new List<GdsOptionItem<string>>();
             }
@@ -86,7 +86,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
 
         try
         {
-            var cqlFilter = ContructSearchCql(searchTerm, layerConfig, true);
+            var cqlFilter = ConstructSearchCql(searchTerm, layerConfig, true);
             string requestUri = ConstructGeomRequestUri(layerConfig, cqlFilter);
             
             if (string.IsNullOrEmpty(requestUri))
@@ -127,7 +127,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
         }
     }
 
-    private string ContructSearchCql(string searchTerm, DownstreamApiLayer layerConfig, bool exactMatch)
+    private string ConstructSearchCql(string searchTerm, DownstreamApiLayer layerConfig, bool exactMatch)
     {
         // Build CQL filter for case-insensitive LIKE query that matches anywhere in the string
         return string.IsNullOrWhiteSpace(searchTerm)
