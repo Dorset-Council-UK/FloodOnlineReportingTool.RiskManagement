@@ -8,7 +8,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.Azure.Amqp.Framing;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
@@ -232,7 +231,7 @@ public partial class Options(
         }
     }
 
-    private async void OnParishSelected(ChangeEventArgs e)
+    private async Task OnParishSelected(ChangeEventArgs e)
     {
         var selectedParish = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selectedParish))
@@ -261,7 +260,7 @@ public partial class Options(
         }
     }
 
-    private async void OnWardSelected(ChangeEventArgs e)
+    private async Task OnWardSelected(ChangeEventArgs e)
     {
         var selectedWard = e.Value?.ToString();
         if (!string.IsNullOrWhiteSpace(selectedWard))
@@ -325,7 +324,7 @@ public partial class Options(
             double y = envelope.MaxY - coord.Y; // Flip Y
 
             if (points.Length > 0) points.Append(' ');
-            points.Append($"{x:F2},{y:F2}");
+            points.Append(FormattableString.Invariant($"{x:F2},{y:F2}"));
         }
 
         return points.ToString();
