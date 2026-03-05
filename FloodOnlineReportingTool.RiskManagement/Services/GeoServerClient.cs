@@ -144,7 +144,7 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
         {
             if (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0)
             {
-                string WfsPath = $"{layerConfig.ApiPath}/ows";
+                string WfsPath = layerConfig.ApiPath;
 
                 var queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
                 {

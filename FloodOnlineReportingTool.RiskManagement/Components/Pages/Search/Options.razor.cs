@@ -251,12 +251,16 @@ public partial class Options(
             // Store selection in your model
             var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, _cts.Token);
 
-            if (Model.ByAreaGeom != null)
+            if (geometry != null)
             {
-                Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
-            } else
-            {
-                Model.ByAreaGeom = geometry;
+                if (Model.ByAreaGeom != null)
+                {
+                    Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
+                }
+                else
+                {
+                    Model.ByAreaGeom = geometry;
+                }
             }
             if (Model.ByAreaGeom != null)
             {
@@ -280,13 +284,16 @@ public partial class Options(
             // Store selection in your model
             var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, _cts.Token);
 
-            if (Model.ByAreaGeom != null)
+            if (geometry != null)
             {
-                Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
-            }
-            else
-            {
-                Model.ByAreaGeom = geometry;
+                if (Model.ByAreaGeom != null)
+                {
+                    Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
+                }
+                else
+                {
+                    Model.ByAreaGeom = geometry;
+                }
             }
             if (Model.ByAreaGeom != null)
             {
