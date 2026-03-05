@@ -181,6 +181,7 @@ public partial class Options(
         if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)
         {
             _parishResults = new List<GdsOptionItem<string>>();
+            _wardResults = new List<GdsOptionItem<string>>();
             StateHasChanged();
             return;
         }
