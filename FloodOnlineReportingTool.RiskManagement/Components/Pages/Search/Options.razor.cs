@@ -230,8 +230,9 @@ public partial class Options(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to search for term: {SearchTerm}", searchTerm);
+            logger.LogError(ex, "Failed to search for term: {SearchTerm}. Clearing parish and ward results.", searchTerm);
             _parishResults = new List<GdsOptionItem<string>>();
+            _wardResults = new List<GdsOptionItem<string>>();
         }
         finally
         {
