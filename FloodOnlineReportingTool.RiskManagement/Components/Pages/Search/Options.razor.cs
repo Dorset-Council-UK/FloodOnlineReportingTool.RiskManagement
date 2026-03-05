@@ -187,15 +187,22 @@ public partial class Options(
         }
         
         // Debounce: wait 400ms after user stops typing
-        _searchDebounceTimer = new System.Timers.Timer(400);
-        _searchDebounceTimer.Elapsed += async (s, e) =>
+        if (_searchDebounceTimer == null)
         {
-            await InvokeAsync(async () =>
+            _searchDebounceTimer = new System.Timers.Timer(400);
+            _searchDebounceTimer.AutoReset = false;
+            _searchDebounceTimer.Elapsed += async (s, e) =>
             {
-                await SearchAsync(_searchTerm);
-            });
-        };
-        _searchDebounceTimer.AutoReset = false;
+                await InvokeAsync(async () =>
+                {
+                    await SearchAsync(_searchTerm);
+                });
+            };
+        }
+        else
+        {
+            _searchDebounceTimer.Interval = 400;
+        }
         _searchDebounceTimer.Start();
     }
 
