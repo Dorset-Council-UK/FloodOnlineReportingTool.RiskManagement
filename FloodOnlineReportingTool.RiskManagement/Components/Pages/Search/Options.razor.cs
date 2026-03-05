@@ -314,7 +314,7 @@ public partial class Options(
         double bufferDistance = 100.0;
         envelope.ExpandBy(bufferDistance);
 
-        return $"0 0 {envelope.Width:F2} {envelope.Height:F2}";
+        return FormattableString.Invariant($"0 0 {envelope.Width:F2} {envelope.Height:F2}");
     }
 
     private string GenerateSvgPoints()
