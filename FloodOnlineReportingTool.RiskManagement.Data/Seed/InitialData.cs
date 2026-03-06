@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using RecordStatusIds = FloodOnlineReportingTool.Contracts.Shared.RecordStatusIds;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Seed;
 
@@ -95,6 +96,14 @@ internal static class InitialData
             new Models.Lookups.CommentType((int)Contracts.Shared.CommentType.SourceDetails, "Source Details", 8, "Details about the source of the flood event"),
             new Models.Lookups.CommentType((int)Contracts.Shared.CommentType.AssistanceComment, "Assistance Comment", 9, "A comment about assistance provided during the flood event"),
             new Models.Lookups.CommentType((int)Contracts.Shared.CommentType.AdminComment, "Admin Comment", 10, "A comment made by an administrator")
+        ];
+    }
+
+    internal static DownstreamApiLayer[] DownstreamApiLayerData()
+    {
+        return [
+            new DownstreamApiLayer("parish", "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending),
+            new DownstreamApiLayer("ward", "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending)
         ];
     }
 

@@ -22,7 +22,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
             RuleFor(o => o.Easting).Null().WithMessage("Easting must not be set when searching by report reference");
             RuleFor(o => o.Northing).Null().WithMessage("Northing must not be set when searching by report reference");
             RuleFor(o => o.Buffer).Null().WithMessage("Buffer must not be set when searching by report reference");
-            RuleFor(o => o.ByAreaWkt).Empty().WithMessage("Area must not be set when searching by report reference");
+            RuleFor(o => o.ByAreaGeom).Empty().WithMessage("Area must not be set when searching by report reference");
         });
 
         // All other options require options to be valid, and at least one must be populated
@@ -36,7 +36,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                            !string.IsNullOrWhiteSpace(o.ByPostcode) ||
                            !string.IsNullOrWhiteSpace(o.ByName) ||
                            o.Easting.HasValue || o.Northing.HasValue ||
-                           !string.IsNullOrWhiteSpace(o.ByAreaWkt))
+                           o.ByAreaGeom != null)
                 .WithMessage("Enter at least one search criterion")
                 .WithName("SearchCriteria");
 

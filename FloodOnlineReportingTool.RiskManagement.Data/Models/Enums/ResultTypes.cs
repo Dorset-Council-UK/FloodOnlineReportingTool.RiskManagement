@@ -6,3 +6,4 @@ public enum ResultTypes
     List,
     Map
 }
+

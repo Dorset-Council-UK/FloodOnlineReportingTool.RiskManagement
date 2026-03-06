@@ -18,6 +18,7 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<InvestigationStatus> InvestigationStatuses { get; set; }
     public DbSet<FloodProblem> FloodProblems { get; set; }
     public DbSet<ReportStatus> ReportStatuses { get; set; }
+    public DbSet<DownstreamApiLayer> DownstreamApiLayers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
