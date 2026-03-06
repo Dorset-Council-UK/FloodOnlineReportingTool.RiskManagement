@@ -145,17 +145,43 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
             if (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0)
             {
                 string WfsPath = layerConfig.ApiPath;
-
-                var queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                Dictionary<string, string> queryParams;
+                switch (layerConfig.RequestVersion)
                 {
-                    ["service"] = "WFS",
-                    ["version"] = "1.1.0",
-                    ["request"] = "GetFeature",
-                    ["typeName"] = layerConfig.LayerName,
-                    ["outputFormat"] = "application/json",
-                    ["maxFeatures"] = "100",
-                    ["CQL_FILTER"] = cqlFilter
-                };
+                    case Data.Models.Enums.RequestVersions.V1_0_0 or Data.Models.Enums.RequestVersions.V1_1_0:
+                        // Primary difference between  1.0.0 and 1.1.0 is output format 
+                        // where 1.0.0 is GML2 and 1.1.0 is GML3. 
+                        // Some paging is supported in 1.1.0 but we don't use is for any version 1
+                        // If you need paging, use version 2.0.0
+                        queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                        {
+                            ["service"] = "WFS",
+                            ["version"] = (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0 ? "1.0.0" : "1.1.0"),
+                            ["request"] = "GetFeature",
+                            ["typeName"] = layerConfig.LayerName,
+                            ["outputFormat"] = "application/json",
+                            ["maxFeatures"] = "100",
+                            ["CQL_FILTER"] = cqlFilter
+                        };
+                        break;
+                    case Data.Models.Enums.RequestVersions.V2_0_0:
+                        // Input parameters are different for v2.0.0 and paging is supported.
+                        queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                        {
+                            ["service"] = "WFS",
+                            ["version"] = "2.0.0",
+                            ["request"] = "GetFeature",
+                            ["typeNames"] = layerConfig.LayerName,
+                            ["outputFormat"] = "application/json",
+                            ["count"] = "100",
+                            ["CQL_FILTER"] = cqlFilter,
+                        };
+                        // TODO: If we need to support paging for v2.0.0, we would need to add "startIndex" parameter and handle it in the code
+                        break;
+                    default:
+                        logger.LogError("Unsupported WFS version {Version} for geometry request.", layerConfig.RequestVersion);
+                        return string.Empty;
+                }
 
                 if (limitToIdentifier)
                 {
@@ -168,6 +194,10 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
 
                 requestUri = $"{WfsPath}?{queryString}";
             }
+        } 
+        else
+        {
+            logger.LogError("Unsupported request method {RequestMethod} for {ApiSource} layer.", layerConfig.RequestMethod, layerConfig.ApiSource);
         }
         return requestUri;
     }
@@ -177,27 +207,57 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
         string requestUri = string.Empty;
         if (layerConfig.RequestMethod == Data.Models.Enums.RequestMethods.WFS)
         {
-            if (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0)
+            string WfsPath = $"{layerConfig.ApiPath}";
+            Dictionary<string, string> queryParams;
+            switch (layerConfig.RequestVersion)
             {
-                string WfsPath = $"{layerConfig.ApiPath}/ows";
-
-                var queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
-                {
-                    ["service"] = "WFS",
-                    ["version"] = "1.1.0",
-                    ["request"] = "GetFeature",
-                    ["typeName"] = layerConfig.LayerName,
-                    ["outputFormat"] = "application/json",
-                    ["maxFeatures"] = "1",
-                    ["CQL_FILTER"] = cqlFilter,
-                    ["propertyName"] = "geom"
-                };
-
-                var queryString = string.Join("&", queryParams.Select(kvp =>
-                    $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
-
-                requestUri = $"{WfsPath}?{queryString}";
+                case Data.Models.Enums.RequestVersions.V1_0_0 or Data.Models.Enums.RequestVersions.V1_1_0:
+                    // Primary difference between  1.0.0 and 1.1.0 is output format 
+                    // where 1.0.0 is GML2 and 1.1.0 is GML3. 
+                    // Some paging is supported in 1.1.0 but we don't use is for any version 1
+                    // If you need paging, use version 2.0.0
+                    queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["service"] = "WFS",
+                        ["version"] = (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0 ? "1.0.0" : "1.1.0"),
+                        ["request"] = "GetFeature",
+                        ["typeName"] = layerConfig.LayerName,
+                        ["outputFormat"] = "application/json",
+                        ["maxFeatures"] = "1",
+                        ["CQL_FILTER"] = cqlFilter,
+                        ["propertyName"] = "geom"
+                    };
+                    break;
+                case Data.Models.Enums.RequestVersions.V2_0_0:
+                    // Input parameters are different for v2.0.0 and paging is supported.
+                    queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["service"] = "WFS",
+                        ["version"] = "2.0.0",
+                        ["request"] = "GetFeature",
+                        ["typeNames"] = layerConfig.LayerName,
+                        ["outputFormat"] = "application/json",
+                        ["count"] = "1",
+                        ["CQL_FILTER"] = cqlFilter,
+                        ["propertyName"] = "geom"
+                    };
+                    // TODO: If we need to support paging for v2.0.0, we would need to add "startIndex" parameter and handle it in the code
+                    break;
+                default:
+                    logger.LogError("Unsupported WFS version {Version} for geometry request.", layerConfig.RequestVersion);
+                    return string.Empty;
             }
+                
+
+            var queryString = string.Join("&", queryParams.Select(kvp =>
+            $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
+
+            requestUri = $"{WfsPath}?{queryString}";
+            
+        }
+        else
+        {
+            logger.LogError("Unsupported request method {RequestMethod} for {ApiSource} layer.", layerConfig.RequestMethod, layerConfig.ApiSource);
         }
         return requestUri;
     }
