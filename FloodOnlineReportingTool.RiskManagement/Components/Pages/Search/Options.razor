@@ -51,14 +51,14 @@
                                     <GdsFormGroup For="() => Model.ByName">
                                         <GdsLabel Text="Search for reports by the person's name" />
                                         <GdsErrorMessage />
-                                        <GdsInputText @bind-Value=Model.ByName class="govuk-input govuk-input--width-50" onkeypress="return event.keyCode!=13" />
+                                        <GdsInputText @bind-Value=Model.ByName class="govuk-input govuk-input--width-50" />
                                     </GdsFormGroup>
                                         </div>
                                     <div class="govuk-grid-column-one-half">
                                     <GdsFormGroup For="() => Model.ByPostcode">
                                         <GdsLabel Text="Search by affected postcode" />
                                         <GdsErrorMessage />
-                                        <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" onkeypress="return event.keyCode!=13" />
+                                        <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
                                     </GdsFormGroup>
                                 </div>
                             </div>
@@ -106,8 +106,8 @@
                                                     <GdsLabel Text="Search for parish or ward" />
                                                     <GdsErrorMessage />
                                                     <div class="govuk-input__wrapper">
-                                                        <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10"  onkeypress="return event.keyCode!=13" />
-                                                        <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnSearch" />
+                                                        <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('btn-search-area').click();return false;}" />
+                                                        <GdsButton id="btn-search-area"  AdditionalCssClasses="govuk-button--secondary"   IsSubmit="false"  style="margin-bottom: 0.1rem;"  Text="Search" OnClick="@OnSearch" />
                                                     </div>
                                                 </GdsFormGroup>
 
@@ -174,7 +174,7 @@
                                             <GdsLabel Text="Add a search buffer in metres" />
                                             <GdsHint>This will only apply if searching with a point from the map</GdsHint>
                                             <GdsErrorMessage />
-                                            <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" onkeypress="return event.keyCode!=13" />
+                                            <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
                                         </GdsFormGroup>
                                     </div>
                                 </div>

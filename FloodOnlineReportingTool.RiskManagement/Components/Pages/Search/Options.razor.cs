@@ -8,9 +8,7 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using NetTopologySuite;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Utilities;
 using System.Text;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
