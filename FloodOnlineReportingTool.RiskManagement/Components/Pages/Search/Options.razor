@@ -106,8 +106,8 @@
                                                     <GdsLabel Text="Search for parish or ward" />
                                                     <GdsErrorMessage />
                                                     <div class="govuk-input__wrapper">
-                                                        <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('btn-search-area').click();return false;}" />
-                                                        <GdsButton id="btn-search-area"  AdditionalCssClasses="govuk-button--secondary"   IsSubmit="false"  style="margin-bottom: 0.1rem;"  Text="Search" OnClick="@OnSearch" />
+                                                        <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" onkeydown="if(event.key==='Enter'){event.preventDefault();this.dispatchEvent(new Event('change'));document.getElementById('btn-search-area').click();return false;}" />
+                                                        <GdsButton id="btn-search-area"  AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnSearch" />
                                                     </div>
                                                 </GdsFormGroup>
 
@@ -140,7 +140,6 @@
                                     </div>
                                 </div>
                                 <div class="govuk-grid-column-one-half">
-                                    <div class="govuk-grid-row">
                                         <div style="position: relative; width: 500px; height: 300px;">
                                             <img class="img img-fluid"
                                                  src="@_mapURL"
@@ -168,15 +167,12 @@
                                         @if (Model.ByAreaGeom!=null){
                                             <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
                                         }
-                                    </div>
-                                    <div class="govuk-grid-row">
                                         <GdsFormGroup For="() => Model.Buffer">
                                             <GdsLabel Text="Add a search buffer in metres" />
                                             <GdsHint>This will only apply if searching with a point from the map</GdsHint>
                                             <GdsErrorMessage />
                                             <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
                                         </GdsFormGroup>
-                                    </div>
                                 </div>
                             </div>
                         </fieldset>
