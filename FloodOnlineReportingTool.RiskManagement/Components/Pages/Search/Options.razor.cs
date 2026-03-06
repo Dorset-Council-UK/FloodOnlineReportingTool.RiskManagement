@@ -111,7 +111,13 @@ public partial class Options(
     private async Task OnSubmit()
     {
         //Store the search options in session storage for retrieval on the next page
-        await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
+        try
+        {
+            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
+        } catch (Exception ex)
+        {
+            logger.LogError(ex, "Issue setting protected storage for search options page");
+        }
 
         // Go to the next page or pass back to the summary
         var nextPage = GetNextPage();
@@ -230,13 +236,31 @@ public partial class Options(
 
             if (geometry != null)
             {
-                if (Model.ByAreaGeom != null)
+                if (geometry is MultiPolygon multiPolygon)
                 {
-                    Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
-                }
-                else
+                    if (Model.ByAreaGeom != null)
+                    {
+                        var unionGeom = Model.ByAreaGeom.Union(geometry);
+                        if (unionGeom is MultiPolygon newMultiPolygon)
+                        {
+                            Model.ByAreaGeom = newMultiPolygon;
+
+                        } else if (unionGeom is Polygon singlePolygon)
+                        {
+                            Model.ByAreaGeom = new MultiPolygon(new[] { singlePolygon });
+                        } else
+                        {
+                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
+                        }
+                    }
+                    else
+                    {
+                        Model.ByAreaGeom = multiPolygon;
+                    }
+                } else
                 {
-                    Model.ByAreaGeom = geometry;
+                    logger.LogWarning("Geometry for parish {Parish} is not a MultiPolygon as expected. Type: {GeometryType}",
+                        selectedParish, geometry.GeometryType);
                 }
             }
             if (Model.ByAreaGeom != null)
@@ -263,13 +287,34 @@ public partial class Options(
 
             if (geometry != null)
             {
-                if (Model.ByAreaGeom != null)
+                if (geometry is MultiPolygon multiPolygon)
                 {
-                    Model.ByAreaGeom = Model.ByAreaGeom.Union(geometry);
+                    if (Model.ByAreaGeom != null)
+                    {
+                        var unionGeom = Model.ByAreaGeom.Union(geometry);
+                        if (unionGeom is MultiPolygon newMultiPolygon)
+                        {
+                            Model.ByAreaGeom = newMultiPolygon;
+
+                        }
+                        else if (unionGeom is Polygon singlePolygon)
+                        {
+                            Model.ByAreaGeom = new MultiPolygon(new[] { singlePolygon });
+                        }
+                        else
+                        {
+                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
+                        }
+                    }
+                    else
+                    {
+                        Model.ByAreaGeom = multiPolygon;
+                    }
                 }
                 else
                 {
-                    Model.ByAreaGeom = geometry;
+                    logger.LogWarning("Geometry for ward {Ward} is not a MultiPolygon as expected. Type: {GeometryType}",
+                        selectedWard, geometry.GeometryType);
                 }
             }
             if (Model.ByAreaGeom != null)

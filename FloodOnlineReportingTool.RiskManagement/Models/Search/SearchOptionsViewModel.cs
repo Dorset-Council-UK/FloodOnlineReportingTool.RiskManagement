@@ -39,7 +39,7 @@ public class SearchOptionsViewModel
     public string? BufferText { get; set; }
     public int? Buffer { get; set; }
 
-    public Geometry? ByAreaGeom { get; set; }
+    public MultiPolygon? ByAreaGeom { get; set; }
 
     // Other possible search criteria:
     // - By responsible organisation...or is this dealt with by using users properties?
