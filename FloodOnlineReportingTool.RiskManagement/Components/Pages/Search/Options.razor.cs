@@ -58,15 +58,16 @@ public partial class Options(
     {
         if (firstRender)
         {
+
             // Set any previously entered data
             var options = await GetSearchOptions();
             Model.ToDate = options.ToDate;
             Model.FromDate = options.FromDate;
-            Model.SearchType = options.SearchType;
-            Model.ByPostcode = options.ByPostcode;
-            Model.ByName = options.ByName;
-            Model.EastingText = options.EastingText;
-            Model.NorthingText = options.NorthingText;
+            Model.ByPlaceName = options.ByPlaceName;
+            Model.ByPersonsName = options.ByPersonsName;
+            Model.ByFloodCause = options.ByFloodCause;
+            Model.ByPolygon = options.ByPolygon;
+            Model.ShowResultsAs = options.ShowResultsAs;
             Model.BufferText = options.BufferText;
             Model.Buffer = options.Buffer;
             GenerateMapURL();
@@ -79,7 +80,7 @@ public partial class Options(
     public override async Task SetParametersAsync(ParameterView parameters)
     {
         await base.SetParametersAsync(parameters);
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.FloodProblemIds);
+        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
         StateHasChanged();
     }
 
@@ -118,27 +119,9 @@ public partial class Options(
         }
 
         // Go to the next page or pass back to the summary
-        var nextPage = GetNextPage();
+        var nextPage = SearchPages.Results;
         var nextPageUrl = nextPage.Url;
         navigationManager.NavigateTo(nextPageUrl);
-    }
-
-    private PageInfo GetNextPage()
-    {
-        // Add filters for specific options
-        switch (Model.SearchType)
-        {
-            case FloodLocationSearchType.All:
-                return SearchPages.Results;
-            case FloodLocationSearchType.WithFloodReports:
-                return SearchPages.Results;
-            case FloodLocationSearchType.ByLocation:
-                return SearchPages.Location;
-
-            default:
-                // Failure, just return the current page
-                return SearchPages.Options;
-        }
     }
 
     private async Task<SearchOptionsViewModel> GetSearchOptions()
@@ -236,16 +219,16 @@ public partial class Options(
             {
                 if (geometry is MultiPolygon multiPolygon)
                 {
-                    if (Model.ByAreaGeom != null)
+                    if (Model.ByPolygon != null)
                     {
-                        var unionGeom = Model.ByAreaGeom.Union(geometry);
+                        var unionGeom = Model.ByPolygon.Union(geometry);
                         if (unionGeom is MultiPolygon newMultiPolygon)
                         {
-                            Model.ByAreaGeom = newMultiPolygon;
+                            Model.ByPolygon = newMultiPolygon;
 
                         } else if (unionGeom is Polygon singlePolygon)
                         {
-                            Model.ByAreaGeom = new MultiPolygon(new[] { singlePolygon });
+                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
                         } else
                         {
                             logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
@@ -253,7 +236,7 @@ public partial class Options(
                     }
                     else
                     {
-                        Model.ByAreaGeom = multiPolygon;
+                        Model.ByPolygon = multiPolygon;
                     }
                 } else
                 {
@@ -261,9 +244,9 @@ public partial class Options(
                         selectedParish, geometry.GeometryType);
                 }
             }
-            if (Model.ByAreaGeom != null)
+            if (Model.ByPolygon != null)
             {
-                Envelope envelope = Model.ByAreaGeom.EnvelopeInternal;
+                Envelope envelope = Model.ByPolygon.EnvelopeInternal;
                 double bufferDistance = 100.0;
                 envelope.ExpandBy(bufferDistance);
                 _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
@@ -287,17 +270,17 @@ public partial class Options(
             {
                 if (geometry is MultiPolygon multiPolygon)
                 {
-                    if (Model.ByAreaGeom != null)
+                    if (Model.ByPolygon != null)
                     {
-                        var unionGeom = Model.ByAreaGeom.Union(geometry);
+                        var unionGeom = Model.ByPolygon.Union(geometry);
                         if (unionGeom is MultiPolygon newMultiPolygon)
                         {
-                            Model.ByAreaGeom = newMultiPolygon;
+                            Model.ByPolygon = newMultiPolygon;
 
                         }
                         else if (unionGeom is Polygon singlePolygon)
                         {
-                            Model.ByAreaGeom = new MultiPolygon(new[] { singlePolygon });
+                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
                         }
                         else
                         {
@@ -306,7 +289,7 @@ public partial class Options(
                     }
                     else
                     {
-                        Model.ByAreaGeom = multiPolygon;
+                        Model.ByPolygon = multiPolygon;
                     }
                 }
                 else
@@ -315,9 +298,9 @@ public partial class Options(
                         selectedWard, geometry.GeometryType);
                 }
             }
-            if (Model.ByAreaGeom != null)
+            if (Model.ByPolygon != null)
             {
-                Envelope envelope = Model.ByAreaGeom.EnvelopeInternal;
+                Envelope envelope = Model.ByPolygon.EnvelopeInternal;
                 double bufferDistance = 100.0;
                 envelope.ExpandBy(bufferDistance);
                 _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
@@ -329,15 +312,15 @@ public partial class Options(
 
     private void ResetGeom()
     {
-        Model.ByAreaGeom = null;
+        Model.ByPolygon = null;
         StateHasChanged();
     }
 
     private string GetSvgViewBox()
     {
-        if (Model.ByAreaGeom == null) return "0 0 500 300";
+        if (Model.ByPolygon == null) return "0 0 500 300";
 
-        var envelope = Model.ByAreaGeom.EnvelopeInternal;
+        var envelope = Model.ByPolygon.EnvelopeInternal;
         double bufferDistance = 100.0;
         envelope.ExpandBy(bufferDistance);
 
@@ -346,13 +329,13 @@ public partial class Options(
 
     private string GenerateSvgPoints()
     {
-        if (Model.ByAreaGeom == null) return string.Empty;
+        if (Model.ByPolygon == null) return string.Empty;
 
-        var envelope = Model.ByAreaGeom.EnvelopeInternal;
+        var envelope = Model.ByPolygon.EnvelopeInternal;
         double bufferDistance = 100.0;
         envelope.ExpandBy(bufferDistance);
 
-        var coordinates = Model.ByAreaGeom.Coordinates;
+        var coordinates = Model.ByPolygon.Coordinates;
         var points = new StringBuilder();
 
         foreach (var coord in coordinates)

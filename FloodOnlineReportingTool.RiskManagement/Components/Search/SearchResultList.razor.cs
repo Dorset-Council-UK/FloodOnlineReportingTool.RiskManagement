@@ -12,15 +12,15 @@ using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Search;
 
-public partial class SearchFloodLocations(
-    ILogger<SearchFloodLocations> logger,
+public partial class SearchResultList(
+    ILogger<SearchResultList> logger,
     IReportStatusClient reportStatusClient,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     IWebHostEnvironment environment,
     ProtectedSessionStorage protectedSessionStore
 ) {
     private const int PageSize = 5;
-    private const string SearchLocationsKey = "search-locations";
+    private const string SearchKey = "search-locations";
     private const string SearchAgainKey = "search-locations-searchagain";
 
     private EditContext _editContext = null!;
@@ -29,7 +29,7 @@ public partial class SearchFloodLocations(
     private PagedResult<SearchResultFloodLocation> _pagedSearch = null!;
     private IReadOnlyCollection<GdsOptionItem<FloodLocationSearchType>> _searchTypeOptions = [];
 
-    public SearchFloodLocationsViewModel Model { get; set; } = null!;
+    public SearchResultsViewModel Model { get; set; } = null!;
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -77,9 +77,9 @@ public partial class SearchFloodLocations(
         }
     }
 
-    private async Task<SearchFloodLocationsViewModel?> GetStoredModel()
+    private async Task<SearchResultsViewModel?> GetStoredModel()
     {
-        var result = await protectedSessionStore.GetAsync<SearchFloodLocationsViewModel>(SearchLocationsKey);
+        var result = await protectedSessionStore.GetAsync<SearchResultsViewModel>(SearchKey);
         if (result.Success && result.Value is not null)
         {
             return result.Value;
@@ -120,7 +120,7 @@ public partial class SearchFloodLocations(
     {
         _searchState = SearchState.Searching;
         StateHasChanged();
-        await protectedSessionStore.SetAsync(SearchLocationsKey, Model);
+        await protectedSessionStore.SetAsync(SearchKey, Model);
 
         try
         {
