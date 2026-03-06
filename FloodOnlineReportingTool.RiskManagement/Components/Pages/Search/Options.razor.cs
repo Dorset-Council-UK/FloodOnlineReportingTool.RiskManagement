@@ -44,7 +44,6 @@ public partial class Options(
     private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
-    private System.Timers.Timer? _searchDebounceTimer;
     private string _searchArea = string.Empty;
     private string _mapURL = string.Empty;
 
@@ -92,8 +91,6 @@ public partial class Options(
         {
             await _cts.CancelAsync();
             _cts.Dispose();
-
-            _searchDebounceTimer?.Dispose();
             
             if (_searchCts != null)
             {
@@ -171,12 +168,8 @@ public partial class Options(
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
 
-    private async Task OnSearchChanged()
+    private async Task OnSearch()
     {      
-        // Cancel any pending search
-        _searchDebounceTimer?.Stop();
-        _searchCts?.Cancel();
-        
         // Clear results if search term is too short
         if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)
         {
@@ -185,29 +178,13 @@ public partial class Options(
             StateHasChanged();
             return;
         }
-        
-        // Debounce: wait 400ms after user stops typing
-        if (_searchDebounceTimer == null)
-        {
-            _searchDebounceTimer = new System.Timers.Timer(400);
-            _searchDebounceTimer.AutoReset = false;
-            _searchDebounceTimer.Elapsed += async (s, e) =>
-            {
-                await InvokeAsync(async () =>
-                {
-                    await SearchAsync(_searchTerm);
-                });
-            };
-        }
-        else
-        {
-            _searchDebounceTimer.Interval = 400;
-        }
-        _searchDebounceTimer.Start();
+
+        await SearchAsync(_searchTerm);
     }
 
     private async Task SearchAsync(string searchTerm)
     {
+        // Cancel any pending search
         _searchCts?.Cancel();
         _searchCts = new CancellationTokenSource();
         
