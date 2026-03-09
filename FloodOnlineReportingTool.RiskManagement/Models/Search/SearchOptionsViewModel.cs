@@ -1,15 +1,14 @@
-﻿using GdsBlazorComponents;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using GdsBlazorComponents;
 using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
 
-public class SearchOptionsViewModel
+public class SearchOptionsViewModel : ISearchOptions
 {
+    // Common search parameters
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? ReportReference { get; set; }
-
-    [GdsFieldErrorClass(GdsFieldTypes.Select)]
-    public FloodLocationSearchType? SearchType { get; set; }
+    public string? ByReference { get; set; }
 
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
     public GdsDate FromDate { get; set; } = new();
@@ -17,31 +16,25 @@ public class SearchOptionsViewModel
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
     public GdsDate ToDate { get; set; } = new();
 
-    public IList<Guid> FloodProblemIds { get; set; } = [];
+    public IList<Guid> ByFloodCause { get; set; } = [];
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? ByPostcode { get; set; }
+    public string? ByPlaceName { get; set; }
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? ByName { get; set; }
+    public string? ByPersonsName { get; set; }
+    public MultiPolygon? ByPolygon { get; set; }
 
-    [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? EastingText { get; set; }
+    // Result properties
+    [GdsFieldErrorClass(GdsFieldTypes.Select)]
+    public ResultTypes ShowResultsAs { get; set; } = ResultTypes.List;
 
-    public double? Easting { get; set; }
 
-    [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? NorthingText { get; set; }
+    // View specific parameters 
 
-    public double? Northing { get; set; }
-
+    // Only used to convert a point from the map to a polygon search. 
+    // we will only use the geometry for searches rather than easting / northing. 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? BufferText { get; set; }
     public int? Buffer { get; set; }
-
-    public MultiPolygon? ByAreaGeom { get; set; }
-
-    // Other possible search criteria:
-    // - By responsible organisation...or is this dealt with by using users properties?
-    // - Internal / External flooding
 }

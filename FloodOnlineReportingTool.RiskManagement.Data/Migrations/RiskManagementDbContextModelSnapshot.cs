@@ -769,9 +769,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<DateTimeOffset?>("ResultsTo")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<double?>("SearchRadius")
-                        .HasColumnType("double precision");
-
                     b.Property<string>("SearchTitle")
                         .IsRequired()
                         .HasColumnType("text");

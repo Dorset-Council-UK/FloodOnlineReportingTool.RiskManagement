@@ -31,8 +31,6 @@ public record SavedSearch
     public string Postcode { get; init; } = string.Empty;
     public string ReporterString { get; init; } = string.Empty;
     public MultiPolygon? Geom { get; init; }
-    // Also known as buffer (in metres) around the search geometry (foreign key)
-    public double? SearchRadius { get; init; }
 
     // Result properties
     public int? PagingSize { get; init; }

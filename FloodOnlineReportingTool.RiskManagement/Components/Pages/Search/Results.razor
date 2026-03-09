@@ -1,7 +1,28 @@
 ﻿@page "/search/results"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Search
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Search Results</PageTitle>
 
 <h1 class="govuk-heading-l">Search Results</h1>
 
-<SearchFloodLocations />
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+    <Authorized>
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+        @if (Model.ShowResultsAs == Data.Models.Enums.ResultTypes.List)
+        {
+            <SearchResultList />
+        }
+        else
+        {
+            <p>Not Implemented</p>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="Please sign in to search" />
+    </NotAuthorized>
+</AuthorizeView>
+
+

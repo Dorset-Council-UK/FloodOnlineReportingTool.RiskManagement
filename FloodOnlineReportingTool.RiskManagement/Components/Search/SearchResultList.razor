@@ -7,7 +7,7 @@
     return;
 }
 
-<EditForm EditContext="_editContext" OnSubmit="OnSearchSubmit" FormName="SearchFloodLocations">
+<EditForm EditContext="_editContext" OnSubmit="OnSearchSubmit" FormName="SearchResultForm">
     <FluentValidationValidator />
     <GdsErrorSummary />
 
@@ -91,7 +91,7 @@
                         case SearchState.ResultsFound:
                             foreach(var result in _pagedSearch!.Results)
                             {
-                                <FloodLocationInformation SearchResult="result" />
+                                <FloodInformation SearchResult="result" />
                             }
                             break;
 
