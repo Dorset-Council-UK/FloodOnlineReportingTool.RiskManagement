@@ -21,5 +21,5 @@ public class MiniMapOptions
     /// Default map bounds in WGS84 decimal degrees [west, south, east, north] format.
     /// Defaults to approximate bounds of the South of England.
     /// </summary>
-    public double[] DefaultBounds { get; init; } = [-3.5, 50.4, -1.0, 51.2];
+    public double[] DefaultBounds { get; init; } = [];
 }

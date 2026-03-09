@@ -42,8 +42,7 @@ public partial class OptionsMap(
     private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
-    private string _searchArea = string.Empty;
-    private string _mapURL = string.Empty;
+    private int _selectKey = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,7 +50,6 @@ public partial class OptionsMap(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _searchArea = configuration["RiskManagement:DefaultMapBoundingBox"] ?? "365955,77709,375836,92362";
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
@@ -70,7 +68,6 @@ public partial class OptionsMap(
             Model.ShowResultsAs = options.ShowResultsAs;
             Model.BufferText = options.BufferText;
             Model.Buffer = options.Buffer;
-            GenerateMapURL();
 
             _isLoading = false;
             StateHasChanged();
@@ -118,23 +115,6 @@ public partial class OptionsMap(
         navigationManager.NavigateTo(nextPageUrl);
     }
 
-    private async Task OnSubmit()
-    {
-        //Store the search options in session storage for retrieval on the next page
-        try
-        {
-            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
-        } catch (Exception ex)
-        {
-            logger.LogError(ex, "Issue setting protected storage for search options page");
-        }
-
-        // Go to the next page or pass back to the summary
-        var nextPage = SearchPages.Results;
-        var nextPageUrl = nextPage.Url;
-        navigationManager.NavigateTo(nextPageUrl);
-    }
-
     private async Task<SearchOptionsViewModel> GetSearchOptions()
     {
         var data = await protectedSessionStorage.GetAsync<SearchOptionsViewModel>(SessionConstants.SearchOptions);
@@ -173,6 +153,7 @@ public partial class OptionsMap(
         {
             _parishResults = new List<GdsOptionItem<string>>();
             _wardResults = new List<GdsOptionItem<string>>();
+            _selectKey++;
             StateHasChanged();
             return;
         }
@@ -193,6 +174,7 @@ public partial class OptionsMap(
             
             _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, _searchCts.Token);
             _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, _searchCts.Token);
+            _selectKey++;
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
                 _parishResults.Count, searchTerm);
@@ -255,14 +237,6 @@ public partial class OptionsMap(
                         selectedParish, geometry.GeometryType);
                 }
             }
-            if (Model.ByPolygon != null)
-            {
-                Envelope envelope = Model.ByPolygon.EnvelopeInternal;
-                double bufferDistance = 100.0;
-                envelope.ExpandBy(bufferDistance);
-                _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
-                GenerateMapURL();
-            }
             StateHasChanged();
         }
     }
@@ -314,8 +288,6 @@ public partial class OptionsMap(
                 Envelope envelope = Model.ByPolygon.EnvelopeInternal;
                 double bufferDistance = 100.0;
                 envelope.ExpandBy(bufferDistance);
-                _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
-                GenerateMapURL();
             }
             StateHasChanged();
         }
@@ -327,43 +299,4 @@ public partial class OptionsMap(
         StateHasChanged();
     }
 
-    private string GetSvgViewBox()
-    {
-        if (Model.ByPolygon == null) return "0 0 500 300";
-
-        var envelope = Model.ByPolygon.EnvelopeInternal;
-        double bufferDistance = 100.0;
-        envelope.ExpandBy(bufferDistance);
-
-        return FormattableString.Invariant($"0 0 {envelope.Width:F2} {envelope.Height:F2}");
-    }
-
-    private string GenerateSvgPoints()
-    {
-        if (Model.ByPolygon == null) return string.Empty;
-
-        var envelope = Model.ByPolygon.EnvelopeInternal;
-        double bufferDistance = 100.0;
-        envelope.ExpandBy(bufferDistance);
-
-        var coordinates = Model.ByPolygon.Coordinates;
-        var points = new StringBuilder();
-
-        foreach (var coord in coordinates)
-        {
-            double x = coord.X - envelope.MinX;
-            double y = envelope.MaxY - coord.Y; // Flip Y
-
-            if (points.Length > 0) points.Append(' ');
-            points.Append(FormattableString.Invariant($"{x:F2},{y:F2}"));
-        }
-
-        return points.ToString();
-    }
-
-    private void GenerateMapURL()
-    {
-        string MiniMapBaseUrl = configuration["RiskManagement:MiniMapBaseUrl"] ?? "";
-        _mapURL = $"{MiniMapBaseUrl}&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&srs=epsg%3a27700&format=image%2fjpeg&width=500&height=300&bbox={_searchArea}";
-    }
 }

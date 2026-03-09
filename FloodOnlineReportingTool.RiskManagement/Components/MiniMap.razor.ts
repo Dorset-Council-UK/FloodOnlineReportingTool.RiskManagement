@@ -1,5 +1,6 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import proj4 from 'proj4';
 
 interface WmsLayerConfig {
     id: string;
@@ -9,6 +10,10 @@ interface WmsLayerConfig {
 }
 
 const mapInstances = new Map<string, maplibregl.Map>();
+
+// EPSG:27700 – British National Grid
+const BNG_PROJ4 = '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs';
+const WGS84_PROJ4 = '+proj=longlat +datum=WGS84 +no_defs';
 
 const GEOMETRY_SOURCE_ID = 'mini-map-geometry';
 const GEOMETRY_FILL_LAYER_ID = 'mini-map-geometry-fill';
@@ -22,7 +27,7 @@ const GEOMETRY_CIRCLE_LAYER_ID = 'mini-map-geometry-circle';
  * @param containerId  The id of the HTML element to render the map into.
  * @param apiKey       OS Data Hub API key for the Vector Tile Service.
  * @param attribution  Attribution string added to the compact attribution control.
- * @param defaultBounds  Initial viewport bounds [west, south, east, north] in WGS84.
+ * @param defaultBounds  Initial viewport bounds [minEasting, minNorthing, maxEasting, maxNorthing] in British National Grid (EPSG:27700).
  * @param wmsLayers    Optional WMS overlay layers to add once the map has loaded.
  */
 export function initMiniMap(
@@ -34,10 +39,12 @@ export function initMiniMap(
 ): void {
     const styleUrl = `https://api.os.uk/maps/vector/v1/vts/resources/styles?key=${encodeURIComponent(apiKey)}&srs=3857`;
 
+    const wgs84Bounds = bngBoundsToWgs84(defaultBounds);
+
     const map = new maplibregl.Map({
         container: containerId,
         style: styleUrl,
-        bounds: defaultBounds,
+        bounds: wgs84Bounds,
         fitBoundsOptions: { padding: 20 },
         attributionControl: false,
         maxPitch: 0,
@@ -74,7 +81,7 @@ export function initMiniMap(
  * Updates (or clears) the geometry displayed on the map.
  *
  * @param containerId   The id of the map container element.
- * @param geoJson       A GeoJSON string (Geometry, Feature, or FeatureCollection) in WGS84,
+ * @param geoJson       A GeoJSON string (Geometry, Feature, or FeatureCollection) in British National Grid (EPSG:27700),
  *                      or null to remove any existing geometry.
  * @param zoomToBounds  When true the viewport will be fitted to the geometry's bounding box.
  */
@@ -112,6 +119,78 @@ export function destroyMap(containerId: string): void {
 // Private helpers
 // ---------------------------------------------------------------------------
 
+function bngToWgs84(easting: number, northing: number): [number, number] {
+    return proj4(BNG_PROJ4, WGS84_PROJ4, [easting, northing]) as [number, number];
+}
+
+function bngBoundsToWgs84(bounds: [number, number, number, number]): [number, number, number, number] {
+    const [minE, minN, maxE, maxN] = bounds;
+    const corners = [
+        bngToWgs84(minE, minN),
+        bngToWgs84(maxE, minN),
+        bngToWgs84(maxE, maxN),
+        bngToWgs84(minE, maxN),
+    ];
+    const lngs = corners.map(c => c[0]);
+    const lats = corners.map(c => c[1]);
+    return [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)];
+}
+
+function reprojectCoordinates(coords: unknown): unknown {
+    if (!Array.isArray(coords)) {
+        return coords;
+    }
+    if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+        const [lng, lat] = bngToWgs84(coords[0], coords[1]);
+        return coords.length > 2 ? [lng, lat, ...coords.slice(2)] : [lng, lat];
+    }
+    return (coords as unknown[]).map(reprojectCoordinates);
+}
+
+function reprojectGeometry(geometry: Record<string, unknown>): Record<string, unknown> {
+    if (geometry.type === 'GeometryCollection') {
+        return {
+            ...geometry,
+            geometries: (geometry.geometries as unknown[]).map(
+                g => reprojectGeometry(g as Record<string, unknown>)
+            ),
+        };
+    }
+    return { ...geometry, coordinates: reprojectCoordinates(geometry.coordinates) };
+}
+
+function reprojectGeoJsonToWgs84(
+    data: maplibregl.GeoJSONSourceSpecification['data']
+): maplibregl.GeoJSONSourceSpecification['data'] {
+    if (typeof data === 'string' || data === undefined) {
+        return data;
+    }
+    const obj = data as unknown as Record<string, unknown>;
+    if (obj.type === 'FeatureCollection') {
+        return {
+            ...obj,
+            features: (obj.features as unknown[]).map(f => {
+                const feature = f as Record<string, unknown>;
+                return {
+                    ...feature,
+                    geometry: feature.geometry
+                        ? reprojectGeometry(feature.geometry as Record<string, unknown>)
+                        : null,
+                };
+            }),
+        } as unknown as maplibregl.GeoJSONSourceSpecification['data'];
+    }
+    if (obj.type === 'Feature') {
+        return {
+            ...obj,
+            geometry: obj.geometry
+                ? reprojectGeometry(obj.geometry as Record<string, unknown>)
+                : null,
+        } as unknown as maplibregl.GeoJSONSourceSpecification['data'];
+    }
+    return reprojectGeometry(obj) as unknown as maplibregl.GeoJSONSourceSpecification['data'];
+}
+
 function applyGeometry(
     map: maplibregl.Map,
     geoJson: string | null,
@@ -131,7 +210,9 @@ function applyGeometry(
         return;
     }
 
-    map.addSource(GEOMETRY_SOURCE_ID, { type: 'geojson', data });
+    const wgs84Data = reprojectGeoJsonToWgs84(data);
+
+    map.addSource(GEOMETRY_SOURCE_ID, { type: 'geojson', data: wgs84Data });
 
     // Fill layer for polygon geometry
     map.addLayer({
@@ -178,7 +259,7 @@ function applyGeometry(
     });
 
     if (zoomToBounds) {
-        fitToGeometry(map, data);
+        fitToGeometry(map, wgs84Data);
     }
 }
 
