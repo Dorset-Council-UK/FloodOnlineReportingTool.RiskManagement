@@ -117,6 +117,24 @@ public partial class Options(
         navigationManager.NavigateTo(nextPageUrl);
     }
 
+    private async Task GoToMap()
+    {
+        //Store the search options in session storage for retrieval on the next page
+        try
+        {
+            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Issue setting protected storage for search options page");
+        }
+
+        // Go to the next page or pass back to the summary
+        var nextPage = SearchPages.OptionsMap;
+        var nextPageUrl = nextPage.Url;
+        navigationManager.NavigateTo(nextPageUrl);
+    }
+
     private async Task<SearchOptionsViewModel> GetSearchOptions()
     {
         var data = await protectedSessionStorage.GetAsync<SearchOptionsViewModel>(SessionConstants.SearchOptions);

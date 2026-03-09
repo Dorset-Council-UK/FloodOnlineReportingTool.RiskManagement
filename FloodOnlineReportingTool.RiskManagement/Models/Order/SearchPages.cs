@@ -6,6 +6,7 @@ internal static class SearchPages
 
     public static readonly PageInfo Home = new(BaseUrl, "Search");
     public static readonly PageInfo Options = new(BaseUrl, "/options", "Options");
+    public static readonly PageInfo OptionsMap = new(BaseUrl, "/options-map", "Options - Search Area");
     public static readonly PageInfo Results = new(BaseUrl, "/results", "Flood reports");
     public static readonly PageInfo Property = new(BaseUrl, "/property", "Property reports");
     public static readonly PageInfo Highway = new(BaseUrl, "/highway", "Highway reports");
