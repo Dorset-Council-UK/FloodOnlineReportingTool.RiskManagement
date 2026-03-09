@@ -27,7 +27,7 @@ public class SearchOptionsViewModel : ISearchOptions
 
     // Result properties
     [GdsFieldErrorClass(GdsFieldTypes.Select)]
-    public ResultTypes ShowResultsAs { get; set; }
+    public ResultTypes ShowResultsAs { get; set; } = ResultTypes.List;
 
 
     // View specific parameters 
