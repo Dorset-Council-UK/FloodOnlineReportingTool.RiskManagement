@@ -45,20 +45,20 @@ public partial class Options(
     private string _searchArea = string.Empty;
     private string _mapURL = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Setup model and edit context
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _searchArea = configuration["RiskManagement:DefaultMapBoundingBox"] ?? "365955,77709,375836,92362";
+        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-
             // Set any previously entered data
             var options = await GetSearchOptions();
             Model.ToDate = options.ToDate;
@@ -75,13 +75,6 @@ public partial class Options(
             _isLoading = false;
             StateHasChanged();
         }
-    }
-
-    public override async Task SetParametersAsync(ParameterView parameters)
-    {
-        await base.SetParametersAsync(parameters);
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
-        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()
