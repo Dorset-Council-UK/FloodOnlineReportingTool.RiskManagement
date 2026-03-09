@@ -18,8 +18,7 @@ public class MiniMapOptions
     public string OsLicenceNumber { get; init; } = string.Empty;
 
     /// <summary>
-    /// Default map bounds in WGS84 decimal degrees [west, south, east, north] format.
-    /// Defaults to approximate bounds of the South of England.
+    /// Default map bounds in British National Grid [MinX, MinY, MaxX, MaxY] format.
     /// </summary>
     public double[] DefaultBounds { get; init; } = [];
 }

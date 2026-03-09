@@ -32,7 +32,7 @@ public partial class MiniMap : IAsyncDisposable
 
     /// <summary>
     /// Overrides the default map bounds from configuration.
-    /// Expects WGS84 decimal degrees in [west, south, east, north] order.
+    /// Expects British National Grid [MinX, MinY, MaxX, MaxY].
     /// </summary>
     [Parameter]
     public double[]? DefaultBounds { get; set; }
@@ -44,14 +44,14 @@ public partial class MiniMap : IAsyncDisposable
     public IReadOnlyList<WmsLayerConfig>? WmsLayers { get; set; }
 
     /// <summary>
-    /// A GeoJSON string (Feature, FeatureCollection, or Geometry) in WGS84 to render on the map.
+    /// A GeoJSON string (Feature, FeatureCollection, or Geometry) in British National Grid to render on the map.
     /// Takes precedence over <see cref="Geometry"/> if both are supplied.
     /// </summary>
     [Parameter]
     public string? GeoJson { get; set; }
 
     /// <summary>
-    /// A NetTopologySuite <see cref="NetTopologySuite.Geometries.Geometry"/> in WGS84 (SRID 4326)
+    /// A NetTopologySuite <see cref="NetTopologySuite.Geometries.Geometry"/> in British National Grid
     /// to render on the map. Ignored if <see cref="GeoJson"/> is also supplied.
     /// </summary>
     [Parameter]

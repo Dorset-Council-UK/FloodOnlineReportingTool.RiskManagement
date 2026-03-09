@@ -283,12 +283,6 @@ public partial class OptionsMap(
                         selectedWard, geometry.GeometryType);
                 }
             }
-            if (Model.ByPolygon != null)
-            {
-                Envelope envelope = Model.ByPolygon.EnvelopeInternal;
-                double bufferDistance = 100.0;
-                envelope.ExpandBy(bufferDistance);
-            }
             StateHasChanged();
         }
     }

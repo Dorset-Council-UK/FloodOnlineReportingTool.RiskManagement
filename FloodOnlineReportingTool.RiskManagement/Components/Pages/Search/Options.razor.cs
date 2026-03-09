@@ -3,23 +3,19 @@ using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using NetTopologySuite.Geometries;
-using System.Text;
+
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class Options(
     ILogger<Options> logger,
     ICommonRepository commonRepository,
-    IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage,
-    IConfiguration configuration
+    ProtectedSessionStorage protectedSessionStorage
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
