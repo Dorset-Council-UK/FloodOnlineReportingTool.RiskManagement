@@ -1,5 +1,6 @@
 ﻿@page "/search/options"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
@@ -48,17 +49,17 @@
                             </legend>
                             <div class="govuk-grid-row">
                                 <div class="govuk-grid-column-one-half">
-                                    <GdsFormGroup For="() => Model.ByName">
+                                    <GdsFormGroup For="() => Model.ByPersonsName">
                                         <GdsLabel Text="Search for reports by the person's name" />
                                         <GdsErrorMessage />
-                                        <GdsInputText @bind-Value=Model.ByName class="govuk-input govuk-input--width-50" />
+                                        <GdsInputText @bind-Value=Model.ByPersonsName class="govuk-input govuk-input--width-50" />
                                     </GdsFormGroup>
                                         </div>
                                     <div class="govuk-grid-column-one-half">
-                                    <GdsFormGroup For="() => Model.ByPostcode">
+                                    <GdsFormGroup For="() => Model.ByPlaceName">
                                         <GdsLabel Text="Search by affected postcode" />
                                         <GdsErrorMessage />
-                                        <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
+                                        <GdsInputText @bind-Value=Model.ByPlaceName class="govuk-input govuk-input--width-25" />
                                     </GdsFormGroup>
                                 </div>
                             </div>
@@ -107,7 +108,7 @@
                                                     <GdsErrorMessage />
                                                     <div class="govuk-input__wrapper">
                                                         <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" onkeydown="if(event.key==='Enter'){event.preventDefault();this.dispatchEvent(new Event('change'));document.getElementById('btn-search-area').click();return false;}" />
-                                                        <GdsButton id="btn-search-area"  AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnSearch" />
+                                                        <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnSearch" />
                                                     </div>
                                                 </GdsFormGroup>
 
@@ -140,39 +141,40 @@
                                     </div>
                                 </div>
                                 <div class="govuk-grid-column-one-half">
-                                        <div style="position: relative; width: 500px; height: 300px;">
-                                            <img class="img img-fluid"
-                                                 src="@_mapURL"
-                                                 alt="Map showing the selected flood search location or area"
+                                    <div style="position: relative; width: 500px; height: 300px;">
+                                        <img class="img img-fluid"
+                                             src="@_mapURL"
+                                             alt="Map showing the selected flood search location or area"
+                                             width="500"
+                                             height="300"
+                                             style="display: block;" />
+
+                                        @if (Model.ByPolygon != null)
+                                        {
+                                            <svg viewBox="@GetSvgViewBox()"
                                                  width="500"
                                                  height="300"
-                                                 style="display: block;" />
-
-                                            @if (Model.ByAreaGeom != null)
-                                            {
-                                                <svg viewBox="@GetSvgViewBox()"
-                                                     width="500"
-                                                     height="300"
-                                                     style="position: absolute; top: 0; left: 0; pointer-events: none;"
-                                                     preserveAspectRatio="none">
-                                                    <polygon points="@GenerateSvgPoints()"
-                                                             fill="orange"
-                                                             fill-opacity="0.3"
-                                                             stroke="orange"
-                                                             stroke-width="2" />
-                                                </svg>
-                                            }
-                                        </div>
-                                        <br />
-                                        @if (Model.ByAreaGeom!=null){
-                                            <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
+                                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"
+                                                 preserveAspectRatio="none">
+                                                <polygon points="@GenerateSvgPoints()"
+                                                         fill="orange"
+                                                         fill-opacity="0.3"
+                                                         stroke="orange"
+                                                         stroke-width="2" />
+                                            </svg>
                                         }
-                                        <GdsFormGroup For="() => Model.Buffer">
-                                            <GdsLabel Text="Add a search buffer in metres" />
-                                            <GdsHint>This will only apply if searching with a point from the map</GdsHint>
-                                            <GdsErrorMessage />
-                                            <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
-                                        </GdsFormGroup>
+                                    </div>
+                                    <br />
+                                    @if (Model.ByPolygon != null)
+                                    {
+                                        <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
+                                    }
+                                    <GdsFormGroup For="() => Model.Buffer">
+                                        <GdsLabel Text="Add a search buffer in metres" />
+                                        <GdsHint>This will only apply if searching with a point from the map</GdsHint>
+                                        <GdsErrorMessage />
+                                        <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
+                                    </GdsFormGroup>
                                 </div>
                             </div>
                         </fieldset>
@@ -187,12 +189,12 @@
                             </legend>
                             <div class="govuk-grid-row">
                                 <div class="govuk-grid-column-full">
-                                    <GdsFormGroup For="() => Model.SearchType">
-                                        <GdsLabel Text="Limit search to" />
+                                    <GdsFormGroup For="() => Model.ShowResultsAs">
+                                        <GdsLabel Text="Show results as" />
                                         <GdsErrorMessage />
-                                        <InputSelect @bind-Value="Model.SearchType" class="govuk-select">
+                                        <InputSelect @bind-Value="Model.ShowResultsAs" class="govuk-select">
                                             <option value="">Select an option</option>
-                                            @foreach (var searchType in Enum.GetValues<FloodLocationSearchType>())
+                                            @foreach (var searchType in Enum.GetValues<ResultTypes>())
                                             {
                                                 <option value="@searchType">@searchType</option>
                                             }
@@ -223,6 +225,6 @@
     </Authorized>
 
     <NotAuthorized>
-        <GdsWarning Text="Please sign in to search for flood locations" />
+        <GdsWarning Text="Please sign in to search" />
     </NotAuthorized>
 </AuthorizeView>

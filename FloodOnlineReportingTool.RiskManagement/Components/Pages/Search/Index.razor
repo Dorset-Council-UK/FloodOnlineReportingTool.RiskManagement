@@ -31,10 +31,10 @@
                                     if (conditionalId != null)
                                     {
                                         <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
-                                            <GdsFormGroup For="@(() => Model.ReportReference)">
+                                            <GdsFormGroup For="@(() => Model.ByReference)">
                                                 <GdsLabel Text="Please provide the flood report reference or title" />
                                                 <GdsErrorMessage />
-                                                <GdsInputText @bind-Value=Model.ReportReference class="govuk-input govuk-input--width-10" />
+                                                <GdsInputText @bind-Value=Model.ByReference class="govuk-input govuk-input--width-10" />
                                             </GdsFormGroup>
                                         </div>
                                     }

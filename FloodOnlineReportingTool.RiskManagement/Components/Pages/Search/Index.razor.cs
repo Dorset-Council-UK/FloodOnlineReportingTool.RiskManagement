@@ -47,8 +47,8 @@ public partial class Index(
         {
             // Set any previously entered data
             var options = await GetSearchOptions();
-            Model.ReportReference = options.ReportReference;
-            _isReferenceKnown = !string.IsNullOrWhiteSpace(Model.ReportReference);
+            Model.ByReference = options.ByReference;
+            _isReferenceKnown = !string.IsNullOrWhiteSpace(Model.ByReference);
 
             _isLoading = false;
             StateHasChanged();
