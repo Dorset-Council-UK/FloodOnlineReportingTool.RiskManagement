@@ -6,6 +6,7 @@ using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using NetTopologySuite.Geometries;
@@ -44,6 +45,9 @@ public partial class OptionsMap(
     private CancellationTokenSource? _searchCts;
     private string _searchArea = string.Empty;
     private string _mapURL = string.Empty;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -190,9 +194,12 @@ public partial class OptionsMap(
         {
             _isSearching = true;
             StateHasChanged();
-            
-            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, _searchCts.Token);
-            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, _searchCts.Token);
+
+            var authState = await AuthenticationState!;
+            var user = authState.User;
+
+            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
+            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
                 _parishResults.Count, searchTerm);
@@ -223,8 +230,11 @@ public partial class OptionsMap(
         {
             logger.LogInformation("User selected parish: {Parish}", selectedParish);
 
+            var authState = await AuthenticationState!;
+            var user = authState.User;
+
             // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, _cts.Token);
+            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, user, _cts.Token);
 
             if (geometry != null)
             {
@@ -274,8 +284,11 @@ public partial class OptionsMap(
         {
             logger.LogInformation("User selected ward: {Ward}", selectedWard);
 
+            var authState = await AuthenticationState!;
+            var user = authState.User;
+
             // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, _cts.Token);
+            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, user, _cts.Token);
 
             if (geometry != null)
             {
