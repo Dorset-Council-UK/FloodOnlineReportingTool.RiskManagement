@@ -102,6 +102,12 @@ public class GeoServerClient(
                 featureCollection = JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
             }
 
+            if (featureCollection == null)
+            {
+                logger.LogWarning("GeoServer API {ApiSource} returned no data", apiSource);
+                return new List<GdsOptionItem<string>>();
+            }
+
             if (featureCollection?.Count == 0)
             {
                 return new List<GdsOptionItem<string>>();
