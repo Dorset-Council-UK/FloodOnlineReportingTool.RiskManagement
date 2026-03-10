@@ -91,8 +91,13 @@ public class GeoServerClient(
                     options => { options.RelativePath = requestPath; },
                     cancellationToken: ct);
 
-                if (httpResponse?.Content == null) return null;
-                
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    logger.LogWarning("GeoServer API {ApiSource} geometry request returned {StatusCode}", apiSource, httpResponse.StatusCode);
+                    return new List<GdsOptionItem<string>>();
+                }
+                if (httpResponse?.Content == null) return new List<GdsOptionItem<string>>();
+
                 var stream = await httpResponse.Content.ReadAsStreamAsync(ct);
                 featureCollection = JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
             }
@@ -189,8 +194,13 @@ public class GeoServerClient(
                     options => { options.RelativePath = requestPath; },
                     cancellationToken: ct);
 
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    logger.LogWarning("GeoServer API {ApiSource} geometry request returned {StatusCode}", apiSource, httpResponse.StatusCode);
+                    return null;
+                }
                 if (httpResponse?.Content == null) return null;
-                
+
                 var stream = await httpResponse.Content.ReadAsStreamAsync(ct);
                 featureCollection = JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
             }
