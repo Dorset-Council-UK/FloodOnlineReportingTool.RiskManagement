@@ -23,14 +23,11 @@
                                 <div class="govuk-grid-column-one-half">
                                 <div class="govuk-grid-row">
                                 <h2>Add by region</h2>
-                                    <GdsFormGroup For="() => _searchTerm">
-                                        <GdsLabel Text="Search for parish or ward" />
-                                        <GdsErrorMessage />
-                                        <div class="govuk-input__wrapper">
-                                            <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" onkeydown="if(event.key==='Enter'){event.preventDefault();this.dispatchEvent(new Event('change'));document.getElementById('btn-search-area').click();return false;}" />
-                                            <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" style="margin-bottom: 0.1rem;" Text="Search" OnClick="@OnSearch" />
-                                        </div>
-                                    </GdsFormGroup>
+                                    <GdsLabel Text="Search for regions (i.e. parish/ward)" />
+                                    <GdsErrorMessage />
+                                    <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-10" />
+
+                                     <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" Text="Search for regions" OnClick="@OnSearch" />
 
                                     @if (_isSearching)
                                     {
@@ -58,10 +55,10 @@
                                     }
                                     </div>
                                     <div class="govuk-grid-row">
-                                        <h2>Add by point</h2>
+                                        <h2>Add by location</h2>
                                         <GdsFormGroup For="() => Model.Buffer">
-                                            <GdsLabel Text="Add a search buffer in metres" />
-                                            <GdsHint>This will only apply if searching with a point from the map</GdsHint>
+                                            <GdsLabel Text="Search radius (m)" />
+                                            <GdsHint>If provided a circle will be added to the map with the correct radius when you click on it.</GdsHint>
                                             <GdsErrorMessage />
                                             <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
                                         </GdsFormGroup>
