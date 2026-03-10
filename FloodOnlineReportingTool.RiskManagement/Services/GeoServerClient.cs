@@ -42,7 +42,7 @@ public class GeoServerClient(
         try
         {
             var cqlFilter = ConstructSearchCql(searchTerm, layerConfig, false);
-            string requestPath = ConstructSearchRequestUri(layerConfig, cqlFilter, "100", true, false);
+            string requestPath = ConstructSearchRequestUri(layerConfig, cqlFilter, 100, true, false);
 
             if (string.IsNullOrEmpty(requestPath))
             {
@@ -85,7 +85,7 @@ public class GeoServerClient(
         try
         {
             var cqlFilter = ConstructSearchCql(searchTerm, layerConfig, true);
-            string requestPath = ConstructSearchRequestUri(layerConfig, cqlFilter, "1", false, true);
+            string requestPath = ConstructSearchRequestUri(layerConfig, cqlFilter, 1, false, true);
 
             if (string.IsNullOrEmpty(requestPath))
             {
@@ -211,7 +211,7 @@ public class GeoServerClient(
     private static string ConstructSearchRequestUri(
         DownstreamApiLayer layerConfig,
         string cqlFilter,
-        string maxFeatures,
+        int maxFeatures,
         bool limitToIdentifier,
         bool limitToGeometry)
     {
@@ -235,7 +235,7 @@ public class GeoServerClient(
                     ["request"] = "GetFeature",
                     ["typeName"] = layerConfig.LayerName,
                     ["outputFormat"] = "application/json",
-                    ["maxFeatures"] = maxFeatures,
+                    ["maxFeatures"] = maxFeatures.ToString(CultureInfo.InvariantCulture),
                     ["CQL_FILTER"] = cqlFilter
                 },
             Data.Models.Enums.RequestVersions.V2_0_0 =>
@@ -246,7 +246,7 @@ public class GeoServerClient(
                     ["request"] = "GetFeature",
                     ["typeNames"] = layerConfig.LayerName,
                     ["outputFormat"] = "application/json",
-                    ["count"] = maxFeatures,
+                    ["count"] = maxFeatures.ToString(CultureInfo.InvariantCulture),
                     ["CQL_FILTER"] = cqlFilter
                 },
             _ => throw new InvalidOperationException($"Unsupported WFS version: {layerConfig.RequestVersion}")
