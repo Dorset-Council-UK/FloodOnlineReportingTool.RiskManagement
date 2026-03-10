@@ -59,7 +59,7 @@ public class GeoServerClient(
             FeatureCollection? featureCollection;
 
             // Use authenticated or anonymous call based on SecureLayer flag
-            if (layerConfig.SecureLayer && user != null)
+            if (layerConfig.SecureLayer && user?.Identity?.IsAuthenticated == true)
             {
                 // Authenticated call - respects Geofence user-based access control
                 featureCollection = await downstreamApi.GetForUserAsync<FeatureCollection>(
