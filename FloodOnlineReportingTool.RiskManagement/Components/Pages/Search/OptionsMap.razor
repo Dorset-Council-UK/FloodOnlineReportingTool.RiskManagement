@@ -44,7 +44,7 @@
                                         <div class="govuk-form-group">
                                             <label class="govuk-label">Select a parish</label>
 
-                                            <GdsSelect Options="@_parishResults" OnChange="@OnParishSelected" />
+                                            <GdsSelect @key="_selectKey" Options="@_parishResults" OnChange="@OnParishSelected" />
                                         </div>
                                     }
 
@@ -53,7 +53,7 @@
                                         <div class="govuk-form-group">
                                             <label class="govuk-label">Select a ward</label>
 
-                                            <GdsSelect Options="@_wardResults" OnChange="@OnWardSelected" />
+                                            <GdsSelect @key="_selectKey" Options="@_wardResults" OnChange="@OnWardSelected" />
                                         </div>
                                     }
                                     </div>
@@ -69,30 +69,9 @@
                                 </div>
 
                                 <div class="govuk-grid-column-one-half">
-                                    <div style="position: relative; width: 500px; height: 300px;">
-                                        <img class="img img-fluid"
-                                             src="@_mapURL"
-                                             alt="Map showing the selected flood search location or area"
-                                             width="500"
-                                             height="300"
-                                             style="display: block;" />
-
-                                        @if (Model.ByPolygon != null)
-                                        {
-                                            <svg viewBox="@GetSvgViewBox()"
-                                                 width="500"
-                                                 height="300"
-                                                 style="position: absolute; top: 0; left: 0; pointer-events: none;"
-                                                 preserveAspectRatio="none">
-                                                <polygon points="@GenerateSvgPoints()"
-                                                         fill="orange"
-                                                         fill-opacity="0.3"
-                                                         stroke="orange"
-                                                         stroke-width="2" />
-                                            </svg>
-                                        }
+                                    <div style="height:400px" class="govuk-!-margin-bottom-2">
+                                        <MiniMap Geometry="Model.ByPolygon"></MiniMap>
                                     </div>
-                                    <br />
                                     @if (Model.ByPolygon != null)
                                     {
                                         <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />

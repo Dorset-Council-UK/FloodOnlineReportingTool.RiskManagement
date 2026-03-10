@@ -3,24 +3,20 @@ using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using NetTopologySuite.Geometries;
-using System.Text;
+
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class Options(
     ILogger<Options> logger,
     ICommonRepository commonRepository,
-    IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage,
-    IConfiguration configuration
+    ProtectedSessionStorage protectedSessionStorage
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
@@ -39,12 +35,9 @@ public partial class Options(
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
     private string _searchTerm = string.Empty;
-    private bool _isSearching = false;
     private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
     private CancellationTokenSource? _searchCts;
-    private string _searchArea = string.Empty;
-    private string _mapURL = string.Empty;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -55,7 +48,6 @@ public partial class Options(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _searchArea = configuration["RiskManagement:DefaultMapBoundingBox"] ?? "365955,77709,375836,92362";
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
@@ -74,7 +66,6 @@ public partial class Options(
             Model.ShowResultsAs = options.ShowResultsAs;
             Model.BufferText = options.BufferText;
             Model.Buffer = options.Buffer;
-            GenerateMapURL();
 
             _isLoading = false;
             StateHasChanged();
@@ -169,210 +160,5 @@ public partial class Options(
 
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
-
-    private async Task OnSearch()
-    {      
-        // Clear results if search term is too short
-        if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)
-        {
-            _parishResults = new List<GdsOptionItem<string>>();
-            _wardResults = new List<GdsOptionItem<string>>();
-            StateHasChanged();
-            return;
-        }
-
-        await SearchAsync(_searchTerm);
-    }
-
-    private async Task SearchAsync(string searchTerm)
-    {
-        // Cancel any pending search
-        _searchCts?.Cancel();
-        _searchCts = new CancellationTokenSource();
-        
-        try
-        {
-            _isSearching = true;
-            StateHasChanged();
-            
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-            
-            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
-            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
-
-            logger.LogInformation("Parish search returned {Count} results", _parishResults.Count);
-            logger.LogInformation("Ward search returned {Count} results", _wardResults.Count);
-        }
-        catch (OperationCanceledException)
-        {
-            logger.LogDebug("Search cancelled");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to search. Clearing results.");
-            _parishResults = new List<GdsOptionItem<string>>();
-            _wardResults = new List<GdsOptionItem<string>>();
-        }
-        finally
-        {
-            _isSearching = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task OnParishSelected(ChangeEventArgs e)
-    {
-        var selectedParish = e.Value?.ToString();
-        if (!string.IsNullOrWhiteSpace(selectedParish))
-        {
-            logger.LogInformation("User selected parish: {Parish}", selectedParish);
-
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, user, _cts.Token);
-            
-            if (geometry != null)
-            {
-                if (geometry is MultiPolygon multiPolygon)
-                {
-                    if (Model.ByPolygon != null)
-                    {
-                        var unionGeom = Model.ByPolygon.Union(geometry);
-                        if (unionGeom is MultiPolygon newMultiPolygon)
-                        {
-                            Model.ByPolygon = newMultiPolygon;
-
-                        } else if (unionGeom is Polygon singlePolygon)
-                        {
-                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
-                        } else
-                        {
-                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
-                        }
-                    }
-                    else
-                    {
-                        Model.ByPolygon = multiPolygon;
-                    }
-                } else
-                {
-                    logger.LogWarning("Geometry for parish {Parish} is not a MultiPolygon as expected. Type: {GeometryType}",
-                        selectedParish, geometry.GeometryType);
-                }
-            }
-            if (Model.ByPolygon != null)
-            {
-                Envelope envelope = Model.ByPolygon.EnvelopeInternal;
-                double bufferDistance = 100.0;
-                envelope.ExpandBy(bufferDistance);
-                _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
-                GenerateMapURL();
-            }
-            StateHasChanged();
-        }
-    }
-
-    private async Task OnWardSelected(ChangeEventArgs e)
-    {
-        var selectedWard = e.Value?.ToString();
-        if (!string.IsNullOrWhiteSpace(selectedWard))
-        {
-            logger.LogInformation("User selected ward: {Ward}", selectedWard);
-
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, user, _cts.Token);
-            
-            if (geometry != null)
-            {
-                if (geometry is MultiPolygon multiPolygon)
-                {
-                    if (Model.ByPolygon != null)
-                    {
-                        var unionGeom = Model.ByPolygon.Union(geometry);
-                        if (unionGeom is MultiPolygon newMultiPolygon)
-                        {
-                            Model.ByPolygon = newMultiPolygon;
-
-                        }
-                        else if (unionGeom is Polygon singlePolygon)
-                        {
-                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
-                        }
-                        else
-                        {
-                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
-                        }
-                    }
-                    else
-                    {
-                        Model.ByPolygon = multiPolygon;
-                    }
-                }
-                else
-                {
-                    logger.LogWarning("Geometry for ward {Ward} is not a MultiPolygon as expected. Type: {GeometryType}",
-                        selectedWard, geometry.GeometryType);
-                }
-            }
-            if (Model.ByPolygon != null)
-            {
-                Envelope envelope = Model.ByPolygon.EnvelopeInternal;
-                double bufferDistance = 100.0;
-                envelope.ExpandBy(bufferDistance);
-                _searchArea = $"{envelope.MinX},{envelope.MinY},{envelope.MaxX},{envelope.MaxY}";
-                GenerateMapURL();
-            }
-            StateHasChanged();
-        }
-    }
-
-    private void ResetGeom()
-    {
-        Model.ByPolygon = null;
-        StateHasChanged();
-    }
-
-    private string GetSvgViewBox()
-    {
-        if (Model.ByPolygon == null) return "0 0 500 300";
-
-        var envelope = Model.ByPolygon.EnvelopeInternal;
-        double bufferDistance = 100.0;
-        envelope.ExpandBy(bufferDistance);
-
-        return FormattableString.Invariant($"0 0 {envelope.Width:F2} {envelope.Height:F2}");
-    }
-
-    private string GenerateSvgPoints()
-    {
-        if (Model.ByPolygon == null) return string.Empty;
-
-        var envelope = Model.ByPolygon.EnvelopeInternal;
-        double bufferDistance = 100.0;
-        envelope.ExpandBy(bufferDistance);
-
-        var coordinates = Model.ByPolygon.Coordinates;
-        var points = new StringBuilder();
-
-        foreach (var coord in coordinates)
-        {
-            double x = coord.X - envelope.MinX;
-            double y = envelope.MaxY - coord.Y; // Flip Y
-
-            if (points.Length > 0) points.Append(' ');
-            points.Append(FormattableString.Invariant($"{x:F2},{y:F2}"));
-        }
-
-        return points.ToString();
-    }
-
-    private void GenerateMapURL()
-    {
-        string MiniMapBaseUrl = configuration["RiskManagement:MiniMapBaseUrl"] ?? "";
-        _mapURL = $"{MiniMapBaseUrl}&SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&srs=epsg%3a27700&format=image%2fjpeg&width=500&height=300&bbox={_searchArea}";
-    }
+    
 }

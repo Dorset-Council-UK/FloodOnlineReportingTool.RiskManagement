@@ -20,6 +20,12 @@ internal static class OptionsExtensions
         return options;
     }
 
+    internal static void AddMiniMapOptions<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        var section = builder.Configuration.GetSection(MiniMapOptions.SectionName);
+        builder.Services.Configure<MiniMapOptions>(section);
+    }
+
     internal static MessagingOptions AddMessagingOptions<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         var section = builder.Configuration.GetRequiredSection(MessagingOptions.SectionName);
