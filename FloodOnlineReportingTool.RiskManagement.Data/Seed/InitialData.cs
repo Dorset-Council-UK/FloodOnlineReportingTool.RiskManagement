@@ -102,8 +102,8 @@ internal static class InitialData
     internal static DownstreamApiLayer[] DownstreamApiLayerData()
     {
         return [
-            new DownstreamApiLayer("parish", "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending),
-            new DownstreamApiLayer("ward", "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending)
+            new DownstreamApiLayer("parish", false, false, "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending),
+            new DownstreamApiLayer("ward", false, false, "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending)
         ];
     }
 

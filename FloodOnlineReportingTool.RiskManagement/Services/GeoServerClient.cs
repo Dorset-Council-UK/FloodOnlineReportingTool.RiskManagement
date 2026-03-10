@@ -1,16 +1,22 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using GdsBlazorComponents;
+using Microsoft.Identity.Abstractions;
 using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 using System.Web;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Options;
+using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
-public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> logger, ICommonRepository commonRepository) : IGeoServerClient
+public class GeoServerClient(
+    IDownstreamApi downstreamApi,
+    ICommonRepository commonRepository,
+    ILogger<GeoServerClient> logger) : IGeoServerClient
 {
     // GeoJSON4STJ requires JsonSerializerOptions with NTS converters
     private static readonly JsonSerializerOptions _geoJsonOptions = new()
@@ -18,90 +24,176 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
         Converters = { new NetTopologySuite.IO.Converters.GeoJsonConverterFactory() }
     };
 
-    public async Task<IReadOnlyCollection<GdsOptionItem<string>>> SearchNameAsync(string apiSource, string searchTerm, CancellationToken ct)
+    public async Task<IReadOnlyCollection<GdsOptionItem<string>>> SearchNameAsync(
+        string apiSource, 
+        string searchTerm,
+        ClaimsPrincipal? user,
+        CancellationToken ct)
     {
-        var layerConfig = await commonRepository.GetDownstreamApiLayers(apiSource, ct);
         var stopwatch = Stopwatch.StartNew();
-        
+        var layerConfig = await commonRepository.GetDownstreamApiLayers(apiSource, ct);
+
         if (layerConfig == null)
         {
-            logger.LogError("No GeoServer API {ApiSource} layer configuration found in the database.", apiSource);
+            logger.LogError("No GeoServer API {ApiSource} layer configuration found", apiSource);
+            return new List<GdsOptionItem<string>>();
+        }
+
+        if (!layerConfig.Enabled)
+        {
+            logger.LogWarning("GeoServer API {ApiSource} layer is disabled", apiSource);
             return new List<GdsOptionItem<string>>();
         }
 
         try
         {
             var cqlFilter = ConstructSearchCql(searchTerm, layerConfig, false);
-            string requestUri = ConstructSearchRequestUri(layerConfig, cqlFilter, true);
-            
-            if (string.IsNullOrEmpty(requestUri))
+            string requestPath = ConstructSearchRequestUri(layerConfig, cqlFilter, true);
+
+            if (string.IsNullOrEmpty(requestPath))
             {
-                logger.LogError("Failed to construct valid API call for {ApiSource} layer.", apiSource);
+                logger.LogError("Failed to construct valid API call for {ApiSource}", apiSource);
                 return new List<GdsOptionItem<string>>();
             }
 
-            var httpResponse = await GetGeoServerWebRequest(requestUri, ct, null);
-            if (httpResponse == null) return new List<GdsOptionItem<string>>();
+            FeatureCollection? featureCollection;
 
-            // Deserialize using NetTopologySuite
-            var jsonString = await httpResponse.Content.ReadAsStringAsync(ct);
-            var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(jsonString, _geoJsonOptions);
+            // Use authenticated or anonymous call based on SecureLayer flag
+            if (layerConfig.SecureLayer && user != null)
+            {
+                // Authenticated call - respects Geofence user-based access control
+                featureCollection = await downstreamApi.GetForUserAsync<FeatureCollection>(
+                    DownstreamAPIOptions.GeoServerApi,
+                    options =>
+                    {
+                        options.RelativePath = requestPath;
+                        options.Deserializer = (content) =>
+                        {
+                            if (content is null) return null;
+                            var stream = content.ReadAsStream(ct);
+                            return JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
+                        };
+                        // Add token acquisition options with login hint
+                        options.AcquireTokenOptions = new()
+                        {
+                            Claims = user?.FindFirst("preferred_username")?.Value ?? user?.FindFirst("upn")?.Value,
+                            ForceRefresh = false
+                        };
+                    },
+                    user: user,
+                    cancellationToken: ct);
+            }
+            else
+            {
+                // Anonymous call for public layers - use public API configuration with no scopes
+                var httpResponse = await downstreamApi.CallApiAsync(
+                    DownstreamAPIOptions.GeoServerApiPublic,  // Changed from GeoServerApi
+                    options => { options.RelativePath = requestPath; },
+                    cancellationToken: ct);
 
-            if (featureCollection == null || featureCollection.Count == 0)
+                if (httpResponse?.Content == null) return new List<GdsOptionItem<string>>();
+                
+                var stream = await httpResponse.Content.ReadAsStreamAsync(ct);
+                featureCollection = JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
+            }
+
+            if (featureCollection?.Count == 0)
             {
                 return new List<GdsOptionItem<string>>();
             }
 
-            // Extract feature identifiers
             var results = featureCollection
                 .Select(f => f.Attributes?[layerConfig.FeatureIdentifier]?.ToString())
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
-                .ToList()!;
+                .OfType<string>()
+                .ToList();
 
-            logger.LogInformation("GeoServer query completed {ApiSource} search in {ElapsedMs}ms, returned {Count} results",
+            logger.LogInformation("GeoServer {ApiSource} search completed in {ElapsedMs}ms, {Count} results",
                 apiSource, stopwatch.ElapsedMilliseconds, results.Count);
 
-            var resultList = results.OfType<string>().ToList();
-            return CreateGdsOptionItems(resultList);
+            return CreateGdsOptionItems(results);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred while searching for {ApiSource} names in GeoServer.", apiSource);
+            logger.LogError(ex, "Error searching {ApiSource} in GeoServer", apiSource);
             return new List<GdsOptionItem<string>>();
         }
     }
 
-    public async Task<Geometry?> GetGeometryFromSourceBySearch(string apiSource, string searchTerm, CancellationToken ct)     
+    public async Task<Geometry?> GetGeometryFromSourceBySearch(
+        string apiSource, 
+        string searchTerm,
+        ClaimsPrincipal? user,
+        CancellationToken ct)
     {
         var layerConfig = await commonRepository.GetDownstreamApiLayers(apiSource, ct);
         var stopwatch = Stopwatch.StartNew();
-        
+
         if (layerConfig == null)
         {
-            logger.LogError("No GeoServer API {ApiSource} layer configuration found in the database.", apiSource);
+            logger.LogError("No GeoServer API {ApiSource} layer configuration found", apiSource);
+            return null;
+        }
+
+        if (!layerConfig.Enabled)
+        {
+            logger.LogWarning("GeoServer API {ApiSource} layer is disabled", apiSource);
             return null;
         }
 
         try
         {
             var cqlFilter = ConstructSearchCql(searchTerm, layerConfig, true);
-            string requestUri = ConstructGeomRequestUri(layerConfig, cqlFilter);
-            
-            if (string.IsNullOrEmpty(requestUri))
+            string requestPath = ConstructGeomRequestUri(layerConfig, cqlFilter);
+
+            if (string.IsNullOrEmpty(requestPath))
             {
-                logger.LogError("Failed to construct valid geometry API call for {ApiSource} layer.", apiSource);
+                logger.LogError("Failed to construct geometry API call for {ApiSource}", apiSource);
                 return null;
             }
 
-            var httpResponse = await GetGeoServerWebRequest(requestUri, ct, null);
-            if (httpResponse == null) return null;
+            FeatureCollection? featureCollection;
 
-            // Deserialize using NetTopologySuite
-            var jsonString = await httpResponse.Content.ReadAsStringAsync(ct);
-            var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(jsonString, _geoJsonOptions);
+            // Use authenticated or anonymous call based on SecureLayer flag
+            if (layerConfig.SecureLayer && user != null)
+            {
+                // Authenticated call - respects Geofence user-based access control
+                featureCollection = await downstreamApi.GetForUserAsync<FeatureCollection>(
+                    DownstreamAPIOptions.GeoServerApi,
+                    options =>
+                    {
+                        options.RelativePath = requestPath;
+                        options.Deserializer = (content) =>
+                        {
+                            if (content is null) return null;
+                            var stream = content.ReadAsStream(ct);
+                            return JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
+                        };
+                        // Add token acquisition options with login hint
+                        options.AcquireTokenOptions = new()
+                        {
+                            Claims = user?.FindFirst("preferred_username")?.Value ?? user?.FindFirst("upn")?.Value,
+                            ForceRefresh = false
+                        };
+                    },
+                    user: user,
+                    cancellationToken: ct);
+            }
+            else
+            {
+                // Anonymous call for public layers - use public API configuration with no scopes
+                var httpResponse = await downstreamApi.CallApiAsync(
+                    DownstreamAPIOptions.GeoServerApiPublic,  // Changed from GeoServerApi
+                    options => { options.RelativePath = requestPath; },
+                    cancellationToken: ct);
 
+                if (httpResponse?.Content == null) return null;
+                
+                var stream = await httpResponse.Content.ReadAsStreamAsync(ct);
+                featureCollection = JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
+            }
 
             var firstFeature = featureCollection?.FirstOrDefault();
             if (firstFeature?.Geometry != null)
@@ -109,20 +201,15 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
                 logger.LogInformation("GeoServer geometry found for {ApiSource}, type: {GeomType}",
                     apiSource, firstFeature.Geometry.GeometryType);
 
-                logger.LogInformation("GeoServer geometry query completed in {ElapsedMs}ms",
-                    stopwatch.ElapsedMilliseconds);
-
                 return firstFeature.Geometry;
             }
-            else
-            {
-                logger.LogWarning("No geometry found in GeoServer response for {ApiSource}", apiSource);
-                return null;
-            }
-        } 
-        catch (Exception ex) 
+
+            logger.LogWarning("No geometry found for {ApiSource} (user may lack permission)", apiSource);
+            return null;
+        }
+        catch (Exception ex)
         {
-            logger.LogError(ex, "An error occurred getting geometry from {ApiSource}.", apiSource);
+            logger.LogError(ex, "Error getting geometry from {ApiSource}", apiSource);
             return null;
         }
     }
@@ -142,62 +229,59 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
         string requestUri = string.Empty;
         if (layerConfig.RequestMethod == Data.Models.Enums.RequestMethods.WFS)
         {
-            if (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0)
+            string WfsPath = layerConfig.ApiPath;
+            Dictionary<string, string> queryParams;
+            switch (layerConfig.RequestVersion)
             {
-                string WfsPath = layerConfig.ApiPath;
-                Dictionary<string, string> queryParams;
-                switch (layerConfig.RequestVersion)
-                {
-                    case Data.Models.Enums.RequestVersions.V1_0_0 or Data.Models.Enums.RequestVersions.V1_1_0:
-                        // Primary difference between  1.0.0 and 1.1.0 is output format 
-                        // where 1.0.0 is GML2 and 1.1.0 is GML3. 
-                        // Some paging is supported in 1.1.0 but we don't use is for any version 1
-                        // If you need paging, use version 2.0.0
-                        queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
-                        {
-                            ["service"] = "WFS",
-                            ["version"] = (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0 ? "1.0.0" : "1.1.0"),
-                            ["request"] = "GetFeature",
-                            ["typeName"] = layerConfig.LayerName,
-                            ["outputFormat"] = "application/json",
-                            ["maxFeatures"] = "100",
-                            ["CQL_FILTER"] = cqlFilter
-                        };
-                        break;
-                    case Data.Models.Enums.RequestVersions.V2_0_0:
-                        // Input parameters are different for v2.0.0 and paging is supported.
-                        queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
-                        {
-                            ["service"] = "WFS",
-                            ["version"] = "2.0.0",
-                            ["request"] = "GetFeature",
-                            ["typeNames"] = layerConfig.LayerName,
-                            ["outputFormat"] = "application/json",
-                            ["count"] = "100",
-                            ["CQL_FILTER"] = cqlFilter,
-                        };
-                        // TODO: If we need to support paging for v2.0.0, we would need to add "startIndex" parameter and handle it in the code
-                        break;
-                    default:
-                        logger.LogError("Unsupported WFS version {Version} for geometry request.", layerConfig.RequestVersion);
-                        return string.Empty;
-                }
-
-                if (limitToIdentifier)
-                {
-                    // Only return the feature ID value for efficiency
-                    queryParams["propertyName"] = layerConfig.FeatureIdentifier;
-                }
-
-                var queryString = string.Join("&", queryParams.Select(kvp =>
-                    $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
-
-                requestUri = $"{WfsPath}?{queryString}";
+                case Data.Models.Enums.RequestVersions.V1_0_0 or Data.Models.Enums.RequestVersions.V1_1_0:
+                    // Primary difference between  1.0.0 and 1.1.0 is output format 
+                    // where 1.0.0 is GML2 and 1.1.0 is GML3. 
+                    // Some paging is supported in 1.1.0 but we don't use is for any version 1
+                    // If you need paging, use version 2.0.0
+                    queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["service"] = "WFS",
+                        ["version"] = (layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0 ? "1.0.0" : "1.1.0"),
+                        ["request"] = "GetFeature",
+                        ["typeName"] = layerConfig.LayerName,
+                        ["outputFormat"] = "application/json",
+                        ["maxFeatures"] = "100",
+                        ["CQL_FILTER"] = cqlFilter
+                    };
+                    break;
+                case Data.Models.Enums.RequestVersions.V2_0_0:
+                    // Input parameters are different for v2.0.0 and paging is supported.
+                    queryParams = new Dictionary<string, string>(StringComparer.Ordinal)
+                    {
+                        ["service"] = "WFS",
+                        ["version"] = "2.0.0",
+                        ["request"] = "GetFeature",
+                        ["typeNames"] = layerConfig.LayerName,
+                        ["outputFormat"] = "application/json",
+                        ["count"] = "100",
+                        ["CQL_FILTER"] = cqlFilter,
+                    };
+                    // TODO: If we need to support paging for v2.0.0, we would need to add "startIndex" parameter and handle it in the code
+                    break;
+                default:
+                    logger.LogError("Unsupported WFS version {Version} for search request.", layerConfig.RequestVersion);
+                    return string.Empty;
             }
-        } 
+
+            if (limitToIdentifier)
+            {
+                // Only return the feature ID value for efficiency
+                queryParams["propertyName"] = layerConfig.FeatureIdentifier;
+            }
+
+            var queryString = string.Join("&", queryParams.Select(kvp =>
+                $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
+
+            requestUri = $"{WfsPath}?{queryString}";
+        }
         else
         {
-            logger.LogError("Unsupported request method {RequestMethod} for {ApiSource} layer.", layerConfig.RequestMethod, layerConfig.ApiSource);
+            logger.LogError("Unsupported request method {RequestMethod} for layer.", layerConfig.RequestMethod);
         }
         return requestUri;
     }
@@ -265,10 +349,10 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
     private List<GdsOptionItem<string>> CreateGdsOptionItems(List<string> results)
     {
         var optionItems = new List<GdsOptionItem<string>>
-            {
-                new GdsOptionItem<string>("0".AsSpan(), "Select an option", string.Empty, false)
-            };
-        optionItems.AddRange(results.Select(static (o, idx) => 
+        {
+            new("0".AsSpan(), "Select an option", string.Empty, false)
+        };
+        optionItems.AddRange(results.Select((o, idx) =>
             new GdsOptionItem<string>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o, o, false)));
 
         return optionItems;
@@ -281,37 +365,5 @@ public class GeoServerClient(HttpClient httpClient, ILogger<GeoServerClient> log
             .Replace("'", "''")
             .Replace("%", "\\%")
             .Replace("_", "\\_");
-    }
-
-    private async Task<HttpResponseMessage?> GetGeoServerWebRequest(string requestUri, CancellationToken ct, object? postBody)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            HttpResponseMessage? response = null;
-            if (postBody != null)
-            {
-                HttpContent content = JsonContent.Create(postBody);
-                response = await httpClient.PostAsync(requestUri, content, ct);
-            } else
-            {
-                response = await httpClient.GetAsync(requestUri, ct);
-            }
-            response.EnsureSuccessStatusCode();
-
-            return response;
-        }
-        catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-        {
-            logger.LogWarning("GeoServer request timed out after {ElapsedMs}ms",
-                stopwatch.ElapsedMilliseconds);
-            return null;
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogError(ex, "Failed to query GeoServer");
-            return null;
-        }
     }
 }
