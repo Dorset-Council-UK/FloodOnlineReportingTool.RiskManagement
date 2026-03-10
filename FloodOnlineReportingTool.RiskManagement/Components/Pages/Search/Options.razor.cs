@@ -3,6 +3,7 @@ using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -15,7 +16,8 @@ public partial class Options(
     ILogger<Options> logger,
     ICommonRepository commonRepository,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage
+    ProtectedSessionStorage protectedSessionStorage,
+    ISearchOptionsState searchOptionsState
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
@@ -51,17 +53,26 @@ public partial class Options(
     {
         if (firstRender)
         {
-            // Set any previously entered data
-            var options = await GetSearchOptions();
-            Model.ToDate = options.ToDate;
-            Model.FromDate = options.FromDate;
-            Model.ByPlaceName = options.ByPlaceName;
-            Model.ByPersonsName = options.ByPersonsName;
-            Model.ByFloodCause = options.ByFloodCause;
-            Model.ByPolygon = options.ByPolygon;
-            Model.ShowResultsAs = options.ShowResultsAs;
-            Model.BufferText = options.BufferText;
-            Model.Buffer = options.Buffer;
+            var options = searchOptionsState.Options;
+            // GdsInputDate caches the GdsDate object reference on first render, so the existing
+            // objects must be mutated in-place rather than replaced to keep the component in sync.
+            if (options is not null)
+            {
+                Model.FromDate.DayText = options.FromDate.DayText;
+                Model.FromDate.MonthText = options.FromDate.MonthText;
+                Model.FromDate.YearText = options.FromDate.YearText;
+                Model.ToDate.DayText = options.ToDate.DayText;
+                Model.ToDate.MonthText = options.ToDate.MonthText;
+                Model.ToDate.YearText = options.ToDate.YearText;
+                Model.ByPlaceName = options.ByPlaceName;
+                Model.ByPersonsName = options.ByPersonsName;
+                Model.ByFloodCause = options.ByFloodCause;
+                Model.ByPolygon = options.ByPolygon;
+                Model.ShowResultsAs = options.ShowResultsAs;
+                Model.BufferText = options.BufferText;
+                Model.Buffer = options.Buffer;
+            }
+            _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
 
             _isLoading = false;
             StateHasChanged();
@@ -108,37 +119,11 @@ public partial class Options(
         navigationManager.NavigateTo(nextPageUrl);
     }
 
-    private async Task GoToMap()
+    private void GoToMap()
     {
-        //Store the search options in session storage for retrieval on the next page
-        try
-        {
-            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Issue setting protected storage for search options page");
-        }
-
-        // Go to the next page or pass back to the summary
-        var nextPage = SearchPages.OptionsMap;
-        var nextPageUrl = nextPage.Url;
-        navigationManager.NavigateTo(nextPageUrl);
-    }
-
-    private async Task<SearchOptionsViewModel> GetSearchOptions()
-    {
-        var data = await protectedSessionStorage.GetAsync<SearchOptionsViewModel>(SessionConstants.SearchOptions);
-        if (data.Success)
-        {
-            if (data.Value != null)
-            {
-                return data.Value;
-            }
-        }
-
-        logger.LogWarning("Search options were not found in the protected storage.");
-        return new SearchOptionsViewModel();
+        Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        searchOptionsState.SetOptions(Model);
+        navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
     }
 
     private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions(IList<Guid> selectedValues)

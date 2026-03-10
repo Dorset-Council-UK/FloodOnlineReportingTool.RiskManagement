@@ -18,6 +18,7 @@ builder.AddMessageSystem(messagingOptions);
 builder.AddDatabase();
 
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
+builder.Services.AddScoped<ISearchOptionsState, SearchOptionsState>();
 
 // Add Blazor services
 builder.Services

@@ -19,7 +19,8 @@ public partial class OptionsMap(
     IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
     ProtectedSessionStorage protectedSessionStorage,
-    IConfiguration configuration
+    IConfiguration configuration,
+    ISearchOptionsState searchOptionsState
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
@@ -57,8 +58,11 @@ public partial class OptionsMap(
     {
         if (firstRender)
         {
-            // Set any previously entered data
-            var options = await GetSearchOptions();
+            // Prefer circuit-scoped in-memory state (handles large geometries without browser storage limits),
+            // falling back to session storage for the initial load.
+            var options = searchOptionsState.HasOptions
+                ? searchOptionsState.Options!
+                : await GetSearchOptions();
             Model.ToDate = options.ToDate;
             Model.FromDate = options.FromDate;
             Model.ByPlaceName = options.ByPlaceName;
@@ -97,22 +101,10 @@ public partial class OptionsMap(
         }
     }
 
-    private async Task SaveAndReturn()
+    private void SaveAndReturn()
     {
-        //Store the search options in session storage for retrieval on the next page
-        try
-        {
-            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Issue setting protected storage for search options page");
-        }
-
-        // Go to the next page or pass back to the summary
-        var nextPage = SearchPages.Options;
-        var nextPageUrl = nextPage.Url;
-        navigationManager.NavigateTo(nextPageUrl);
+        searchOptionsState.SetOptions(Model);
+        navigationManager.NavigateTo(SearchPages.Options.Url);
     }
 
     private async Task<SearchOptionsViewModel> GetSearchOptions()
