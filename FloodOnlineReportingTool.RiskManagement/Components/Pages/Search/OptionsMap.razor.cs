@@ -19,8 +19,7 @@ public partial class OptionsMap(
     ICommonRepository commonRepository,
     IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage,
-    IConfiguration configuration
+    ProtectedSessionStorage protectedSessionStorage
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
@@ -176,7 +175,7 @@ public partial class OptionsMap(
             _isSearching = true;
             StateHasChanged();
 
-            var authState = await AuthenticationState!;
+            var authState = await (AuthenticationState ?? throw new InvalidOperationException("Authentication state is required"));
             var user = authState.User;
 
             _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
