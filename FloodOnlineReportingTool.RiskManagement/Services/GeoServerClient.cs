@@ -59,7 +59,7 @@ public class GeoServerClient(
             FeatureCollection? featureCollection;
 
             // Use authenticated or anonymous call based on SecureLayer flag
-            if (layerConfig.SecureLayer && user != null)
+            if (layerConfig.SecureLayer && user?.Identity?.IsAuthenticated == true)
             {
                 // Authenticated call - respects Geofence user-based access control
                 featureCollection = await downstreamApi.GetForUserAsync<FeatureCollection>(
@@ -86,12 +86,12 @@ public class GeoServerClient(
             else
             {
                 // Anonymous call for public layers - use public API configuration with no scopes
-                var httpResponse = await downstreamApi.CallApiAsync(
-                    DownstreamAPIOptions.GeoServerApiPublic,  // Changed from GeoServerApi
+                using var httpResponse = await downstreamApi.CallApiAsync(
+                    DownstreamAPIOptions.GeoServerApiPublic,
                     options => { options.RelativePath = requestPath; },
                     cancellationToken: ct);
 
-                if (httpResponse?.Content == null) return new List<GdsOptionItem<string>>();
+                if (httpResponse?.Content == null) return null;
                 
                 var stream = await httpResponse.Content.ReadAsStreamAsync(ct);
                 featureCollection = JsonSerializer.Deserialize<FeatureCollection>(stream, _geoJsonOptions);
@@ -157,7 +157,7 @@ public class GeoServerClient(
             FeatureCollection? featureCollection;
 
             // Use authenticated or anonymous call based on SecureLayer flag
-            if (layerConfig.SecureLayer && user != null)
+            if (layerConfig.SecureLayer && user?.Identity?.IsAuthenticated == true)
             {
                 // Authenticated call - respects Geofence user-based access control
                 featureCollection = await downstreamApi.GetForUserAsync<FeatureCollection>(
@@ -184,8 +184,8 @@ public class GeoServerClient(
             else
             {
                 // Anonymous call for public layers - use public API configuration with no scopes
-                var httpResponse = await downstreamApi.CallApiAsync(
-                    DownstreamAPIOptions.GeoServerApiPublic,  // Changed from GeoServerApi
+                using var httpResponse = await downstreamApi.CallApiAsync(
+                    DownstreamAPIOptions.GeoServerApiPublic,
                     options => { options.RelativePath = requestPath; },
                     cancellationToken: ct);
 
