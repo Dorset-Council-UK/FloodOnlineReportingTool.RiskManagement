@@ -34,13 +34,6 @@ public partial class Options(
     private bool _isLoading = true;
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
-    private string _searchTerm = string.Empty;
-    private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
-    private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
-    private CancellationTokenSource? _searchCts;
-
-    [CascadingParameter]
-    private Task<AuthenticationState>? AuthenticationState { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -78,12 +71,6 @@ public partial class Options(
         {
             await _cts.CancelAsync();
             _cts.Dispose();
-            
-            if (_searchCts != null)
-            {
-                await _searchCts.CancelAsync();
-                _searchCts.Dispose();
-            }
         }
         catch (OperationCanceledException)
         {
