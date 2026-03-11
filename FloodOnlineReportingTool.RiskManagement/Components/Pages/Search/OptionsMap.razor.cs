@@ -53,12 +53,11 @@ public partial class OptionsMap(
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new(Model);
+        searchContext = new EditContext(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        regionContext = new(Model);
-        regionContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        digitisingContext = new(Model);
-        digitisingContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        // Reuse the same EditContext instance for all sections to keep validation state consistent
+        regionContext = searchContext;
+        digitisingContext = searchContext;
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
