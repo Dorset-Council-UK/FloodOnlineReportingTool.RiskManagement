@@ -16,10 +16,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class OptionsMap(
     ILogger<OptionsMap> logger,
-    ICommonRepository commonRepository,
     IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage,
     ISearchOptionsState searchOptionsState
 ) : IPageOrder, IAsyncDisposable
 {
@@ -50,7 +48,7 @@ public partial class OptionsMap(
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Setup model and edit context
         Model ??= new();
@@ -65,20 +63,25 @@ public partial class OptionsMap(
     {
         if (firstRender)
         {
-            // Prefer circuit-scoped in-memory state (handles large geometries without browser storage limits),
-            // falling back to session storage for the initial load.
-            var options = searchOptionsState.HasOptions
-                ? searchOptionsState.Options!
-                : await GetSearchOptions();
-            Model.ToDate = options.ToDate;
-            Model.FromDate = options.FromDate;
-            Model.ByPlaceName = options.ByPlaceName;
-            Model.ByPersonsName = options.ByPersonsName;
-            Model.ByFloodCause = options.ByFloodCause;
-            Model.ByPolygon = options.ByPolygon;
-            Model.ShowResultsAs = options.ShowResultsAs;
-            Model.BufferText = options.BufferText;
-            Model.Buffer = options.Buffer;
+            var options = searchOptionsState.Options;
+            // GdsInputDate caches the GdsDate object reference on first render, so the existing
+            // objects must be mutated in-place rather than replaced to keep the component in sync.
+            if (options is not null)
+            {
+                Model.FromDate.DayText = options.FromDate.DayText;
+                Model.FromDate.MonthText = options.FromDate.MonthText;
+                Model.FromDate.YearText = options.FromDate.YearText;
+                Model.ToDate.DayText = options.ToDate.DayText;
+                Model.ToDate.MonthText = options.ToDate.MonthText;
+                Model.ToDate.YearText = options.ToDate.YearText;
+                Model.ByPlaceName = options.ByPlaceName;
+                Model.ByPersonsName = options.ByPersonsName;
+                Model.ByFloodCause = options.ByFloodCause;
+                Model.ByPolygon = options.ByPolygon;
+                Model.ShowResultsAs = options.ShowResultsAs;
+                Model.BufferText = options.BufferText;
+                Model.Buffer = options.Buffer;
+            }
 
             _isLoading = false;
             StateHasChanged();
@@ -112,37 +115,6 @@ public partial class OptionsMap(
     {
         searchOptionsState.SetOptions(Model);
         navigationManager.NavigateTo(SearchPages.Options.Url);
-    }
-
-    private async Task<SearchOptionsViewModel> GetSearchOptions()
-    {
-        var data = await protectedSessionStorage.GetAsync<SearchOptionsViewModel>(SessionConstants.SearchOptions);
-        if (data.Success)
-        {
-            if (data.Value != null)
-            {
-                return data.Value;
-            }
-        }
-
-        logger.LogWarning("Search options were not found in the protected storage.");
-        return new SearchOptionsViewModel();
-    }
-
-    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions(IList<Guid> selectedValues)
-    {
-        const string idPrefix = "flood-source";
-        var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-        return [.. floodProblems.Select((o, idx) => CreateOption(o, idPrefix, selectedValues))];
-    }
-
-    private static GdsOptionItem<Guid> CreateOption(FloodProblem floodProblem, string idPrefix, IList<Guid> selectedValues)
-    {
-        var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
-        var label = floodProblem.TypeName.AsSpan();
-        var selected = selectedValues.Contains(floodProblem.Id);
-
-        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
 
     private async Task OnSearch()

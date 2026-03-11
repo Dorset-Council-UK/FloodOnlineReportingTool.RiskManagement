@@ -95,19 +95,12 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
-        //Store the search options in session storage for retrieval on the next page
-        try
-        {
-            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
-        } catch (Exception ex)
-        {
-            logger.LogError(ex, "Issue setting protected storage for search options page");
-        }
-
+        Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        searchOptionsState.SetOptions(Model);
         // Go to the next page or pass back to the summary
         var nextPage = SearchPages.Results;
         var nextPageUrl = nextPage.Url;
-        navigationManager.NavigateTo(nextPageUrl);
+        navigationManager.NavigateTo(SearchPages.Results.Url);
     }
 
     private void GoToMap()
