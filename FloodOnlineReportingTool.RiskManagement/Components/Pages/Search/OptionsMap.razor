@@ -14,104 +14,98 @@
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">
-                <div class="govuk-form-group">
-                    <fieldset class="govuk-fieldset">
-                        <div class="govuk-grid-row">
-                            <div class="govuk-grid-column-one-third-from-desktop">
-                                <EditForm EditContext="regionContext" OnSubmit="OnSearch" FormName="RegionForm">
-                                    <FluentValidationValidator />
-                                    <GdsErrorSummary />
-                                    <h2>Add by region</h2>
+        <div class="govuk-form-group">
+            <fieldset class="govuk-fieldset">
+                <div class="govuk-grid-row">
+                    <div class="govuk-grid-column-one-third-from-desktop">
+                        <EditForm EditContext="regionContext" OnSubmit="OnSearch" FormName="RegionForm">
+                            <FluentValidationValidator />
+                            <GdsErrorSummary />
+                            <h2>Add by region</h2>
 
-                                    <GdsFormGroup For="() => _searchTerm">
-                                        <GdsLabel Text="Search for regions (i.e. parish/ward)" />
-                                        <GdsErrorMessage />
-                                        <GdsInputText @bind-Value="_searchTerm"  class="govuk-input govuk-input--width-15" />
-                                    </GdsFormGroup>
-                                    <div class="govuk-!-margin-top-3">
-                                        <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit="true" Text="Search for regions" />
-                                    </div>
-                                    @if (_isSearching)
-                                    {
-                                        <div class="govuk-hint">
-                                            <span class="govuk-!-font-size-16">Searching...</span>
-                                        </div>
-                                    }
-                                    @if (!string.IsNullOrEmpty(_regionSearchErrorMessage))
-                                    {
-                                        <p class="govuk-error-message">
-                                            @_regionSearchErrorMessage
-                                        </p>
-                                    }
-                                    @if (_parishResults.Any() && _parishResults.Count > 1)
-                                    {
-                                        <div class="govuk-form-group">
-                                            <label class="govuk-label">Select a parish</label>
-
-                                            <GdsSelect @key="_selectKey" Options="@_parishResults" OnChange="@OnParishSelected" />
-                                        </div>
-                                    }
-
-                                    @if (_wardResults.Any() && _wardResults.Count > 1)
-                                    {
-                                        <div class="govuk-form-group">
-                                            <label class="govuk-label">Select a ward</label>
-
-                                            <GdsSelect @key="_selectKey" Options="@_wardResults" OnChange="@OnWardSelected" />
-                                        </div>
-                                    }
-
-                                </EditForm>
-                                <EditForm EditContext="digitisingContext" FormName="DigitisingForm">
-                                    <FluentValidationValidator />
-                                    <GdsErrorSummary />
-                                    <h2>Add by location</h2>
-                                    <GdsFormGroup For="() => Model.Buffer">
-                                        <GdsLabel Text="Search radius (m)" />
-                                        <GdsHint>If you enter a value, a circle with this radius will be drawn around where you click on the map.</GdsHint>
-                                        <GdsErrorMessage />
-                                        <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
-                                    </GdsFormGroup>
-                                </EditForm>
+                            <GdsFormGroup For="() => _searchTerm">
+                                <GdsLabel Text="Search for regions (i.e. parish/ward)" />
+                                <GdsErrorMessage />
+                                <GdsInputText @bind-Value="_searchTerm"  class="govuk-input govuk-input--width-15" />
+                            </GdsFormGroup>
+                            <div class="govuk-!-margin-top-3">
+                                <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit="true" Text="Search for regions" />
                             </div>
-
-                            <div class="govuk-grid-column-two-thirds-from-desktop">
-                                <div style="height:400px" class="govuk-!-margin-bottom-2">
-                                    <MiniMap Geometry="Model.ByPolygon"></MiniMap>
+                            @if (_isSearching)
+                            {
+                                <div class="govuk-hint">
+                                    <span class="govuk-!-font-size-16">Searching...</span>
                                 </div>
-                                @if (Model.ByPolygon != null)
-                                {
-                                    <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
-                                }
-                                    
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
+                            }
+                            @if (!string.IsNullOrEmpty(_regionSearchErrorMessage))
+                            {
+                                <p class="govuk-error-message">
+                                    @_regionSearchErrorMessage
+                                </p>
+                            }
+                            @if (_parishResults.Any() && _parishResults.Count > 1)
+                            {
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label">Select a parish</label>
 
-                
-            <div class="govuk-grid-row">
-                <EditForm EditContext="searchContext" FormName="CreateSearchOptions">
-                    <FluentValidationValidator />
-                    <GdsErrorSummary />
-                    <div class="govuk-form-group">
-                        <fieldset class="govuk-fieldset">
-                            <div class="govuk-grid-row">
-                                <div class="govuk-grid-column-full">
-                                    @if (!_isLoading)
-                                    {
-                                        <GdsButton IsSubmit="false" OnClick="@SaveAndReturn" Text="Save area" />
-                                    }
+                                    <GdsSelect @key="_selectKey" Options="@_parishResults" OnChange="@OnParishSelected" />
                                 </div>
-                            </div>
-                        </fieldset>
+                            }
+
+                            @if (_wardResults.Any() && _wardResults.Count > 1)
+                            {
+                                <div class="govuk-form-group">
+                                    <label class="govuk-label">Select a ward</label>
+
+                                    <GdsSelect @key="_selectKey" Options="@_wardResults" OnChange="@OnWardSelected" />
+                                </div>
+                            }
+
+                        </EditForm>
+                        <EditForm EditContext="digitisingContext" FormName="DigitisingForm">
+                            <FluentValidationValidator />
+                            <GdsErrorSummary />
+                            <h2>Add by location</h2>
+                            <GdsFormGroup For="() => Model.Buffer">
+                                <GdsLabel Text="Search radius (m)" />
+                                <GdsHint>If you enter a value, a circle with this radius will be drawn around where you click on the map.</GdsHint>
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
+                            </GdsFormGroup>
+                        </EditForm>
                     </div>
-                </EditForm>
-            </div>
+
+                    <div class="govuk-grid-column-two-thirds-from-desktop">
+                        <div style="height:400px" class="govuk-!-margin-bottom-2">
+                            <MiniMap Geometry="Model.ByPolygon"></MiniMap>
+                        </div>
+                        @if (Model.ByPolygon != null)
+                        {
+                            <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
+                        }
+                                    
+                    </div>
+                </div>
+            </fieldset>
         </div>
+
+        <EditForm EditContext="searchContext" FormName="CreateSearchOptions">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            @if (!_isLoading)
+                            {
+                                <GdsButton IsSubmit="false" OnClick="@SaveAndReturn" Text="Save area" />
+                            }
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </EditForm>
+
     </Authorized>
 
     <NotAuthorized>
