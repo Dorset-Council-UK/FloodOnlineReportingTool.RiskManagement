@@ -254,6 +254,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("FeatureIdentifier")
                         .IsRequired()
                         .HasColumnType("text");
@@ -272,6 +275,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<int>("RequestVersion")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("SecureLayer")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
@@ -288,11 +294,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                             Id = "parish",
                             ApiPath = "/geoserver/ows",
                             ApiSource = "GeoServer",
+                            Enabled = false,
                             FeatureIdentifier = "name",
                             LayerName = "",
                             OrderBy = "name",
                             RequestMethod = 0,
                             RequestVersion = 0,
+                            SecureLayer = false,
                             SortOrder = 0
                         },
                         new
@@ -300,11 +308,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                             Id = "ward",
                             ApiPath = "/geoserver/ows",
                             ApiSource = "GeoServer",
+                            Enabled = false,
                             FeatureIdentifier = "name",
                             LayerName = "",
                             OrderBy = "name",
                             RequestMethod = 0,
                             RequestVersion = 0,
+                            SecureLayer = false,
                             SortOrder = 0
                         });
                 });
