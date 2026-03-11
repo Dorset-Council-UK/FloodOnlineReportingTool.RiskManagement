@@ -33,6 +33,8 @@ public partial class OptionsMap(
     private SearchOptionsViewModel Model { get; set; } = default!;
 
     private EditContext searchContext = default!;
+    private EditContext regionContext = default!;
+    private EditContext digitisingContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
@@ -51,8 +53,11 @@ public partial class OptionsMap(
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new(Model);
+        searchContext = new EditContext(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        // Reuse the same EditContext instance for all sections to keep validation state consistent
+        regionContext = searchContext;
+        digitisingContext = searchContext;
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
