@@ -65,7 +65,7 @@
                                         <h2>Add by location</h2>
                                         <GdsFormGroup For="() => Model.Buffer">
                                             <GdsLabel Text="Search radius (m)" />
-                                            <GdsHint>If provided a circle will be added to the map with the correct radius when you click on it.</GdsHint>
+                                            <GdsHint>If you enter a value, a circle with this radius will be drawn on the map around the point where you click on the map.</GdsHint>
                                             <GdsErrorMessage />
                                             <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
                                         </GdsFormGroup>
