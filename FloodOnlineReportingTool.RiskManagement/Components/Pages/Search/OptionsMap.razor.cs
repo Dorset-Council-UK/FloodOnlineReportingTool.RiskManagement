@@ -33,6 +33,8 @@ public partial class OptionsMap(
     private SearchOptionsViewModel Model { get; set; } = default!;
 
     private EditContext searchContext = default!;
+    private EditContext regionContext = default!;
+    private EditContext digitisingContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
@@ -53,6 +55,10 @@ public partial class OptionsMap(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        regionContext = new(Model);
+        regionContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        digitisingContext = new(Model);
+        digitisingContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
