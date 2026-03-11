@@ -24,7 +24,7 @@ public class GeoServerClient(
         Converters = { new NetTopologySuite.IO.Converters.GeoJsonConverterFactory() }
     };
 
-    public async Task<IReadOnlyCollection<GdsOptionItem<string>>> SearchNameAsync(
+    public async Task<IReadOnlyCollection<string>> SearchNameAsync(
         string apiSource,
         string searchTerm,
         ClaimsPrincipal? user,
@@ -36,7 +36,7 @@ public class GeoServerClient(
         if (layerConfig == null || !layerConfig.Enabled)
         {
             logger.LogError("No GeoServer API {ApiSource} layer configuration found or is disabled", apiSource);
-            return new List<GdsOptionItem<string>>();
+            return [];
         }
 
         try
@@ -47,7 +47,7 @@ public class GeoServerClient(
             if (string.IsNullOrEmpty(requestPath))
             {
                 logger.LogError("Failed to construct valid API call for {ApiSource}", apiSource);
-                return new List<GdsOptionItem<string>>();
+                return [];
             }
 
             var featureCollection = await CallGeoServerApi(requestPath, layerConfig, user, ct)
@@ -58,12 +58,12 @@ public class GeoServerClient(
             logger.LogInformation("GeoServer {ApiSource} search completed in {ElapsedMs}ms, {Count} results",
                 apiSource, stopwatch.ElapsedMilliseconds, results.Count);
 
-            return CreateGdsOptionItems(results);
+            return results;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error searching {ApiSource} in GeoServer", apiSource);
-            return new List<GdsOptionItem<string>>();
+            return [];
         }
     }
 
@@ -263,18 +263,6 @@ public class GeoServerClient(
         var queryString = string.Join("&", queryParams.Select(kvp => $"{kvp.Key}={HttpUtility.UrlEncode(kvp.Value)}"));
 
         return $"{wfsPath}?{queryString}";
-    }
-
-    private static List<GdsOptionItem<string>> CreateGdsOptionItems(IEnumerable<string> results)
-    {
-        var optionItems = new List<GdsOptionItem<string>>
-        {
-            new("0".AsSpan(), "Select an option", string.Empty, false)
-        };
-        optionItems.AddRange(results.Select((o, idx) =>
-            new GdsOptionItem<string>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o, o, false)));
-
-        return optionItems;
     }
 
     private static string EscapeCql(string input)

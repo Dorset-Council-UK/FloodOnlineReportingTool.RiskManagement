@@ -6,7 +6,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Services;
 
 public interface IGeoServerClient
 {
-    Task<IReadOnlyCollection<GdsOptionItem<string>>> SearchNameAsync(
+    Task<IReadOnlyCollection<string>> SearchNameAsync(
         string apiSource, 
         string searchTerm,
         ClaimsPrincipal? user,
