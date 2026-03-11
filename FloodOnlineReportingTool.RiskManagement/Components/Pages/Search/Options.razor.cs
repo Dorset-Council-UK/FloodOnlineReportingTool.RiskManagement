@@ -17,7 +17,6 @@ public partial class Options(
     ILogger<Options> logger,
     ICommonRepository commonRepository,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage,
     ISearchOptionsState searchOptionsState
 ) : IPageOrder, IAsyncDisposable
 {
