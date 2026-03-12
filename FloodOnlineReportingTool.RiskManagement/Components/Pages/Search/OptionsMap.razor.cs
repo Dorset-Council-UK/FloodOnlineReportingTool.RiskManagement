@@ -10,19 +10,18 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using NetTopologySuite.Geometries;
-using System.Text;
+using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class OptionsMap(
     ILogger<OptionsMap> logger,
-    ICommonRepository commonRepository,
     IGeoServerClient geoServerClient,
     NavigationManager navigationManager,
-    ProtectedSessionStorage protectedSessionStorage
+    ISearchOptionsState searchOptionsState
 ) : IPageOrder, IAsyncDisposable
 {
-    public string Title { get; set; } = SearchPages.Options.Title;
+    public string Title { get; set; } = SearchPages.OptionsMap.Title;
 
     public IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
         GeneralPages.Home.ToGdsBreadcrumb(),
@@ -38,18 +37,18 @@ public partial class OptionsMap(
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
-    private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
     private string _searchTerm = string.Empty;
     private bool _isSearching = false;
-    private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = new List<GdsOptionItem<string>>();
-    private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = new List<GdsOptionItem<string>>();
+    private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = [];
+    private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = [];
+    private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
     private int _selectKey = 0;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Setup model and edit context
         Model ??= new();
@@ -58,24 +57,31 @@ public partial class OptionsMap(
         // Reuse the same EditContext instance for all sections to keep validation state consistent
         regionContext = searchContext;
         digitisingContext = searchContext;
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Set any previously entered data
-            var options = await GetSearchOptions();
-            Model.ToDate = options.ToDate;
-            Model.FromDate = options.FromDate;
-            Model.ByPlaceName = options.ByPlaceName;
-            Model.ByPersonsName = options.ByPersonsName;
-            Model.ByFloodCause = options.ByFloodCause;
-            Model.ByPolygon = options.ByPolygon;
-            Model.ShowResultsAs = options.ShowResultsAs;
-            Model.BufferText = options.BufferText;
-            Model.Buffer = options.Buffer;
+            var options = searchOptionsState.Options;
+            // GdsInputDate caches the GdsDate object reference on first render, so the existing
+            // objects must be mutated in-place rather than replaced to keep the component in sync.
+            if (options is not null)
+            {
+                Model.FromDate.DayText = options.FromDate.DayText;
+                Model.FromDate.MonthText = options.FromDate.MonthText;
+                Model.FromDate.YearText = options.FromDate.YearText;
+                Model.ToDate.DayText = options.ToDate.DayText;
+                Model.ToDate.MonthText = options.ToDate.MonthText;
+                Model.ToDate.YearText = options.ToDate.YearText;
+                Model.ByPlaceName = options.ByPlaceName;
+                Model.ByPersonsName = options.ByPersonsName;
+                Model.ByFloodCause = options.ByFloodCause;
+                Model.ByPolygon = options.ByPolygon;
+                Model.ShowResultsAs = options.ShowResultsAs;
+                Model.BufferText = options.BufferText;
+                Model.Buffer = options.Buffer;
+            }
 
             _isLoading = false;
             StateHasChanged();
@@ -105,62 +111,21 @@ public partial class OptionsMap(
         }
     }
 
-    private async Task SaveAndReturn()
+    private void SaveAndReturn()
     {
-        //Store the search options in session storage for retrieval on the next page
-        try
-        {
-            await protectedSessionStorage.SetAsync(SessionConstants.SearchOptions, Model);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Issue setting protected storage for search options page");
-        }
-
-        // Go to the next page or pass back to the summary
-        var nextPage = SearchPages.Options;
-        var nextPageUrl = nextPage.Url;
-        navigationManager.NavigateTo(nextPageUrl);
-    }
-
-    private async Task<SearchOptionsViewModel> GetSearchOptions()
-    {
-        var data = await protectedSessionStorage.GetAsync<SearchOptionsViewModel>(SessionConstants.SearchOptions);
-        if (data.Success)
-        {
-            if (data.Value != null)
-            {
-                return data.Value;
-            }
-        }
-
-        logger.LogWarning("Search options were not found in the protected storage.");
-        return new SearchOptionsViewModel();
-    }
-
-    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions(IList<Guid> selectedValues)
-    {
-        const string idPrefix = "flood-source";
-        var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-        return [.. floodProblems.Select((o, idx) => CreateOption(o, idPrefix, selectedValues))];
-    }
-
-    private static GdsOptionItem<Guid> CreateOption(FloodProblem floodProblem, string idPrefix, IList<Guid> selectedValues)
-    {
-        var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
-        var label = floodProblem.TypeName.AsSpan();
-        var selected = selectedValues.Contains(floodProblem.Id);
-
-        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
+        searchOptionsState.SetOptions(Model);
+        navigationManager.NavigateTo(SearchPages.Options.Url);
     }
 
     private async Task OnSearch()
-    {      
+    {
+        _regionSearchErrorMessage = string.Empty;
         // Clear results if search term is too short
         if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)
         {
-            _parishResults = new List<GdsOptionItem<string>>();
-            _wardResults = new List<GdsOptionItem<string>>();
+            _regionSearchErrorMessage = "Please enter at least 3 characters to search";
+            _parishResults = [];
+            _wardResults = [];
             _selectKey++;
             StateHasChanged();
             return;
@@ -183,8 +148,14 @@ public partial class OptionsMap(
             var authState = await (AuthenticationState ?? throw new InvalidOperationException("Authentication state is required"));
             var user = authState.User;
 
-            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
-            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
+            var parishSearchResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
+            var wardSearchResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
+            if(parishSearchResults.Count + wardSearchResults.Count == 0)
+            {
+                _regionSearchErrorMessage = $"No results could be found for {searchTerm}";
+            }
+            _parishResults = CreateGdsOptionItems(parishSearchResults);
+            _wardResults = CreateGdsOptionItems(wardSearchResults);
             _selectKey++;
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
@@ -199,8 +170,8 @@ public partial class OptionsMap(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to search for term: {SearchTerm}. Clearing parish and ward results.", searchTerm);
-            _parishResults = new List<GdsOptionItem<string>>();
-            _wardResults = new List<GdsOptionItem<string>>();
+            _parishResults = [];
+            _wardResults = [];
         }
         finally
         {
@@ -302,6 +273,18 @@ public partial class OptionsMap(
             }
             StateHasChanged();
         }
+    }
+
+    private static List<GdsOptionItem<string>> CreateGdsOptionItems(IEnumerable<string> results)
+    {
+        var optionItems = new List<GdsOptionItem<string>>
+        {
+            new("0".AsSpan(), "Select an option", string.Empty, false)
+        };
+        optionItems.AddRange(results.Select((o, idx) =>
+            new GdsOptionItem<string>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o, o, false)));
+
+        return optionItems;
     }
 
     private void ResetGeom()
