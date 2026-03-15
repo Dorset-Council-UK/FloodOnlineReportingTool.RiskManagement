@@ -1,14 +1,12 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
-using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using FloodOnlineReportingTool.RiskManagement.Extensions; 
 
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
@@ -94,11 +92,30 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        // Update flood cause selection from checkboxes
         Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        
+        // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
-        // Go to the next page or pass back to the summary
-        var nextPage = SearchPages.Results;
-        var nextPageUrl = nextPage.Url;
+        
+        try
+        {
+            // Convert ViewModel → Entity (bypassing DTO)
+            var searchTitle = $"Search - {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm}";
+            var savedSearchEntity = Model.ToSavedSearch(searchTitle);
+            
+            // Get or create SavedSearch in database
+            var savedSearch = await commonRepository.GetOrCreateSavedSearch(savedSearchEntity, _cts.Token);
+            
+            logger.LogInformation("Using SavedSearch ID: {SavedSearchId}", savedSearch.Id);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create or retrieve saved search");
+            // Continue to results page even if save fails
+        }
+
+        // Navigate to results
         navigationManager.NavigateTo(SearchPages.Results.Url);
     }
 
