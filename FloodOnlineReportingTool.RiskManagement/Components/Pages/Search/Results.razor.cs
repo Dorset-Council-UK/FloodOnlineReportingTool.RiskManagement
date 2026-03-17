@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
-public partial class Results(ILogger<Results> logger, ICommonRepository commonRepository, ISearchResultsState searchResultsState)
+public partial class Results(ILogger<Results> logger, ICommonRepository commonRepository, ISearchResultsState searchResultsState) : IAsyncDisposable
 {
     private EditContext searchContext = default!;
     private readonly CancellationTokenSource _cts = new();
@@ -25,6 +25,23 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await _cts.CancelAsync();
+            _cts.Dispose();
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during normal cancellation; no action required.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Options));
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
