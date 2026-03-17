@@ -769,6 +769,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("ReporterString")
                         .IsRequired()
                         .HasColumnType("text");

@@ -6,6 +6,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 public class SearchResultsViewModel : ISearchOptions
 {
+    // Saved search properties
+    public Guid? Id { get; init; }
+    public string SearchTitle { get; init; } = string.Empty;
+
     // Common search parameters
     public string? ByReference { get; set; }
     public GdsDate FromDate { get; set; } = new();

@@ -1,12 +1,12 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Extensions; 
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using FloodOnlineReportingTool.RiskManagement.Extensions; 
 
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
@@ -19,6 +19,7 @@ public partial class Options(
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
+    private string? _errorMessage;
 
     public IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
         GeneralPages.Home.ToGdsBreadcrumb(),
@@ -92,6 +93,9 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        // Clear any previous error
+        _errorMessage = null;
+
         // Update flood cause selection from checkboxes
         Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         
@@ -100,23 +104,21 @@ public partial class Options(
         
         try
         {
-            // Convert ViewModel → Entity (bypassing DTO)
-            var searchTitle = $"Search - {DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm}";
-            var savedSearchEntity = Model.ToSavedSearch(searchTitle);
+            // Convert ViewModel → Entity
+            var savedSearchEntity = Model.OptionsViewToSavedSearch(null);
             
             // Get or create SavedSearch in database
-            var savedSearch = await commonRepository.GetOrCreateSavedSearch(savedSearchEntity, _cts.Token);
-            
-            logger.LogInformation("Using SavedSearch ID: {SavedSearchId}", savedSearch.Id);
+            var savedSearch = await commonRepository.GetOrCreateSavedSearch(null, null, savedSearchEntity, _cts.Token);
+
+            // Navigate to results
+            navigationManager.NavigateTo($"{SearchPages.Results.Url}?ref={savedSearch.Reference}");
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to create or retrieve saved search");
-            // Continue to results page even if save fails
+            _errorMessage = "Sorry, something went wrong whilst creating your search. Please try again.";
+            StateHasChanged();
         }
-
-        // Navigate to results
-        navigationManager.NavigateTo(SearchPages.Results.Url);
     }
 
     private void GoToMap()

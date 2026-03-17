@@ -7,5 +7,6 @@ public interface ICommonRepository
 {
     Task<IList<FloodProblem>> GetFloodProblems(string category, CancellationToken ct);
     Task<DownstreamApiLayer?> GetDownstreamApiLayers(string apiSourceRecord, CancellationToken ct);
-    Task<SavedSearch> GetOrCreateSavedSearch(SavedSearch searchCriteria, CancellationToken ct);
+    Task<SavedSearch?> GetSavedSearchByReference(string reference, CancellationToken ct);
+    Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct);
 }

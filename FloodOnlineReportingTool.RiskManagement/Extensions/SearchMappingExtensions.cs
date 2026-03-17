@@ -10,11 +10,11 @@ internal static class SearchMappingExtensions
     /// <summary>
     /// Maps SearchOptionsViewModel directly to SavedSearch entity.
     /// </summary>
-    internal static SavedSearch ToSavedSearch(this SearchOptionsViewModel viewModel, string searchTitle)
+    internal static SavedSearch OptionsViewToSavedSearch(this SearchOptionsViewModel viewModel, string? searchTitle)
     {
         return new SavedSearch
         {
-            SearchTitle = searchTitle,
+            SearchTitle = searchTitle ?? string.Empty,
             ResultsFrom = ConvertToDateTimeOffset(viewModel.FromDate),
             ResultsTo = ConvertToDateTimeOffset(viewModel.ToDate),
             FloodPrimaryCauses = viewModel.ByFloodCause ?? [],
@@ -34,9 +34,36 @@ internal static class SearchMappingExtensions
     }
 
     /// <summary>
+    /// Maps SearchResultsViewModel directly to SavedSearch entity.
+    /// </summary>
+    internal static SavedSearch ResultsViewToSavedSearch(this SearchResultsViewModel viewModel)
+    {
+        return new SavedSearch
+        {
+            Reference = viewModel.ByReference,
+            SearchTitle = viewModel.SearchTitle,
+            ResultsFrom = ConvertToDateTimeOffset(viewModel.FromDate),
+            ResultsTo= ConvertToDateTimeOffset(viewModel.ToDate),
+            FloodPrimaryCauses = viewModel.ByFloodCause ?? [],
+            FloodSecondaryCauses = [],
+            UPRN = null,
+            USRN = null,
+            Postcode = viewModel.ByPlaceName ?? string.Empty,
+            ReporterString = viewModel.ByPersonsName ?? string.Empty,
+            Geom = viewModel.ByPolygon,
+            PagingSize = null,
+            SortBy = viewModel.SortBy,
+            SortOrder = viewModel.SortOrder,
+            LimitByOrganisation= viewModel.LimitByOrganisation ?? [],
+            LimitByStatus = viewModel.LimitByStatus ?? [],
+            ShowResultsAs = viewModel.ShowResultsAs
+        };
+    }
+
+    /// <summary>
     /// Maps SavedSearch entity to SearchOptionsViewModel.
     /// </summary>
-    internal static SearchOptionsViewModel ToViewModel(this SavedSearch savedSearch)
+    internal static SearchOptionsViewModel SavedSearchToOptionsView(this SavedSearch savedSearch)
     {
         return new SearchOptionsViewModel
         {
@@ -48,6 +75,30 @@ internal static class SearchMappingExtensions
             ByPolygon = savedSearch.Geom,
             ShowResultsAs = savedSearch.ShowResultsAs,
             Buffer = null
+        };
+    }
+
+    /// <summary>
+    /// Maps SavedSearch entity to SearchResultsViewModel.
+    /// </summary>
+    internal static SearchResultsViewModel SavedSearchToResultsView(this SavedSearch savedSearch)
+    {
+        return new SearchResultsViewModel {
+            Id = savedSearch.Id,
+            SearchTitle = savedSearch.SearchTitle,
+            ByReference = savedSearch.Reference,
+            FromDate = ConvertToGdsDate(savedSearch.ResultsFrom),
+            ToDate = ConvertToGdsDate(savedSearch.ResultsTo),
+            ByFloodCause = savedSearch.FloodPrimaryCauses.ToList(),
+            ByPlaceName = savedSearch.Postcode,
+            ByPersonsName = savedSearch.ReporterString,
+            ByPolygon = savedSearch.Geom,
+            ShowResultsAs= savedSearch.ShowResultsAs,
+            PagingSize = savedSearch.PagingSize ?? 10,
+            SortBy = savedSearch.SortBy,
+            SortOrder = savedSearch.SortOrder,
+            LimitByOrganisation = savedSearch.LimitByOrganisation,
+            LimitByStatus = savedSearch.LimitByStatus,
         };
     }
 
