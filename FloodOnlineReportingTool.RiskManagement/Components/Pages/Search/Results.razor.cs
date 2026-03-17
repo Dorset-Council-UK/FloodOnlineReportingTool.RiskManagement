@@ -33,7 +33,7 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
         {
 
             var options = searchResultsState.Options;
-            if (options is null)
+            if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
             {
                 var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
 
@@ -50,9 +50,10 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
 
                 // Persist in state for page navigation
                 searchResultsState.SetResultOptions(Model);
-            } else
+            }
+            else
             {
-                Model.ByReference = SearchReference;
+                Model = options;
             }
 
             _isLoading = false;
