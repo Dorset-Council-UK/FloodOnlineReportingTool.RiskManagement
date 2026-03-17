@@ -1,43 +1,53 @@
-﻿@page "/"
+﻿@attribute [AllowAnonymous]
+@page "/"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Flood Reporting Admin</PageTitle>
 
 <h1 class="govuk-heading-l">Flood Reporting Admin</h1>
 
-<div class="govuk-width-container">
-    <div class="govuk-grid-row">
-        <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
-        <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
-    </div>
-    <div class="govuk-grid-row">
-        <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
-        <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new search" HeaderText="Search for records" CardStyle="success" LinkURL="search" />
-    </div>
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+    <Authorized>
+        <div class="govuk-width-container">
+            <div class="govuk-grid-row">
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
+            </div>
+            <div class="govuk-grid-row">
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new search" HeaderText="Search for records" CardStyle="success" LinkURL="search" />
+            </div>
 
-    <div class="govuk-grid-row">
-        <div class="govuk-grid-column-one-half">
-            <h3>Other tasks</h3>
+            <div class="govuk-grid-row">
+                <div class="govuk-grid-column-one-half">
+                    <h3>Other tasks</h3>
 
-            <ul class="govuk-list">
-                <li>
-                    <a class="govuk-link" href="flood-event">Create a new flood event</a>
-                </li>
-                <li>
-                    <a class="govuk-link" href="#">Create a property log / record site visits</a>
-                </li>
-            </ul>
+                    <ul class="govuk-list">
+                        <li>
+                            <a class="govuk-link" href="flood-event">Create a new flood event</a>
+                        </li>
+                        <li>
+                            <a class="govuk-link" href="#">Create a property log / record site visits</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="govuk-grid-column-one-half">
+                    <h3>Pick up where you left off</h3>
+
+                    <ul class="govuk-list">
+                        <li>
+                            <a class="govuk-link" href="#">Recent page 1</a>
+                        </li>
+                        <li>
+                            <a class="govuk-link" href="#">Recent page 2</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="govuk-grid-column-one-half">
-            <h3>Pick up where you left off</h3>
-
-            <ul class="govuk-list">
-                <li>
-                    <a class="govuk-link" href="#">Recent page 1</a>
-                </li>
-                <li>
-                    <a class="govuk-link" href="#">Recent page 2</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</div>
+    </Authorized>
+    <NotAuthorized>
+            <GdsWarning Text="Please sign in to view your dashboard" />
+    </NotAuthorized>
+</AuthorizeView>
