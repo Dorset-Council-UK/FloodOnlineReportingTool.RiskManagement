@@ -38,9 +38,8 @@ internal static class SearchMappingExtensions
     /// </summary>
     internal static SavedSearch ResultsViewToSavedSearch(this SearchResultsViewModel viewModel)
     {
-        return new SavedSearch
+        var savedSearch = new SavedSearch
         {
-            Reference = viewModel.ByReference,
             SearchTitle = viewModel.SearchTitle,
             ResultsFrom = ConvertToDateTimeOffset(viewModel.FromDate),
             ResultsTo= ConvertToDateTimeOffset(viewModel.ToDate),
@@ -58,6 +57,13 @@ internal static class SearchMappingExtensions
             LimitByStatus = viewModel.LimitByStatus ?? [],
             ShowResultsAs = viewModel.ShowResultsAs
         };
+
+        if (!string.IsNullOrWhiteSpace(viewModel.ByReference))
+        {
+            savedSearch.Reference = viewModel.ByReference;
+        }
+
+        return savedSearch;
     }
 
     /// <summary>
