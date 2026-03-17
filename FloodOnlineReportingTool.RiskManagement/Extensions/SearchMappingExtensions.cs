@@ -1,7 +1,8 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using GdsBlazorComponents;
+using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Extensions;
 
@@ -110,9 +111,9 @@ internal static class SearchMappingExtensions
 
     private static DateTimeOffset? ConvertToDateTimeOffset(GdsDate gdsDate)
     {
-        if (int.TryParse(gdsDate.YearText, out int year) &&
-            int.TryParse(gdsDate.MonthText, out int month) &&
-            int.TryParse(gdsDate.DayText, out int day))
+        if (int.TryParse(gdsDate.YearText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int year) &&
+            int.TryParse(gdsDate.MonthText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int month) &&
+            int.TryParse(gdsDate.DayText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int day))
         {
             try
             {
@@ -134,9 +135,9 @@ internal static class SearchMappingExtensions
         var dt = dateTimeOffset.Value;
         return new GdsDate
         {
-            DayText = dt.Day.ToString(),
-            MonthText = dt.Month.ToString(),
-            YearText = dt.Year.ToString()
+            DayText = dt.Day.ToString(CultureInfo.InvariantCulture),
+            MonthText = dt.Month.ToString(CultureInfo.InvariantCulture),
+            YearText = dt.Year.ToString(CultureInfo.InvariantCulture)
         };
     }
 }
