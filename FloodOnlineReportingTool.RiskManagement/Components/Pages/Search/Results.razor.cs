@@ -62,7 +62,7 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
                     return;
                 }
 
-                // Convert ViewModel → Entity
+                // Convert Entity → ViewModel
                 Model = savedSearch.SavedSearchToResultsView();
 
                 // Persist in state for page navigation
