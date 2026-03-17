@@ -93,9 +93,6 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
-        // Clear any previous error
-        _errorMessage = null;
-
         // Update flood cause selection from checkboxes
         Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         
@@ -116,8 +113,6 @@ public partial class Options(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to create or retrieve saved search");
-            _errorMessage = "Sorry, something went wrong whilst creating your search. Please try again.";
-            StateHasChanged();
         }
     }
 
