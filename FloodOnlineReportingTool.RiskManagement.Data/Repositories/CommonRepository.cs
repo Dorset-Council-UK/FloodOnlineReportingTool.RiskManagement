@@ -31,7 +31,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         await using var context = await contextFactory.CreateDbContextAsync(ct);
         reference = reference.ToUpperInvariant();
         return await context.SavedSearches.AsNoTracking()
-                .Where(s => s.Reference == reference)
+                .Where(s => s.Reference == normalizedReference)
                 .FirstOrDefaultAsync(ct);
     }
 
@@ -51,9 +51,10 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         }
         if (string.IsNullOrEmpty(reference) == false)
         {
+            var normalizedReference = reference!.ToUpperInvariant();
 
             existingSearch = await context.SavedSearches.AsNoTracking()
-                .Where(s => s.Reference == reference)
+                .Where(s => s.Reference == normalizedReference)
                 .FirstOrDefaultAsync(ct);
             if (existingSearch != null) return existingSearch;
         }
