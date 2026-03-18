@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using NetTopologySuite.Geometries;
+using System.Security.Cryptography;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 /// <summary>
