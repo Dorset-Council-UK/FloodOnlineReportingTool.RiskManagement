@@ -1,14 +1,12 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
-using FloodOnlineReportingTool.RiskManagement.Models;
+using FloodOnlineReportingTool.RiskManagement.Extensions; 
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
@@ -94,12 +92,27 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        // Update flood cause selection from checkboxes
         Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        
+        // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
-        // Go to the next page or pass back to the summary
-        var nextPage = SearchPages.Results;
-        var nextPageUrl = nextPage.Url;
-        navigationManager.NavigateTo(SearchPages.Results.Url);
+        
+        try
+        {
+            // Convert ViewModel → Entity
+            var savedSearchEntity = Model.OptionsViewToSavedSearch(null);
+            
+            // Get or create SavedSearch in database
+            var savedSearch = await commonRepository.GetOrCreateSavedSearch(null, null, savedSearchEntity, _cts.Token);
+
+            // Navigate to results
+            navigationManager.NavigateTo($"{SearchPages.Results.Url}/{savedSearch.Reference}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to create or retrieve saved search");
+        }
     }
 
     private void GoToMap()

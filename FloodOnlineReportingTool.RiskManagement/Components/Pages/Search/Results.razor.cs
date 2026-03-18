@@ -1,17 +1,26 @@
-using FloodOnlineReportingTool.RiskManagement.Models;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.Extensions.Logging;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
-public partial class Results(ILogger<Results> logger, ProtectedSessionStorage protectedSessionStorage)
+public partial class Results(
+    ILogger<Results> logger,
+    NavigationManager navigationManager,
+    ICommonRepository commonRepository, 
+    ISearchResultsState searchResultsState) : IAsyncDisposable
 {
     private EditContext searchContext = default!;
+    private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel Model { get; set; } = default!;
+
+    [Parameter]
+    public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
 
@@ -23,40 +32,63 @@ public partial class Results(ILogger<Results> logger, ProtectedSessionStorage pr
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await _cts.CancelAsync();
+            _cts.Dispose();
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during normal cancellation; no action required.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Results));
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            if (string.IsNullOrEmpty(SearchReference))
+            {
+                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+                navigationManager.NavigateTo(SearchPages.Options.Url);
 
-            // Get any search parameters passed from protected storage.
-            var options = await GetSearchOptions();
-            Model.ToDate = options.ToDate;
-            Model.FromDate = options.FromDate;
-            Model.ByPlaceName = options.ByPlaceName;
-            Model.ByPersonsName = options.ByPersonsName;
-            Model.ByFloodCause = options.ByFloodCause;
-            Model.ByPolygon = options.ByPolygon;
-            Model.ShowResultsAs = options.ShowResultsAs;
+                _isLoading = false;
+                StateHasChanged();
+                return;
+            }
 
-            // TODO: logic to get params from DB if not using options route. 
+            var options = searchResultsState.Options;
+            if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+            {
+                var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+
+                if (savedSearch == null)
+                {
+                    // Failure - No saved search found for reference
+                    _isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                // Convert Entity → ViewModel
+                Model = savedSearch.SavedSearchToResultsView();
+
+                // Persist in state for page navigation
+                searchResultsState.SetResultOptions(Model);
+            }
+            else
+            {
+                Model = options;
+            }
 
             _isLoading = false;
             StateHasChanged();
         }
-    }
-
-    private async Task<SearchOptionsViewModel> GetSearchOptions()
-    {
-        var data = await protectedSessionStorage.GetAsync<SearchOptionsViewModel>(SessionConstants.SearchOptions);
-        if (data.Success)
-        {
-            if (data.Value != null)
-            {
-                return data.Value;
-            }
-        }
-
-        logger.LogWarning("Search options were not found in the protected storage.");
-        return new SearchOptionsViewModel();
     }
 }

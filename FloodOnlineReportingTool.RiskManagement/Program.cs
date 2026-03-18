@@ -19,6 +19,7 @@ builder.AddDatabase();
 
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
 builder.Services.AddScoped<ISearchOptionsState, SearchOptionsState>();
+builder.Services.AddScoped<ISearchResultsState, SearchResultsState>();
 
 // Add Blazor services
 builder.Services

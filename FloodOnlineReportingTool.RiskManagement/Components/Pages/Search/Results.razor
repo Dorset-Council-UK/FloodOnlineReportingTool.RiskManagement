@@ -1,9 +1,13 @@
-﻿@page "/search/results"
+﻿@page "/search/results/{SearchReference}"
+@page "/search/results"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Search Results</PageTitle>
+
+<GdsBackLink Href="@SearchPages.Options.Url"></GdsBackLink>
 
 <h1 class="govuk-heading-l">Search Results</h1>
 
@@ -11,17 +15,24 @@
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        @if (Model.ShowResultsAs == Data.Models.Enums.ResultTypes.List)
+        @if (!_isLoading && Model.ByReference == null)
         {
-            <SearchResultList />
+            <p>Sorry, something went wrong. We were unable to load the results</p>
         }
-        else
+        else if (Model.ByReference != null)
         {
-            <p>Not Implemented</p>
+            @if (Model.ShowResultsAs == Data.Models.Enums.ResultTypes.List)
+            {
+                <SearchResultList />
+            }
+            else
+            {
+                <p>Not Implemented</p>
+            }
         }
     </Authorized>
     <NotAuthorized>
-        <GdsWarning Text="Please sign in to search" />
+        <GdsWarning Text="You do not have permission to search. Contact your administrator to request permission." />
     </NotAuthorized>
 </AuthorizeView>
 
