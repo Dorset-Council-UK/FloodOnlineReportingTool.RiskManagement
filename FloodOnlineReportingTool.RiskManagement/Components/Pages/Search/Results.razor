@@ -14,10 +14,11 @@
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        @if (Model.ByReference == null)
+        @if (!_isLoading && Model.ByReference == null)
         {
             <p>Sorry, something went wrong. We were unable to load the results</p>
-        } else
+        }
+        else if (Model.ByReference != null)
         {
             @if (Model.ShowResultsAs == Data.Models.Enums.ResultTypes.List)
             {

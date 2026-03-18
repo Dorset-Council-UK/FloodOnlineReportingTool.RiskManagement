@@ -40,7 +40,7 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Options));
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Results));
         }
     }
 
