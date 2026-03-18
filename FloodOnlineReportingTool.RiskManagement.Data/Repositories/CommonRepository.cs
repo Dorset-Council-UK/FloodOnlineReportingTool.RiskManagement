@@ -29,6 +29,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
     public async Task<SavedSearch?> GetSavedSearchByReference(string reference, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
+        reference = reference.ToUpperInvariant();
         return await context.SavedSearches.AsNoTracking()
                 .Where(s => s.Reference == reference)
                 .FirstOrDefaultAsync(ct);
@@ -37,6 +38,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
     public async Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
+        reference = reference?.ToUpperInvariant();
         SavedSearch? existingSearch;
 
         // Test the ID based fields first
@@ -84,12 +86,10 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         existingSearch = candidates.FirstOrDefault(s =>
             s.FloodPrimaryCauses.OrderBy(x => x).SequenceEqual(primaryCauseIds));
 
-        if (existingSearch != null)
-        {
-            return existingSearch;
-        }
+        if (existingSearch != null) { return existingSearch; }
 
         // Create new saved search
+        if (!string.IsNullOrEmpty(reference)) { searchCriteria.Reference = reference; }
         context.SavedSearches.Add(searchCriteria);
         await context.SaveChangesAsync(ct);
 

@@ -107,7 +107,7 @@ public partial class Options(
             var savedSearch = await commonRepository.GetOrCreateSavedSearch(null, null, savedSearchEntity, _cts.Token);
 
             // Navigate to results
-            navigationManager.NavigateTo($"{SearchPages.Results.Url}?ref={savedSearch.Reference}");
+            navigationManager.NavigateTo($"{SearchPages.Results.Url}/{savedSearch.Reference}");
         }
         catch (Exception ex)
         {

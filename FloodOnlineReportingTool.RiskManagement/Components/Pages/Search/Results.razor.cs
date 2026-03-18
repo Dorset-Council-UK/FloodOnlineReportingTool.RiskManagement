@@ -1,5 +1,6 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
@@ -8,14 +9,18 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
-public partial class Results(ILogger<Results> logger, ICommonRepository commonRepository, ISearchResultsState searchResultsState) : IAsyncDisposable
+public partial class Results(
+    ILogger<Results> logger,
+    NavigationManager navigationManager,
+    ICommonRepository commonRepository, 
+    ISearchResultsState searchResultsState) : IAsyncDisposable
 {
     private EditContext searchContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel Model { get; set; } = default!;
 
-    [SupplyParameterFromQuery(Name = "ref")]
-    public required string SearchReference { get; set; }
+    [Parameter]
+    public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
 
@@ -48,6 +53,15 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
     {
         if (firstRender)
         {
+            if (string.IsNullOrEmpty(SearchReference))
+            {
+                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+                navigationManager.NavigateTo(SearchPages.Options.Url);
+
+                _isLoading = false;
+                StateHasChanged();
+                return;
+            }
 
             var options = searchResultsState.Options;
             if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
