@@ -16,8 +16,8 @@ public record FloodEvent
     public Guid InvestigationStatus { get; init; } = Section19StatusIds.NoSection19;
 
     // Event details
-    public int? EstimatedVulnerable { get; init; }
-    public int? EstimatedUninhabitable { get; init; }
+    public int EstimatedVulnerable { get; init; }
+    public int EstimatedUninhabitable { get; init; }
     public int? EstimatedNoElectric { get; init; }
     public int? EstimatedNoGas { get; init; }
     public int? EstimatedNoFoul { get; init; }
@@ -32,8 +32,8 @@ public record FloodEvent
     public int? EstimatedCommercialAffected { get; init; }
     public int? EstimatedCommercialFlooded { get; init; }
     public int? EstimatedCommercialOther { get; init; }
-    public int? EstimatedTotalExternalOnly { get; init; }
-    public int? EstimatedTotalInternallyFlooded { get; init; }
+    public int EstimatedTotalExternalOnly { get; init; }
+    public int EstimatedTotalInternallyFlooded { get; init; }
 
     // Notes
     public string StatusNote { get; init; } = string.Empty;

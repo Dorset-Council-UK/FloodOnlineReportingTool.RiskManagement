@@ -1,0 +1,208 @@
+﻿@page "/events/create/{SearchReference}"
+@page "/events/create"
+@using FloodOnlineReportingTool.Contracts.Shared
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Generate Flood Event</PageTitle>
+
+<h1 class="govuk-heading-l">Generate Flood Event</h1>
+
+<GdsBackLink Href="@($"{SearchPages.Results.Url}/{SearchReference}")"></GdsBackLink>
+
+<p class="govuk-body-l">
+    This form will upgrade a search to a flood event. 
+</p>
+<details class="govuk-details">
+    <summary class="govuk-details__summary">
+        <span class="govuk-details__summary-text">
+            Why should you use this page?
+        </span>
+    </summary>
+    <div class="govuk-details__text">
+        <p class="govuk-body">
+            This allows you to:
+            <ul>
+                <li>Generate reports into serious flooding (Section 19)</li>
+                <li>Add estimated impacts</li>
+                <li>Record actions taken</li>
+                <li>Enables comment / media functions</li>
+                <li>Enables public engagement tools</li>
+            </ul>
+        </p>
+
+        <p class="govuk-body">
+            Reports identified within this search will be asked to complete the investigation form. You must override this default if you wish to defer the action.
+        </p>
+    </div>
+</details>
+
+<GdsWarning Text="This action triggers automatic notifications by default. " />
+
+<!--<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">-->
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <EditForm EditContext="eventContext" OnValidSubmit="OnValidSubmit" FormName="CreateEventForm">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
+            <GdsSpinner Show="_isLoading" ShowMessage="true" />
+            
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                        <h2 class="govuk-fieldset__heading">Flood Event Details</h2>
+                    </legend>
+
+                    <GdsFormGroup For="() => Model.SearchTitle">
+                        <GdsLabel Text="Flood Event Name" />
+                        <GdsHint>This should be descriptive i.e. 2026 From-Until PlaceName Flooding Type.</GdsHint>
+                        <GdsErrorMessage />
+                        <GdsInputText @bind-Value=Model.SearchTitle class="govuk-input" />
+                    </GdsFormGroup>  
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.RecordStatus">
+                                <GdsLabel Text="Record Status:" />
+                                <GdsErrorMessage />
+                                @if (_eventStatuses != null)
+                                {
+                                    <InputSelect @bind-Value="Model.RecordStatus" class="govuk-select" style="width:100%;">
+                                        <option value="">Select an option</option>
+                                        @foreach (var eventStatus in _eventStatuses)
+                                        {
+                                            <option value="@eventStatus.Id">@eventStatus.Text</option>
+                                        }
+                                    </InputSelect>
+                                }
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.FloodStatus">
+                                <GdsLabel Text="Flood Status:" />
+                                <GdsErrorMessage />
+                                @if (_floodStatuses != null)
+                                {
+                                    <InputSelect @bind-Value="Model.FloodStatus" class="govuk-select" style="width:100%;">
+                                        <option value="">Select an option</option>
+                                        @foreach (var floodStatus in _floodStatuses)
+                                        {
+                                            <option value="@floodStatus.Id">@floodStatus.Text</option>
+                                        }
+                                    </InputSelect>
+                                }
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.InvestigationStatus">
+                                <GdsLabel Text="Investigation Status:" />
+                                <GdsErrorMessage />
+                                @if (_investigationStatuses != null)
+                                {
+                                    <InputSelect @bind-Value="Model.InvestigationStatus" class="govuk-select" style="width:100%;">
+                                        <option value="">Select an option</option>
+                                        @foreach (var investigationStatus in _investigationStatuses)
+                                        {
+                                            <option value="@investigationStatus.Id">@investigationStatus.Text</option>
+                                        }
+                                    </InputSelect>
+                                }
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedTotalInternallyFlooded">
+                                <GdsLabel Text="Estimated Internally Flooded:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedUninhabitable">
+                                <GdsLabel Text="Estimated Uninhabitable:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedVulnerable">
+                                <GdsLabel Text="Estimated Vulnerable:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedVulnerableString @bind-NumberValue=Model.EstimatedVulnerable class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedTotalExternalOnly">
+                                <GdsLabel Text="Estimated External Only (Affected):" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <GdsFormGroup For="() => Model.StatusNote">
+                        <GdsLabel Text="Status Notes (optional):" />
+                        <GdsHint>This is a general comment about the flooding status and where the information about the event has come from.</GdsHint>
+                        <GdsErrorMessage />
+                        <textarea class="govuk-textarea" @bind=Model.StatusNote rows="5" aria-describedby="more-detail-hint"></textarea>
+                    </GdsFormGroup>
+                </fieldset>
+            </div>
+
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full"> 
+                            <GdsFormGroup For="() => Model.TriggerInvestigation">
+                                <InputRadioGroup @bind-Value="Model.TriggerInvestigation">
+                                    <GdsFieldsetGroup>
+                                        <Content>
+                                            <GdsLabel Text="Trigger Investigation:" />
+                                            <GdsErrorMessage />
+                                            <GdsRadios Options="@_triggerAction" Inline="true" />
+                                        </Content>
+                                    </GdsFieldsetGroup>
+                                </InputRadioGroup>
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            @if (!_isLoading)
+                            {
+                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Create flood event</button>
+                            }
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to create flood events. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>

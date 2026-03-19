@@ -94,4 +94,40 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
 
         return searchCriteria;
     }
+
+    public async Task<IList<ReportStatus>> GetReportStatuses(CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        return await context.ReportStatuses
+            .AsNoTracking()
+            .OrderBy(o => o.Order)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IList<EventStatus>> GetEventStatuses(CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        return await context.EventStatuses
+            .AsNoTracking()
+            .OrderBy(o => o.Order)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IList<FloodStatus>> GetFloodStatuses(CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        return await context.FloodStatuses
+            .AsNoTracking()
+            .OrderBy(o => o.Order)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IList<InvestigationStatus>> GetInvestigationStatuses(CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        return await context.InvestigationStatuses
+            .AsNoTracking()
+            .OrderBy(o => o.Order)
+            .ToListAsync(ct);
+    }
 }
