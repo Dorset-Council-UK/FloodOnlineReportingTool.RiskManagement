@@ -12,15 +12,14 @@ public class CreateEventViewModel : IEvent
     public Guid FloodStatus { get; set; } = EventStatusIds.PropertiesAffected;
     public Guid InvestigationStatus { get; set; } = Section19StatusIds.NoSection19;
     public int EstimatedVulnerable { get; set; } = 0;
-    public int EstimatedUninhabitable { get; set; } = 0;
-    public int EstimatedTotalExternalOnly { get; set; } = 0;
-    public int EstimatedTotalInternallyFlooded { get; set; } = 0;
-    public string? StatusNote { get; set; } = string.Empty;
-
     public string? EstimatedVulnerableString { get; set; }
+    public int EstimatedUninhabitable { get; set; } = 0;
     public string? EstimatedUninhabitableString { get; set; }
+    public int EstimatedTotalExternalOnly { get; set; } = 0;
     public string? EstimatedTotalExternalOnlyString { get; set; }
+    public int EstimatedTotalInternallyFlooded { get; set; } = 0;
     public string? EstimatedTotalInternallyFloodedString { get; set; }
+    public string? StatusNote { get; set; } = string.Empty;
 
     public bool TriggerInvestigation { get; set; } = true;
 }
