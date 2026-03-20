@@ -1,42 +1,19 @@
-﻿@page "/events/create/{SearchReference}"
-@page "/events/create"
+﻿@page "/event/details/{SearchReference}"
+@page "/event/details"
 @using FloodOnlineReportingTool.Contracts.Shared
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>Generate Flood Event</PageTitle>
+<PageTitle>Flood Event Details</PageTitle>
 
-<h1 class="govuk-heading-l">Generate Flood Event</h1>
+<h1 class="govuk-heading-l">Flood Event Details</h1>
 
 <GdsBackLink Href="@($"{SearchPages.Results.Url}/{SearchReference}")"></GdsBackLink>
 
 <p class="govuk-body-l">
     This form will upgrade a search to a flood event. 
 </p>
-<details class="govuk-details">
-    <summary class="govuk-details__summary">
-        <span class="govuk-details__summary-text">
-            Why should you use this page?
-        </span>
-    </summary>
-    <div class="govuk-details__text">
-        <p class="govuk-body">
-            This allows you to:
-            <ul>
-                <li>Generate reports into serious flooding (Section 19)</li>
-                <li>Add estimated impacts</li>
-                <li>Record actions taken</li>
-                <li>Enables comment / media functions</li>
-                <li>Enables public engagement tools</li>
-            </ul>
-        </p>
-
-        <p class="govuk-body">
-            Reports identified within this search will be asked to complete the investigation form. You must override this default if you wish to defer the action.
-        </p>
-    </div>
-</details>
 
 <GdsWarning Text="This action triggers automatic notifications by default. " />
 
@@ -193,7 +170,7 @@
                         <div class="govuk-grid-column-full">
                             @if (!_isLoading)
                             {
-                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Create flood event</button>
+                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Save flood event</button>
                             }
                         </div>
                     </div>

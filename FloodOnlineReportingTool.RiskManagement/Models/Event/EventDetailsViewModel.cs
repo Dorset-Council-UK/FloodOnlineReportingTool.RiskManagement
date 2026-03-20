@@ -1,7 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
-public class CreateEventViewModel : IEvent
+public class EventDetailsViewModel : IEvent
 {
     // Common search properties (always required)
     public string SearchReference { get; set; } = string.Empty;

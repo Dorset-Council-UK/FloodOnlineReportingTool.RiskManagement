@@ -22,7 +22,6 @@ public record FloodEvent
     public int? EstimatedNoGas { get; init; }
     public int? EstimatedNoFoul { get; init; }
     public int? EstimatedNoWaterSupply { get; init; }
-    public int? EstimatedNoPhone { get; init; }
     public int? EstimatedDisruptedUtilities { get; init; }
 
     // Property estimates

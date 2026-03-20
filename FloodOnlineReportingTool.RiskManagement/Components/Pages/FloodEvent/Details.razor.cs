@@ -1,21 +1,22 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
-public partial class Create(
-    ILogger<Create> logger,
+public partial class Details(
+    ILogger<Details> logger,
     NavigationManager navigationManager,
     ICommonRepository commonRepository, 
     ISearchResultsState searchResultsState) : IAsyncDisposable
 {
     private EditContext eventContext = default!;
     private readonly CancellationTokenSource _cts = new();
-    private CreateEventViewModel Model { get; set; } = default!;
+    private EventDetailsViewModel Model { get; set; } = default!;
 
     [Parameter]
     public string? SearchReference { get; set; }
@@ -67,6 +68,16 @@ public partial class Create(
     {
         if (firstRender)
         {
+            if (string.IsNullOrEmpty(SearchReference))
+            {
+                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+                navigationManager.NavigateTo(SearchPages.Options.Url);
+
+                _isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
             _isLoading = false;
             StateHasChanged();
         }
@@ -75,5 +86,10 @@ public partial class Create(
     private async Task OnValidSubmit()
     {
 
+        navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
+
+        _isLoading = false;
+        StateHasChanged();
+        return;
     }
 }

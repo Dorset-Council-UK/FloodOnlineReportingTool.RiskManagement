@@ -1,0 +1,159 @@
+﻿@page "/event/estimates/{SearchReference}"
+@page "/event/estimates"
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Event Impact Estimates</PageTitle>
+
+<h1 class="govuk-heading-l">Event Impact Estimates</h1>
+
+<GdsBackLink Href="@($"{EventPages.Details.Url}/{SearchReference}")"></GdsBackLink>
+
+<p class="govuk-body-l">
+    Add the estimated impacts for this flood event.
+</p>
+
+<!--<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">-->
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <EditForm EditContext="estimatesContext" OnValidSubmit="OnValidSubmit" FormName="CreateEventForm">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
+            <GdsSpinner Show="_isLoading" ShowMessage="true" />
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                        <h2 class="govuk-fieldset__heading">Residential</h2>
+                    </legend>
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedResidentialFlooded">
+                                <GdsLabel Text="Internally Flooded:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedResidentialFloodedString @bind-NumberValue=Model.EstimatedResidentialFlooded class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedResidentialAffected">
+                                <GdsLabel Text="Affected:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedResidentialAffectedString @bind-NumberValue=Model.EstimatedResidentialAffected class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedResidentialOther">
+                                <GdsLabel Text="Other:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedResidentialOtherString @bind-NumberValue=Model.EstimatedResidentialOther class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                        <h2 class="govuk-fieldset__heading">Commercial</h2>
+                    </legend>
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedCommercialFlooded">
+                                <GdsLabel Text="Internally Flooded:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedCommercialFloodedString @bind-NumberValue=Model.EstimatedCommercialFlooded class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedCommercialAffected">
+                                <GdsLabel Text="Affected:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedCommercialAffectedString @bind-NumberValue=Model.EstimatedCommercialAffected class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedCommercialOther">
+                                <GdsLabel Text="Other:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedCommercialOtherString @bind-NumberValue=Model.EstimatedCommercialOther class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <GdsInsetText Text="Update this to allow more content and then insert hints about the total specified on the previous page (see model options)" />
+
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                        <h2 class="govuk-fieldset__heading">Utility Impacts</h2>
+                    </legend>
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedNoElectric">
+                                <GdsLabel Text="Electrics off:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedNoElectricString @bind-NumberValue=Model.EstimatedNoElectric class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedNoGas">
+                                <GdsLabel Text="Gas off:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedNoGasString @bind-NumberValue=Model.EstimatedNoGas class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedNoFoul">
+                                <GdsLabel Text="Foul sewer unavailable:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedNoFoulString @bind-NumberValue=Model.EstimatedNoFoul class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-half">
+                            <GdsFormGroup For="() => Model.EstimatedNoWaterSupply">
+                                <GdsLabel Text="Water supply unavailable:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedNoWaterSupplyString @bind-NumberValue=Model.EstimatedNoWaterSupply class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <GdsFormGroup For="() => Model.EstimatedDisruptedUtilities">
+                        <GdsLabel Text="Total with disrupted utilities:" />
+                        <GdsHint>House 1 may have no gas but house 2 may have no electric. This value is so we know that the total with disrupted utilities is 2 rather than 1</GdsHint>
+                        <GdsErrorMessage />
+                        <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
+                    </GdsFormGroup>
+                </fieldset>
+            </div>
+
+            <div class="govuk-form-group">
+                <fieldset class="govuk-fieldset">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-full">
+                            @if (!_isLoading)
+                            {
+                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Save flood event</button>
+                            }
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to create flood events. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>
