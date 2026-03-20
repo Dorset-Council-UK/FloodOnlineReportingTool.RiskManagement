@@ -40,7 +40,9 @@ public partial class OptionsMap(
     private string _searchTerm = string.Empty;
     private bool _isSearching = false;
     private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = [];
+    private string _selectedParish = string.Empty;
     private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = [];
+    private string _selectedWard = string.Empty;
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
     private int _selectKey = 0;
@@ -180,9 +182,9 @@ public partial class OptionsMap(
         }
     }
 
-    private async Task OnParishSelected(ChangeEventArgs e)
+    private async void OnParishSelected(GdsOptionItem<string> selectedValue)
     {
-        var selectedParish = e.Value?.ToString();
+        var selectedParish = selectedValue.Value;
         if (!string.IsNullOrWhiteSpace(selectedParish))
         {
             logger.LogInformation("User selected parish: {Parish}", selectedParish);
@@ -226,9 +228,9 @@ public partial class OptionsMap(
         }
     }
 
-    private async Task OnWardSelected(ChangeEventArgs e)
+    private async void OnWardSelected(GdsOptionItem<string> selectedValue)
     {
-        var selectedWard = e.Value?.ToString();
+        var selectedWard = selectedValue.Value;
         if (!string.IsNullOrWhiteSpace(selectedWard))
         {
             logger.LogInformation("User selected ward: {Ward}", selectedWard);
