@@ -1,3 +1,5 @@
+using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
@@ -6,6 +8,7 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 public partial class Details(
@@ -21,17 +24,12 @@ public partial class Details(
     [Parameter]
     public string? SearchReference { get; set; }
 
-    private IReadOnlyCollection<GdsOptionItem<bool>> _triggerAction = [
-        new("action-yes", "Yes", value: true),
-        new("action-no", "No", value: false),
-    ];
-
     [PersistentState(AllowUpdates = true)]
     public IReadOnlyCollection<FloodStatus>? _floodStatuses { get; set; }
     [PersistentState(AllowUpdates = true)]
     public IReadOnlyCollection<EventStatus>? _eventStatuses { get; set; }
-    [PersistentState(AllowUpdates = true)]
-    public IReadOnlyCollection<InvestigationStatus>? _investigationStatuses { get; set; }
+    private IReadOnlyCollection<GdsOptionItem<Guid>> _investigationStatuses = [];
+    private Guid _selectedInvestigationStatusId = Guid.Empty;
 
     private bool _isLoading = true;
 
@@ -44,7 +42,24 @@ public partial class Details(
 
         _floodStatuses ??= [.. await commonRepository.GetFloodStatuses(_cts.Token)];
         _eventStatuses ??= [.. await commonRepository.GetEventStatuses(_cts.Token)];
-        _investigationStatuses ??= [.. await commonRepository.GetInvestigationStatuses(_cts.Token)];
+
+        var investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
+        _investigationStatuses = CreateGdsOptionItems(
+            investigationStatuses.Select(x => new IdTextPair { Id = x.Id, Text = x.Text })
+        );
+
+        // TODO fix the binding on the actual GDS Component as this should not be required!
+        // TODO fix the styling so you can set the width to 100% as I don't like the selects being fit to content
+
+        // Set the initial selected value from the model
+        _selectedInvestigationStatusId = Model.InvestigationStatus;
+
+        // Mark the correct option as selected in the collection
+        var selectedOption = _investigationStatuses.FirstOrDefault(o => o.Value == Model.InvestigationStatus);
+        if (selectedOption is not null)
+        {
+            selectedOption.Selected = true;
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -91,5 +106,23 @@ public partial class Details(
         _isLoading = false;
         StateHasChanged();
         return;
+    }
+
+    private void OnInvestigationStatusChanged(GdsOptionItem<Guid> option)
+    {
+        // Get the selected item to check its text or ID
+        _selectedInvestigationStatusId = option.Value;
+        StateHasChanged();
+    }
+
+    private static List<GdsOptionItem<Guid>> CreateGdsOptionItems(IEnumerable<IdTextPair> results)
+    {
+        var optionItems = new List<GdsOptionItem<Guid>>
+        {
+            new("0".AsSpan(), "Select an option", Guid.Empty, false)
+        };
+        optionItems.AddRange(results.Select((o, idx) =>
+            new GdsOptionItem<Guid>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o.Text, o.Id, false)));
+        return optionItems;
     }
 }

@@ -80,13 +80,8 @@
                                 <GdsErrorMessage />
                                 @if (_investigationStatuses != null)
                                 {
-                                    <InputSelect @bind-Value="Model.InvestigationStatus" class="govuk-select" style="width:100%;">
-                                        <option value="">Select an option</option>
-                                        @foreach (var investigationStatus in _investigationStatuses)
-                                        {
-                                            <option value="@investigationStatus.Id">@investigationStatus.Text</option>
-                                        }
-                                    </InputSelect>
+                                    <!-- need to add this somehow style="width:100%;" -->
+                                    <GdsSelect T="Guid" Options="_investigationStatuses" OnChange="OnInvestigationStatusChanged" />
                                 }
                             </GdsFormGroup>
                         </div>
@@ -144,36 +139,20 @@
                 </fieldset>
             </div>
 
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full"> 
-                            <GdsFormGroup For="() => Model.TriggerInvestigation">
-                                <InputRadioGroup @bind-Value="Model.TriggerInvestigation">
-                                    <GdsFieldsetGroup>
-                                        <Content>
-                                            <GdsLabel Text="Trigger Investigation:" />
-                                            <GdsErrorMessage />
-                                            <GdsRadios Options="@_triggerAction" Inline="true" />
-                                        </Content>
-                                    </GdsFieldsetGroup>
-                                </InputRadioGroup>
-                            </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
+            @if (_selectedInvestigationStatusId == Section19StatusIds.Section19Included)
+            {
+                <GdsWarning Icon="!" Text="Report completed! This will lock associated reports if not already done." />
+            } else if (_selectedInvestigationStatusId != Section19StatusIds.NoSection19)
+            {
+                <GdsWarning Icon="!" Text="This will trigger a request for residents to complete the investigation form." />
+            } 
 
             <div class="govuk-form-group">
                 <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
-                            @if (!_isLoading)
-                            {
-                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Save flood event</button>
-                            }
-                        </div>
-                    </div>
+                    @if (!_isLoading)
+                    {
+                        <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Save flood event</button>
+                    }
                 </fieldset>
             </div>
 

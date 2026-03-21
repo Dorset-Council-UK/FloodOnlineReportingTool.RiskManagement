@@ -20,6 +20,4 @@ public class EventDetailsViewModel : IEvent
     public int EstimatedTotalInternallyFlooded { get; set; } = 0;
     public string? EstimatedTotalInternallyFloodedString { get; set; }
     public string? StatusNote { get; set; } = string.Empty;
-
-    public bool TriggerInvestigation { get; set; } = true;
 }
