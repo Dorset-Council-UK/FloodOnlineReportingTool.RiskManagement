@@ -1,3 +1,5 @@
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions; 
@@ -7,6 +9,8 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Globalization;
+using static MassTransit.ValidationResultExtensions;
 
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
@@ -33,6 +37,7 @@ public partial class Options(
     private bool _isLoading = true;
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
+    private IReadOnlyCollection<GdsOptionItem<ResultTypes>> _resultOptions = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,6 +46,7 @@ public partial class Options(
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
+        _resultOptions = CreateGdsOptionItems(Enum.GetValues<ResultTypes>());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -137,5 +143,23 @@ public partial class Options(
 
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
-    
+
+    private static List<GdsOptionItem<ResultTypes>> CreateGdsOptionItems(IEnumerable<ResultTypes> results)
+    {
+        var optionItems = new List<GdsOptionItem<ResultTypes>>
+        {
+            new("0".AsSpan(), "Select an option".AsSpan(), default, false)
+        };
+        optionItems.AddRange(results.Select((o, idx) =>
+            new GdsOptionItem<ResultTypes>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o.ToString().AsSpan(), o, false)));
+        return optionItems;
+    }
+
+    private async Task OnTypeChange(GdsOptionItem<ResultTypes> option)
+    {
+        // Do something when the select value changes
+        Model.ShowResultsAs = option.Value;
+        StateHasChanged();
+    }
+
 }

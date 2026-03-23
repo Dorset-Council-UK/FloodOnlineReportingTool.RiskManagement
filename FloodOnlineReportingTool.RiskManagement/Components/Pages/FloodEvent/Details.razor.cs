@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
@@ -24,12 +25,9 @@ public partial class Details(
     [Parameter]
     public string? SearchReference { get; set; }
 
-    [PersistentState(AllowUpdates = true)]
-    public IReadOnlyCollection<FloodStatus>? _floodStatuses { get; set; }
-    [PersistentState(AllowUpdates = true)]
-    public IReadOnlyCollection<EventStatus>? _eventStatuses { get; set; }
+    private IReadOnlyCollection<GdsOptionItem<Guid>> _floodStatuses = [];
+    private IReadOnlyCollection<GdsOptionItem<Guid>> _eventStatuses = [];
     private IReadOnlyCollection<GdsOptionItem<Guid>> _investigationStatuses = [];
-    private Guid _selectedInvestigationStatusId = Guid.Empty;
 
     private bool _isLoading = true;
 
@@ -40,14 +38,20 @@ public partial class Details(
         eventContext = new(Model);
         eventContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
 
-        _floodStatuses ??= [.. await commonRepository.GetFloodStatuses(_cts.Token)];
-        _eventStatuses ??= [.. await commonRepository.GetEventStatuses(_cts.Token)];
+        var floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
+        _floodStatuses = CreateGdsOptionItems(
+            floodStatuses.Select(x => new IdTextPair { Id = x.Id, Text = x.Text })
+        );
+
+        var eventStatuses = await commonRepository.GetEventStatuses(_cts.Token);
+        _eventStatuses = CreateGdsOptionItems(
+            eventStatuses.Select(x => new IdTextPair { Id = x.Id, Text = x.Text })
+        );
 
         var investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
         _investigationStatuses = CreateGdsOptionItems(
             investigationStatuses.Select(x => new IdTextPair { Id = x.Id, Text = x.Text })
         );
-        _selectedInvestigationStatusId = Model.InvestigationStatus;
     }
 
     public async ValueTask DisposeAsync()
@@ -96,13 +100,6 @@ public partial class Details(
         return;
     }
 
-    private void OnInvestigationStatusChanged(GdsOptionItem<Guid> option)
-    {
-        // Get the selected item to check its text or ID
-        _selectedInvestigationStatusId = option.Value;
-        StateHasChanged();
-    }
-
     private static List<GdsOptionItem<Guid>> CreateGdsOptionItems(IEnumerable<IdTextPair> results)
     {
         var optionItems = new List<GdsOptionItem<Guid>>
@@ -112,5 +109,26 @@ public partial class Details(
         optionItems.AddRange(results.Select((o, idx) =>
             new GdsOptionItem<Guid>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o.Text, o.Id, false)));
         return optionItems;
+    }
+
+    private async Task OnEventStatusChange(GdsOptionItem<Guid> option)
+    {
+        // Do something when the select value changes
+        Model.RecordStatus = option.Value;
+        StateHasChanged();
+    }
+
+    private async Task OnFloodStatusChange(GdsOptionItem<Guid> option)
+    {
+        // Do something when the select value changes
+        Model.FloodStatus = option.Value;
+        StateHasChanged();
+    }
+
+    private async Task OnInvestigationStatusChange(GdsOptionItem<Guid> option)
+    {
+        // Do something when the select value changes
+        Model.InvestigationStatus = option.Value;
+        StateHasChanged();
     }
 }

@@ -89,13 +89,7 @@
                             <GdsFormGroup For="() => Model.ShowResultsAs">
                                 <GdsLabel Text="Show results as" />
                                 <GdsErrorMessage />
-                                <InputSelect @bind-Value="Model.ShowResultsAs" class="govuk-select">
-                                    <option value="">Select an option</option>
-                                    @foreach (var searchType in Enum.GetValues<ResultTypes>())
-                                    {
-                                        <option value="@searchType">@searchType</option>
-                                    }
-                                </InputSelect>
+                                <GdsSelect T="ResultTypes" @bind-value="Model.ShowResultsAs" Options="_resultOptions" OnChange="@OnTypeChange" />
                             </GdsFormGroup>
                         </div>
                     </div>

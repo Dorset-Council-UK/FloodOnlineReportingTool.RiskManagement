@@ -46,13 +46,7 @@
                                 <GdsErrorMessage />
                                 @if (_eventStatuses != null)
                                 {
-                                    <InputSelect @bind-Value="Model.RecordStatus" class="govuk-select" style="width:100%;">
-                                        <option value="">Select an option</option>
-                                        @foreach (var eventStatus in _eventStatuses)
-                                        {
-                                            <option value="@eventStatus.Id">@eventStatus.Text</option>
-                                        }
-                                    </InputSelect>
+                                    <GdsSelect T="Guid" @bind-value="Model.RecordStatus" style="width:100%;" Options="_eventStatuses" OnChange="@OnEventStatusChange" />
                                 }
                             </GdsFormGroup>
                         </div>
@@ -62,13 +56,7 @@
                                 <GdsErrorMessage />
                                 @if (_floodStatuses != null)
                                 {
-                                    <InputSelect @bind-Value="Model.FloodStatus" class="govuk-select" style="width:100%;">
-                                        <option value="">Select an option</option>
-                                        @foreach (var floodStatus in _floodStatuses)
-                                        {
-                                            <option value="@floodStatus.Id">@floodStatus.Text</option>
-                                        }
-                                    </InputSelect>
+                                    <GdsSelect T="Guid" @bind-value="Model.FloodStatus" style="width:100%;" Options="_floodStatuses" OnChange="@OnFloodStatusChange" />
                                 }
                             </GdsFormGroup>
                         </div>
@@ -78,7 +66,7 @@
                                 <GdsErrorMessage />
                                 @if (_investigationStatuses != null)
                                 {
-                                    <GdsSelect T="Guid" @bind-value="Model.InvestigationStatus" style="width:100%;" Options="_investigationStatuses" OnChange="OnInvestigationStatusChanged" />
+                                    <GdsSelect T="Guid" @bind-value="Model.InvestigationStatus" style="width:100%;" Options="_investigationStatuses" OnChange="@OnInvestigationStatusChange" />
                                 }
                             </GdsFormGroup>
                         </div>
@@ -136,10 +124,11 @@
                 </fieldset>
             </div>
 
-            @if (_selectedInvestigationStatusId == Section19StatusIds.Section19Included)
+            @if (Model.InvestigationStatus == Section19StatusIds.Section19Included)
             {
                 <GdsWarning Icon="!" Text="Report completed! This will lock associated reports if not already done." />
-            } else if (_selectedInvestigationStatusId != Section19StatusIds.NoSection19)
+            }
+            else if (Model.InvestigationStatus != Section19StatusIds.NoSection19)
             {
                 <GdsWarning Icon="!" Text="This will trigger a request for residents to complete the investigation form." />
             } 
