@@ -80,8 +80,7 @@
                                 <GdsErrorMessage />
                                 @if (_investigationStatuses != null)
                                 {
-                                    <!-- need to add this somehow style="width:100%;" -->
-                                    <GdsSelect T="Guid" Options="_investigationStatuses" OnChange="OnInvestigationStatusChanged" />
+                                    <GdsSelect T="Guid" @bind-value="Model.InvestigationStatus" style="width:100%;" Options="_investigationStatuses" OnChange="OnInvestigationStatusChanged" />
                                 }
                             </GdsFormGroup>
                         </div>

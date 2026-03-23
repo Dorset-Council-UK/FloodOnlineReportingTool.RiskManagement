@@ -47,19 +47,7 @@ public partial class Details(
         _investigationStatuses = CreateGdsOptionItems(
             investigationStatuses.Select(x => new IdTextPair { Id = x.Id, Text = x.Text })
         );
-
-        // TODO fix the binding on the actual GDS Component as this should not be required!
-        // TODO fix the styling so you can set the width to 100% as I don't like the selects being fit to content
-
-        // Set the initial selected value from the model
         _selectedInvestigationStatusId = Model.InvestigationStatus;
-
-        // Mark the correct option as selected in the collection
-        var selectedOption = _investigationStatuses.FirstOrDefault(o => o.Value == Model.InvestigationStatus);
-        if (selectedOption is not null)
-        {
-            selectedOption.Selected = true;
-        }
     }
 
     public async ValueTask DisposeAsync()
