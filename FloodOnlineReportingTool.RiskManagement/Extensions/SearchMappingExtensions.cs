@@ -59,7 +59,7 @@ internal static class SearchMappingExtensions
 
         if (!string.IsNullOrWhiteSpace(viewModel.ByReference))
         {
-            savedSearch.Reference = viewModel.ByReference;
+            savedSearch.Reference = viewModel.ByReference.Trim().ToUpperInvariant();
         }
 
         return savedSearch;

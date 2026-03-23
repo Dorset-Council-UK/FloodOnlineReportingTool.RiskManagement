@@ -48,6 +48,10 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
     {
         if (firstRender)
         {
+            if (string.IsNullOrEmpty(SearchReference))
+            {
+                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+                navigationManager.NavigateTo(SearchPages.Options.Url);
 
             var options = searchResultsState.Options;
             if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
