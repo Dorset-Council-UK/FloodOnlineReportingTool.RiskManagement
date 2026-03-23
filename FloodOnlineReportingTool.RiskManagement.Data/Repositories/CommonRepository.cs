@@ -64,7 +64,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         }
 
         // Try to find existing search with matching criteria (exclude Id and SearchTitle)
-        var primaryCauseIds = searchCriteria.FloodPrimaryCauses.OrderBy(x => x).ToList();
+        var primaryCauseIds = searchCriteria.FloodSources.OrderBy(x => x).ToList();
         var primaryCauseCount = primaryCauseIds.Count;
 
         // Database filtering: Simple fields + count + geometry (PostGIS)
@@ -75,14 +75,14 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
                 s.ResultsTo == searchCriteria.ResultsTo &&
                 s.Postcode == searchCriteria.Postcode &&
                 s.ReporterString == searchCriteria.ReporterString &&
-                s.FloodPrimaryCauses.Count == primaryCauseCount &&
+                s.FloodSources.Count == primaryCauseCount &&
                 ((s.Geom == null && searchCriteria.Geom == null) ||
                  (s.Geom != null && searchCriteria.Geom != null && s.Geom.EqualsTopologically(searchCriteria.Geom))))
             .ToListAsync(ct);
 
         // In-memory: Only check collection equality (can't translate SequenceEqual)
         existingSearch = candidates.FirstOrDefault(s =>
-            s.FloodPrimaryCauses.OrderBy(x => x).SequenceEqual(primaryCauseIds));
+            s.FloodSources.OrderBy(x => x).SequenceEqual(primaryCauseIds));
 
         if (existingSearch != null)
         {

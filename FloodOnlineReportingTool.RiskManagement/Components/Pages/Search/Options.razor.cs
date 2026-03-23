@@ -40,7 +40,7 @@ public partial class Options(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
+        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodSource);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -60,13 +60,13 @@ public partial class Options(
                 Model.ToDate.YearText = options.ToDate.YearText;
                 Model.ByPlaceName = options.ByPlaceName;
                 Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodCause = options.ByFloodCause;
+                Model.ByFloodSource = options.ByFloodSource;
                 Model.ByPolygon = options.ByPolygon;
                 Model.ShowResultsAs = options.ShowResultsAs;
                 Model.BufferText = options.BufferText;
                 Model.Buffer = options.Buffer;
             }
-            _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
+            _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodSource);
 
             _isLoading = false;
             StateHasChanged();
@@ -93,7 +93,7 @@ public partial class Options(
     private async Task OnSubmit()
     {
         // Update flood cause selection from checkboxes
-        Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         
         // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
@@ -117,7 +117,7 @@ public partial class Options(
 
     private void GoToMap()
     {
-        Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         searchOptionsState.SetOptions(Model);
         navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
     }

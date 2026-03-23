@@ -22,17 +22,14 @@ public record SavedSearch
 
     // Search parameters
 
-    public DateTimeOffset? ResultsFrom { get; init; }
-    public DateTimeOffset? ResultsTo { get; init; }
-    // List of Contracts.Shared.PrimaryCauseIds
-    public ICollection<Guid> FloodPrimaryCauses { get; init; } = [];
-    // List of Contracts.Shared.SecondaryCauseIds
-    public ICollection<Guid> FloodSecondaryCauses { get; init; } = [];
-    public long? UPRN { get; init; } 
-    public long? USRN { get; init; }
-    public string Postcode { get; init; } = string.Empty;
-    public string ReporterString { get; init; } = string.Empty;
-    public MultiPolygon? Geom { get; init; }
+    public DateTimeOffset? ResultsFrom { get; init; } //FloodReports.ImpactStartUtc + Duration
+    public DateTimeOffset? ResultsTo { get; init; } //FloodReports.ImpactStartUtc + Duration
+    public ICollection<Guid> FloodSources { get; init; } = []; //FloodReportSources
+    public long? UPRN { get; init; } //FloodReports.UPRN
+    public long? USRN { get; init; } //FloodReports.USRN
+    public string Postcode { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY
+    public string ReporterString { get; init; } = string.Empty; //UNUSED
+    public MultiPolygon? Geom { get; init; } //FloodReports.Geom
 
     // Result properties
     public int? PagingSize { get; init; }

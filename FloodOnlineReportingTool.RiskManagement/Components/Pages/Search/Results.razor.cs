@@ -64,7 +64,7 @@ public partial class Results(ILogger<Results> logger, ICommonRepository commonRe
 
                 // Convert Entity → ViewModel
                 Model = savedSearch.SavedSearchToResultsView();
-
+                
                 // Persist in state for page navigation
                 searchResultsState.SetResultOptions(Model);
             }

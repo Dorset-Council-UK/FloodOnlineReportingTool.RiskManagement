@@ -14,7 +14,7 @@ public class SearchResultsViewModel : ISearchOptions
     public string? ByReference { get; set; }
     public GdsDate FromDate { get; set; } = new();
     public GdsDate ToDate { get; set; } = new();
-    public IList<Guid> ByFloodCause { get; set; } = [];
+    public IList<Guid> ByFloodSource { get; set; } = [];
     public string? ByPlaceName { get; set; }
     public string? ByPersonsName { get; set; }
     public MultiPolygon? ByPolygon { get; set; }

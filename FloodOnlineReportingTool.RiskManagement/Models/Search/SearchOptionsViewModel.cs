@@ -18,7 +18,7 @@ public class SearchOptionsViewModel : ISearchOptions
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
     public GdsDate ToDate { get; set; } = new();
 
-    public IList<Guid> ByFloodCause { get; set; } = [];
+    public IList<Guid> ByFloodSource { get; set; } = [];
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? ByPlaceName { get; set; }

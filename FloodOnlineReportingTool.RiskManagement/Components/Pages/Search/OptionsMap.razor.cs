@@ -76,7 +76,7 @@ public partial class OptionsMap(
                 Model.ToDate.YearText = options.ToDate.YearText;
                 Model.ByPlaceName = options.ByPlaceName;
                 Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodCause = options.ByFloodCause;
+                Model.ByFloodSource = options.ByFloodSource;
                 Model.ByPolygon = options.ByPolygon;
                 Model.ShowResultsAs = options.ShowResultsAs;
                 Model.BufferText = options.BufferText;

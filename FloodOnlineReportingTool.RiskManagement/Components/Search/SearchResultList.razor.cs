@@ -26,7 +26,7 @@ public partial class SearchResultList(
     private EditContext _editContext = null!;
     private ValidationMessageStore _messageStore = null!;
     private SearchState? _searchState;
-    private PagedResult<SearchResultFloodLocation> _pagedSearch = null!;
+    private PagedResult<SearchResultFloodReport> _pagedSearch = null!;
     private IReadOnlyCollection<GdsOptionItem<FloodLocationSearchType>> _searchTypeOptions = [];
 
     public SearchResultsViewModel Model { get; set; } = null!;
@@ -49,6 +49,7 @@ public partial class SearchResultList(
         _messageStore = new(_editContext);
         _searchState = SearchState.NotStarted;
         _pagedSearch = new([], 0, PageSize, 1, 0);
+        await Search();
         _searchTypeOptions = [
             new ("searchAll", "All", FloodLocationSearchType.All),
             new ("searchWithReports", "Include flood reports", FloodLocationSearchType.WithFloodReports),
@@ -126,16 +127,19 @@ public partial class SearchResultList(
         {
             var pageNumber = Model.PageNumber ?? 1;
 
-            _pagedSearch = Model.SearchType switch
-            {
-                FloodLocationSearchType.All =>
-                    await reportStatusClient.SearchFloodLocations(pageNumber, PageSize),
-                FloodLocationSearchType.WithFloodReports =>
-                    await reportStatusClient.SearchFloodLocationsWithFloodReports(pageNumber, PageSize),
-                FloodLocationSearchType.ByLocation when Model.Easting is double easting && Model.Northing is double northing && Model.Buffer is double buffer =>
-                    await reportStatusClient.SearchFloodLocationsByPoint(easting, northing, buffer, pageNumber, PageSize),
-                _ => new([], 0, PageSize, pageNumber, 0),
-            };
+            _pagedSearch = await reportStatusClient.SearchFloodReports(Model.FromDate.DateUtc, Model.ToDate.DateUtc, Model.ByFloodSource, null, null, null, pageNumber);
+
+
+            //_pagedSearch = Model.SearchType switch
+            //{
+            //    FloodLocationSearchType.All =>
+            //        await reportStatusClient.SearchFloodLocations(pageNumber, PageSize),
+            //    FloodLocationSearchType.WithFloodReports =>
+            //        await reportStatusClient.SearchFloodLocationsWithFloodReports(pageNumber, PageSize),
+            //    FloodLocationSearchType.ByLocation when Model.Easting is double easting && Model.Northing is double northing && Model.Buffer is double buffer =>
+            //        await reportStatusClient.SearchFloodLocationsByPoint(easting, northing, buffer, pageNumber, PageSize),
+            //    _ => new([], 0, PageSize, pageNumber, 0),
+            //};
 
             _searchState = _pagedSearch is null || _pagedSearch.TotalCount == 0
                 ? SearchState.NoResults

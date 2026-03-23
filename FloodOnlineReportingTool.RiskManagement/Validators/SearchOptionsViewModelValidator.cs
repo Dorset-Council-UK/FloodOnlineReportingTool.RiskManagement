@@ -33,7 +33,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
                            !string.IsNullOrWhiteSpace(o.ByPlaceName) ||
                            !string.IsNullOrWhiteSpace(o.ByPersonsName) ||
-                           o.ByFloodCause?.Count > 0 || 
+                           o.ByFloodSource?.Count > 0 || 
                            o.ByPolygon != null)
                 .WithMessage("Enter at least one search criterion")
                 .WithName("SearchCriteria");

@@ -9,7 +9,7 @@ public interface ISearchOptions
     public string? ByReference { get; set; }
     public GdsDate FromDate { get; set; }
     public GdsDate ToDate { get; set; }
-    public IList<Guid> ByFloodCause { get; set; }
+    public IList<Guid> ByFloodSource { get; set; }
     public string? ByPlaceName { get; set; }
     public string? ByPersonsName { get; set; }
     public MultiPolygon? ByPolygon { get; set; }
