@@ -48,7 +48,7 @@
                                 <div class="govuk-form-group">
                                     <label class="govuk-label">Select a parish</label>
 
-                                    <GdsSelect @key="_selectKey" Options="@_parishResults" OnChange="@OnParishSelected" />
+                                    <GdsSelect T="string" @key="_selectKey" Options="@_parishResults"  OnChange="OnParishSelected" />
                                 </div>
                             }
 
@@ -57,7 +57,7 @@
                                 <div class="govuk-form-group">
                                     <label class="govuk-label">Select a ward</label>
 
-                                    <GdsSelect @key="_selectKey" Options="@_wardResults" OnChange="@OnWardSelected" />
+                                    <GdsSelect T="string" @key="_selectKey" Options="@_wardResults" OnChange="OnWardSelected" />
                                 </div>
                             }
 

@@ -2,65 +2,23 @@
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
-@if (_editContext is null)
+@if (SearchResults is not null)
 {
-    return;
-}
-
-<EditForm EditContext="_editContext" OnSubmit="OnSearchSubmit" FormName="SearchResultForm">
-    <FluentValidationValidator />
-    <GdsErrorSummary />
-
-    <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
-        <Authorized>
-            <div class="govuk-grid-row border-bottom">
-                <div class="govuk-grid-column-one-third">
-                    <div>
-                        <h2 class="govuk-heading-m">Filter</h2>
-                        <p>TODO</p>
-                    </div>
-                </div>
-
-                <div class="govuk-grid-column-two-thirds">
-                    <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@ResultsFoundText()</div>
-                    @switch (_searchState)
-                    {
-                        case SearchState.NotStarted:
-                            <div class="govuk-!-padding-top-3 border-top">TODO: Add initial search instructions, if relevant.</div>
-                            break;
-
-                        case SearchState.Searching:
-                            <div class="govuk-!-padding-top-3 govuk-!-padding-bottom-3 border-top">
-                                <GdsSpinner Show="@true" ShowMessage="true" Message="Searching..." />
-                            </div>
-                            break;
-
-                        case SearchState.ResultsFound:
-                            foreach(var result in _pagedSearch!.Results)
-                            {
-                                <FloodInformation SearchResult="result" />
-                            }
-                            break;
-
-                        case SearchState.NoResults:
-                            <p class="govuk-!-font-weight-bold govuk-!-padding-top-3 border-top">There are no matching results.</p>
-                            <p>Improve your search results by:</p>
-                            <ul class="govuk-list govuk-list--bullet">
-                                <li>removing filters</li>
-                                <li>double-checking your spelling</li>
-                                <li>using fewer keywords</li>
-                                <li>searching for something less specific</li>
-                            </ul>
-                            break;
-                    }
-
-                    <PaginationRow CurrentPage="@_pagedSearch.CurrentPage" LastPage="@_pagedSearch.TotalPages" OnPageChanged="OnPageChanged" />
-                </div>
+    <div class="govuk-grid-row border-bottom">
+        <div class="govuk-grid-column-one-third">
+            <div>
+                <h2 class="govuk-heading-m">Filter</h2>
+                <p>TODO</p>
             </div>
-        </Authorized>
+        </div>
 
-        <NotAuthorized>
-            <GdsWarning Text="Please sign in to search for flood locations" />
-        </NotAuthorized>
-    </AuthorizeView>
-</EditForm>
+        <div class="govuk-grid-column-two-thirds">
+            <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.Results.Count results found</div>
+            @foreach (var result in SearchResults!.Results)
+            {
+                <FloodInformation SearchResult="result" />
+            }
+            <PaginationRow CurrentPage="@SearchResults.CurrentPage" LastPage="@SearchResults.TotalPages" OnPageChanged="OnPageChanged" />
+        </div>
+    </div>
+}

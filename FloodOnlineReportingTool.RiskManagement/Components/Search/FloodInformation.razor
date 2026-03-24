@@ -1,7 +1,8 @@
 ﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
 
 <div itemscope itemtype="https://schema.org/CreativeWork" class="govuk-!-padding-top-3 govuk-!-padding-bottom-3 border-top">
-    <h2 class="govuk-heading-m" itemprop="headline">@SearchResult.Id</h2>
+    <h2 class="govuk-heading-m" itemprop="headline">Flooding on @SearchResult.ImpactStartUtc.GdsReadable()</h2>
+    <h3 class="govuk-heading-s">@SearchResult.Id</h3>
     <div itemprop="displayLocation" itemscope itemtype="https://schema.org/Place">
         <span itemprop="geo" itemscope itemtype="https://schema.org/GeoCoordinates">
             Easting: <span itemprop="latitude" content="@SearchResult.Latitude">@SearchResult.Geom.X</span>

@@ -1,5 +1,4 @@
-﻿@page "/search/results/{SearchReference}"
-@page "/search/results"
+﻿@page "/search/results"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
@@ -15,19 +14,47 @@
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        @if (Model.ByReference == null)
+        @if (SearchResultsViewModel.ByReference == null && !_isLoading)
         {
             <p>Sorry, something went wrong. We were unable to load the results</p>
         } else
         {
-            @if (Model.ShowResultsAs == Data.Models.Enums.ResultTypes.List)
-            {
-                <SearchResultList />
-            }
-            else
-            {
-                <p>Not Implemented</p>
-            }
+            
+            <div class="govuk-tabs" data-module="govuk-tabs">
+                <h2 class="govuk-tabs__title">
+                    View results as
+                </h2>
+                <ul class="govuk-tabs__list">
+                    <li class="govuk-tabs__list-item @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.List ? "govuk-tabs__list-item--selected" : "")">
+                        <a class="govuk-tabs__tab" href="#list">
+                            List
+                        </a>
+                    </li>
+                    <li class="govuk-tabs__list-item @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Table ? "govuk-tabs__list-item--selected" : "")">
+                        <a class="govuk-tabs__tab" href="#table">
+                            Table
+                        </a>
+                    </li>
+                    <li class="govuk-tabs__list-item  @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Map ? "govuk-tabs__list-item--selected" : "")">
+                        <a class="govuk-tabs__tab" href="#map">
+                            Map
+                        </a>
+                    </li>
+                </ul>
+                <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.List ? "" : "govuk-tabs__panel--hidden")" id="list">
+                    <h2 class="govuk-heading-l">List</h2>
+                    <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
+                </div>
+                <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Table ? "" : "govuk-tabs__panel--hidden")" id="table">
+                    <h2 class="govuk-heading-l">Table</h2>
+                    <!--table-->
+                    
+                </div>
+                <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Map ? "" : "govuk-tabs__panel--hidden")" id="map">
+                    <h2 class="govuk-heading-l">Map</h2>
+                    
+                </div>
+            </div>
         }
     </Authorized>
     <NotAuthorized>

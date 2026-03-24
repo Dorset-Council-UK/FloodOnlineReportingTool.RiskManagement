@@ -180,18 +180,17 @@ public partial class OptionsMap(
         }
     }
 
-    private async Task OnParishSelected(ChangeEventArgs e)
+    private async Task OnParishSelected(GdsOptionItem<string> selectedParish)
     {
-        var selectedParish = e.Value?.ToString();
-        if (!string.IsNullOrWhiteSpace(selectedParish))
+        if (selectedParish is not null)
         {
-            logger.LogInformation("User selected parish: {Parish}", selectedParish);
+            logger.LogInformation("User selected parish: {Parish}", selectedParish.Value);
 
             var authState = await AuthenticationState!;
             var user = authState.User;
 
             // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, user, _cts.Token);
+            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish.Value, user, _cts.Token);
 
             if (geometry != null)
             {
@@ -226,18 +225,17 @@ public partial class OptionsMap(
         }
     }
 
-    private async Task OnWardSelected(ChangeEventArgs e)
+    private async Task OnWardSelected(GdsOptionItem<string> selectedWard)
     {
-        var selectedWard = e.Value?.ToString();
-        if (!string.IsNullOrWhiteSpace(selectedWard))
+        if (selectedWard is not null)
         {
-            logger.LogInformation("User selected ward: {Ward}", selectedWard);
+            logger.LogInformation("User selected ward: {Ward}", selectedWard.Value);
 
             var authState = await AuthenticationState!;
             var user = authState.User;
 
             // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, user, _cts.Token);
+            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard.Value, user, _cts.Token);
 
             if (geometry != null)
             {
