@@ -5,7 +5,8 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -16,11 +17,13 @@ public partial class Details(
     ILogger<Details> logger,
     NavigationManager navigationManager,
     ICommonRepository commonRepository, 
+    IFloodEventState floodEventState,
     ISearchResultsState searchResultsState) : IAsyncDisposable
 {
     private EditContext eventContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private EventDetailsViewModel Model { get; set; } = default!;
+    private SearchResultsViewModel? SearchResults;
 
     [Parameter]
     public string? SearchReference { get; set; }
@@ -37,6 +40,36 @@ public partial class Details(
         Model ??= new();
         eventContext = new(Model);
         eventContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+
+        if (searchResultsState.HasOptions)
+        {
+            SearchResults = searchResultsState.Options;
+        }
+
+        var details = floodEventState.Details;
+        if (details != null && string.Equals(details.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            Model.SearchReference = details.SearchReference;
+            Model.SearchTitle = details.SearchTitle;
+            Model.RecordStatus = details.RecordStatus;
+            Model.FloodStatus = details.FloodStatus;
+            Model.InvestigationStatus = details.InvestigationStatus;
+            Model.EstimatedVulnerable = details.EstimatedVulnerable;
+            Model.EstimatedVulnerableString = details.EstimatedVulnerableString;
+            Model.EstimatedUninhabitable = details.EstimatedUninhabitable;
+            Model.EstimatedUninhabitableString = details.EstimatedUninhabitableString;
+            Model.EstimatedTotalExternalOnly = details.EstimatedTotalExternalOnly;
+            Model.EstimatedTotalExternalOnlyString = details.EstimatedTotalExternalOnlyString;
+            Model.EstimatedTotalInternallyFlooded = details.EstimatedTotalInternallyFlooded;
+            Model.EstimatedTotalInternallyFloodedString = details.EstimatedTotalInternallyFloodedString;
+            Model.StatusNote = details.StatusNote;
+        } else
+        {
+            // TODO: Check if the options need picking up from the database? 
+
+            // Clear the existing state if the search reference does not match, to avoid displaying stale data
+            floodEventState.SetEventDetails(Model);
+        }
 
         var floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
         _floodStatuses = CreateGdsOptionItems(
@@ -92,7 +125,8 @@ public partial class Details(
 
     private async Task OnValidSubmit()
     {
-
+        Model.SearchReference = SearchReference ?? "";
+        floodEventState.SetEventDetails(Model);
         navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
 
         _isLoading = false;
