@@ -7,6 +7,6 @@ public interface IFloodEventState
     EventEstimatesViewModel? Estimates { get; }
     bool HasDetails { get; }
     bool HasEstimates { get; }
-    void SetEventDetails(EventDetailsViewModel details);
-    void SetEventEstimates(EventEstimatesViewModel estimates);
+    void SetEventDetails(EventDetailsViewModel? details);
+    void SetEventEstimates(EventEstimatesViewModel? estimates);
 }

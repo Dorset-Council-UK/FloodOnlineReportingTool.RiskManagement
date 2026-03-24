@@ -8,12 +8,12 @@ public class FloodEventState : IFloodEventState
     public EventEstimatesViewModel? Estimates { get; private set; }
     public bool HasDetails => Details != null;
     public bool HasEstimates => Estimates != null;
-    public void SetEventDetails(EventDetailsViewModel details)
+    public void SetEventDetails(EventDetailsViewModel? details)
     {
         Details = details;
     }
 
-    public void SetEventEstimates(EventEstimatesViewModel estimates)
+    public void SetEventEstimates(EventEstimatesViewModel? estimates)
     {
         Estimates = estimates;
     }

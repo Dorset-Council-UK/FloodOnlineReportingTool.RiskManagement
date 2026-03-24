@@ -125,11 +125,24 @@ public partial class Details(
 
     private async Task OnValidSubmit()
     {
+        // Save the record
+
+        // Clear the model
+        floodEventState.SetEventDetails(null);
+        floodEventState.SetEventEstimates(null);
+        navigationManager.NavigateTo($"{EventPages.View.Url}/{SearchReference}");
+
+        _isLoading = false;
+        StateHasChanged();
+        return;
+    }
+
+    private void GoToEstimates()
+    {
         Model.SearchReference = SearchReference ?? "";
         floodEventState.SetEventDetails(Model);
         navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
 
-        _isLoading = false;
         StateHasChanged();
         return;
     }

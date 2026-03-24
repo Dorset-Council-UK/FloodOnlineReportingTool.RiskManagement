@@ -7,8 +7,6 @@
 
 <h1 class="govuk-heading-l">Event Impact Estimates</h1>
 
-<GdsBackLink Href="@($"{EventPages.Details.Url}/{SearchReference}")"></GdsBackLink>
-
 <p class="govuk-body-l">
     Add the estimated impacts for this flood event.
 </p>
@@ -147,7 +145,11 @@
                         <div class="govuk-grid-column-full">
                             @if (!_isLoading)
                             {
-                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Save flood event</button>
+                                <div class="govuk-button-group">
+                                    <GdsButton IsSubmit="true" Text="Save flood event" />
+                                    <GdsButton IsSubmit="false" OnClick="@BackToDetails" AdditionalCssClasses="govuk-button--secondary" Text="Return to details" />
+                                </div>
+                                
                             }
                         </div>
                     </div>
