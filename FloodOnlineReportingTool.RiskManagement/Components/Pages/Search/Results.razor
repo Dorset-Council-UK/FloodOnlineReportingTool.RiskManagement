@@ -47,8 +47,10 @@
                 </div>
                 <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Table ? "" : "govuk-tabs__panel--hidden")" id="table">
                     <h2 class="govuk-heading-l">Table</h2>
-                    <!--table-->
-                    
+                    @if (SearchResultsProvider is not null)
+                    {
+                        <SearchResultTable ItemsProvider="SearchResultsProvider" />
+                    }
                 </div>
                 <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Map ? "" : "govuk-tabs__panel--hidden")" id="map">
                     <h2 class="govuk-heading-l">Map</h2>

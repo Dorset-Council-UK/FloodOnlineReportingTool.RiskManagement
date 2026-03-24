@@ -1,0 +1,15 @@
+@using FloodOnlineReportingTool.Contracts.Shared.Search
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="grid">
+    <QuickGrid @ref="_grid" ItemsProvider="ItemsProvider" Pagination="_pagination" class="govuk-table quickgrid-hide-empty-rows">
+        <TemplateColumn Title="Impact Start">
+            @context.ImpactStartUtc.GdsReadable()
+        </TemplateColumn>
+        <TemplateColumn Title="Reported">
+            @context.CreatedUtc.GdsReadable()
+        </TemplateColumn>
+        <PropertyColumn Property="@(r => r.Id)" Title="Reference" />
+    </QuickGrid>
+    <Paginator State="_pagination" />
+</div>

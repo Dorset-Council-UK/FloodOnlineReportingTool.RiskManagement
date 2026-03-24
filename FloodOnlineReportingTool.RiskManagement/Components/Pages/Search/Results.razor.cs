@@ -8,6 +8,7 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.Identity.Web;
 
@@ -32,6 +33,7 @@ public partial class Results(ILogger<Results> logger,
     public required string SearchReference { get; set; }
 
     private bool _isLoading = true;
+    public GridItemsProvider<SearchResultFloodReport>? SearchResultsProvider { get; private set; }
 
     protected override void OnInitialized()
     {
@@ -95,8 +97,41 @@ public partial class Results(ILogger<Results> logger,
                 SearchResultsViewModel = options;
             }
 
+            SearchResultsProvider = ProvideSearchResults;
             _isLoading = false;
             StateHasChanged();
+        }
+    }
+
+    private async ValueTask<GridItemsProviderResult<SearchResultFloodReport>> ProvideSearchResults(
+        GridItemsProviderRequest<SearchResultFloodReport> request)
+    {
+        try
+        {
+            var pageSize = request.Count ?? SearchResultsViewModel.PagingSize;
+            var pageNumber = (request.StartIndex / pageSize) + 1;
+
+            var result = await reportStatusClient.SearchFloodReports(
+                SearchResultsViewModel.FromDate.DateUtc,
+                SearchResultsViewModel.ToDate.DateUtc,
+                SearchResultsViewModel.ByFloodSource,
+                null, null, null,
+                pageNumber, pageSize,
+                request.CancellationToken);
+
+            List<SearchResultFloodReport> items = result?.Results.ToList() ?? [];
+            return GridItemsProviderResult.From(items, result?.TotalCount ?? 0);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            logger.LogWarning(ex, "Consent required while fetching flood reports for table view");
+            consentHandler.HandleException(ex);
+            return GridItemsProviderResult.From<SearchResultFloodReport>([], 0);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while fetching flood reports for table view");
+            return GridItemsProviderResult.From<SearchResultFloodReport>([], 0);
         }
     }
 
