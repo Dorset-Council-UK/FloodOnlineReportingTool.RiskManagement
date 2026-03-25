@@ -42,19 +42,23 @@
                     </li>
                 </ul>
                 <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.List ? "" : "govuk-tabs__panel--hidden")" id="list">
-                    <h2 class="govuk-heading-l">List</h2>
                     <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
                 </div>
                 <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Table ? "" : "govuk-tabs__panel--hidden")" id="table">
-                    <h2 class="govuk-heading-l">Table</h2>
                     @if (SearchResultsProvider is not null)
                     {
                         <SearchResultTable ItemsProvider="SearchResultsProvider" />
                     }
                 </div>
                 <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Map ? "" : "govuk-tabs__panel--hidden")" id="map">
-                    <h2 class="govuk-heading-l">Map</h2>
-                    
+                    <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />
+                    @if (_mapResultsTooMany)
+                    {
+                        <GdsWarning Text="There are too many results to display on the map. Please refine your search to fewer than 1,000 results." />
+                    }
+                    <div style="height:400px;" class="govuk-!-margin-bottom-2">
+                        <MiniMap @ref="_miniMapRef" OnBecameVisible="OnMapBecameVisible"></MiniMap>
+                    </div>
                 </div>
             </div>
         }

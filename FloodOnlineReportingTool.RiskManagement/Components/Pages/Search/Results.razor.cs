@@ -1,6 +1,8 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Components;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -11,6 +13,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.Identity.Web;
+using System.Text;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
@@ -34,6 +37,11 @@ public partial class Results(ILogger<Results> logger,
 
     private bool _isLoading = true;
     public GridItemsProvider<SearchResultFloodReport>? SearchResultsProvider { get; private set; }
+
+    private MiniMap? _miniMapRef;
+    private bool _isLoadingMapData;
+    private bool _mapDataLoaded;
+    private bool _mapResultsTooMany;
 
     protected override void OnInitialized()
     {
@@ -177,23 +185,122 @@ public partial class Results(ILogger<Results> logger,
         }
     }
 
-    private bool ValidSearch()
-    {
-        _messageStore.Clear();
-        var valid = _editContext.Validate();
-        logger.LogDebug("Search flood locations form valid: {IsValid}", valid);
-        return valid;
-    }
+    //private bool ValidSearch()
+    //{
+    //    _messageStore.Clear();
+    //    var valid = _editContext.Validate();
+    //    logger.LogDebug("Search flood locations form valid: {IsValid}", valid);
+    //    return valid;
+    //}
 
     private async Task OnPageChanged(int newPageNumber)
     {
         SearchResultsViewModel.PageNumber = newPageNumber;
-        if (!ValidSearch())
+        await Search();
+    }
+
+    private async Task OnMapBecameVisible()
+    {
+        await LoadMapDataAsync();
+    }
+
+    private async Task LoadMapDataAsync()
+    {
+        if (_mapDataLoaded || _isLoadingMapData || SearchResults is null)
         {
-            _editContext.NotifyValidationStateChanged();
             return;
         }
-        await Search();
+
+        const int maxMapResults = 1000;
+        if (SearchResults.TotalCount > maxMapResults)
+        {
+            _mapResultsTooMany = true;
+            StateHasChanged();
+            return;
+        }
+
+        _isLoadingMapData = true;
+        StateHasChanged();
+
+        try
+        {
+            var allResults = new List<SearchResultFloodReport>();
+            const int pageSize = 100;
+            var totalPages = (int)Math.Ceiling((double)SearchResults.TotalCount / pageSize);
+
+            for (var page = 1; page <= totalPages; page++)
+            {
+                var result = await reportStatusClient.SearchFloodReports(
+                    SearchResultsViewModel.FromDate.DateUtc,
+                    SearchResultsViewModel.ToDate.DateUtc,
+                    SearchResultsViewModel.ByFloodSource,
+                    null, null, null,
+                    page, pageSize,
+                    _cts.Token);
+
+                if (result?.Results is not null)
+                {
+                    allResults.AddRange(result.Results);
+                }
+            }
+
+            var markers = allResults
+                .Where(r => r.Latitude != 0 || r.Longitude != 0)
+                .Select(r => new MapMarkerData(
+                    r.Id.ToString(),
+                    r.Latitude,
+                    r.Longitude,
+                    BuildPopupHtml(r)))
+                .ToList();
+
+            if (_miniMapRef is not null)
+            {
+                await _miniMapRef.UpdateMarkersAsync(markers);
+            }
+
+            _mapDataLoaded = true;
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            logger.LogWarning(ex, "Consent required while fetching map data");
+            consentHandler.HandleException(ex);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during normal cancellation; no action required.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while fetching flood report data for map view");
+        }
+        finally
+        {
+            _isLoadingMapData = false;
+            StateHasChanged();
+        }
+    }
+
+    private static string BuildPopupHtml(SearchResultFloodReport report)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"<div class=\"govuk-body-s govuk-!-margin-bottom-0\"><strong>{report.Id}</strong><br/>");
+
+        if (report.ImpactStartUtc is not null)
+        {
+            sb.Append($"<strong>Flooding started:</strong> {report.ImpactStartUtc.Value:d MMMM yyyy}<br/>");
+        }
+        sb.Append($"<strong>Sources:</strong> Flooding, Tidal<br/>");
+        sb.Append($"<strong>Created:</strong> {report.CreatedUtc:d MMMM yyyy}<br/>");
+
+        if (report.UpdatedUtc is not null)
+        {
+            sb.Append($"<strong>Updated:</strong> {report.UpdatedUtc.Value:d MMMM yyyy}<br/>");
+        }
+
+        sb.Append($"<a href=\"flood-report/details/{report.Id}\" class=\"govuk-link\">View details</a>");
+        sb.Append("</div>");
+
+        return sb.ToString();
     }
 
 }
