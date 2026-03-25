@@ -46,7 +46,7 @@ public partial class Options(
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
-        _resultOptions = CreateGdsOptionItems(Enum.GetValues<ResultTypes>());
+        _resultOptions = CreateGdsOptionItems(Enum.GetValues<ResultTypes>(), Model.ShowResultsAs);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -73,6 +73,7 @@ public partial class Options(
                 Model.Buffer = options.Buffer;
             }
             _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
+            _resultOptions = CreateGdsOptionItems(Enum.GetValues<ResultTypes>(), Model.ShowResultsAs);
 
             _isLoading = false;
             StateHasChanged();
@@ -144,14 +145,14 @@ public partial class Options(
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
 
-    private static List<GdsOptionItem<ResultTypes>> CreateGdsOptionItems(IEnumerable<ResultTypes> results)
+    private static List<GdsOptionItem<ResultTypes>> CreateGdsOptionItems(IEnumerable<ResultTypes> results, ResultTypes selectedValue)
     {
         var optionItems = new List<GdsOptionItem<ResultTypes>>
         {
             new("0".AsSpan(), "Select an option".AsSpan(), default, false)
         };
         optionItems.AddRange(results.Select((o, idx) =>
-            new GdsOptionItem<ResultTypes>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o.ToString().AsSpan(), o, false)));
+            new GdsOptionItem<ResultTypes>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o.ToString().AsSpan(), o, o.Equals(selectedValue))));
         return optionItems;
     }
 
