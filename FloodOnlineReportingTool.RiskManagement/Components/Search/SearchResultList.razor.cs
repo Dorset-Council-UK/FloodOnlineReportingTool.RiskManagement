@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 

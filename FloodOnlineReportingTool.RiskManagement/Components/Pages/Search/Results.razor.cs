@@ -1,5 +1,6 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Components;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models;
@@ -43,7 +44,7 @@ public partial class Results(ILogger<Results> logger,
     private bool _mapDataLoaded;
     private bool _mapResultsTooMany;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Setup model and edit context
         SearchResultsViewModel ??= new();
@@ -289,7 +290,8 @@ public partial class Results(ILogger<Results> logger,
         {
             sb.Append($"<strong>Flooding started:</strong> {report.ImpactStartUtc.Value:d MMMM yyyy}<br/>");
         }
-        sb.Append($"<strong>Sources:</strong> Flooding, Tidal<br/>");
+        var sources = report.Sources.Count > 0 ? string.Join(", ", report.Sources.Select(s => s.Name)) : "No flood sources identified";
+        sb.Append($"<strong>Sources:</strong> {sources}<br/>");
         sb.Append($"<strong>Created:</strong> {report.CreatedUtc:d MMMM yyyy}<br/>");
 
         if (report.UpdatedUtc is not null)
