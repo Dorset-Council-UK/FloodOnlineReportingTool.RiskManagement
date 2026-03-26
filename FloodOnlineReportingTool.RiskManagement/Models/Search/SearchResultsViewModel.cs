@@ -57,4 +57,9 @@ public class SearchResultsViewModel : ISearchOptions
 
     [GdsFieldErrorClass(GdsFieldTypes.Select)]
     public FloodLocationSearchType? SearchType { get; set; }
+
+    public SearchResultsViewModel ShallowCopy()
+    {
+        return (SearchResultsViewModel)this.MemberwiseClone();
+    }
 }

@@ -44,30 +44,36 @@
                             <GdsFormGroup For="() => Model.RecordStatus">
                                 <GdsLabel Text="Record Status:" />
                                 <GdsErrorMessage />
-                                @if (_eventStatuses != null)
-                                {
-                                    <GdsSelect T="Guid" @bind-value="Model.RecordStatus" style="width:100%;" Options="_eventStatuses" OnChange="@OnEventStatusChange" />
-                                }
+                                <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
+                                    @foreach (var option in _eventStatuses)
+                                    {
+                                        <option value="@option.Key">@option.Value</option>
+                                    }
+                                </GdsSelect>
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.FloodStatus">
                                 <GdsLabel Text="Flood Status:" />
                                 <GdsErrorMessage />
-                                @if (_floodStatuses != null)
-                                {
-                                    <GdsSelect T="Guid" @bind-value="Model.FloodStatus" style="width:100%;" Options="_floodStatuses" OnChange="@OnFloodStatusChange" />
-                                }
+                                <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
+                                    @foreach(var option in _floodStatuses)
+                                    {
+                                        <option value="@option.Key">@option.Value</option>
+                                    }
+                                </GdsSelect>
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.InvestigationStatus">
                                 <GdsLabel Text="Investigation Status:" />
                                 <GdsErrorMessage />
-                                @if (_investigationStatuses != null)
-                                {
-                                    <GdsSelect T="Guid" @bind-value="Model.InvestigationStatus" style="width:100%;" Options="_investigationStatuses" OnChange="@OnInvestigationStatusChange" />
-                                }
+                                <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
+                                    @foreach (var option in _investigationStatuses)
+                                    {
+                                        <option value="@option.Key">@option.Value</option>
+                                    }
+                                </GdsSelect>
                             </GdsFormGroup>
                         </div>
                     </div>

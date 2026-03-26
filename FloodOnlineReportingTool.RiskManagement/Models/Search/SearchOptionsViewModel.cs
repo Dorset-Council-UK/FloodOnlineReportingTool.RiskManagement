@@ -40,4 +40,9 @@ public class SearchOptionsViewModel : ISearchOptions
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? BufferText { get; set; }
     public int? Buffer { get; set; }
+
+    public SearchOptionsViewModel ShallowCopy()
+    {
+        return (SearchOptionsViewModel)this.MemberwiseClone();
+    }
 }

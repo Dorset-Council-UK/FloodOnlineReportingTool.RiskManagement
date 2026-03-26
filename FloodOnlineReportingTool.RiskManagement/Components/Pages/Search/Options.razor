@@ -81,23 +81,6 @@
 
             <div class="govuk-form-group">
                 <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Result options</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
-                            <GdsFormGroup For="() => Model.ShowResultsAs">
-                                <GdsLabel Text="Show results as" />
-                                <GdsErrorMessage />
-                                <GdsSelect T="ResultTypes" @bind-value="Model.ShowResultsAs" Options="_resultOptions" OnChange="@OnTypeChange" />
-                            </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-full">
                             @if (!_isLoading)

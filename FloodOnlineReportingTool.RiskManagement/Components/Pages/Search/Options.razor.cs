@@ -37,47 +37,30 @@ public partial class Options(
     private bool _isLoading = true;
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
-    private IReadOnlyCollection<GdsOptionItem<ResultTypes>> _resultOptions = [];
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Setup model and edit context
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
-        _resultOptions = CreateGdsOptionItems(Enum.GetValues<ResultTypes>(), Model.ShowResultsAs);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
-        {
-            var options = searchOptionsState.Options;
-            // GdsInputDate caches the GdsDate object reference on first render, so the existing
-            // objects must be mutated in-place rather than replaced to keep the component in sync.
-            if (options is not null)
-            {
-                Model.FromDate.DayText = options.FromDate.DayText;
-                Model.FromDate.MonthText = options.FromDate.MonthText;
-                Model.FromDate.YearText = options.FromDate.YearText;
-                Model.ToDate.DayText = options.ToDate.DayText;
-                Model.ToDate.MonthText = options.ToDate.MonthText;
-                Model.ToDate.YearText = options.ToDate.YearText;
-                Model.ByPlaceName = options.ByPlaceName;
-                Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodCause = options.ByFloodCause;
-                Model.ByPolygon = options.ByPolygon;
-                Model.ShowResultsAs = options.ShowResultsAs;
-                Model.BufferText = options.BufferText;
-                Model.Buffer = options.Buffer;
-            }
-            _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodCause);
-            _resultOptions = CreateGdsOptionItems(Enum.GetValues<ResultTypes>(), Model.ShowResultsAs);
+        // Configure option lists once on page load - No selections these are fixed option lists
+        _floodSourceOptions = _floodSourceOptions.Count == 0 ? await CreateFloodSourceOptions() : _floodSourceOptions;
 
-            _isLoading = false;
-            StateHasChanged();
+        // GdsInputDate caches the GdsDate object reference on first render, so the existing
+        // objects must be mutated in-place rather than replaced to keep the component in sync.
+        var options = searchOptionsState.Options;
+        if (options is not null)
+        {
+            Model = options.ShallowCopy();
         }
+
+        SetGdsOptions();
+        _isLoading = false;
     }
 
     public async ValueTask DisposeAsync()
@@ -129,38 +112,35 @@ public partial class Options(
         navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
     }
 
-    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions(IList<Guid> selectedValues)
+    private void SetGdsOptions()
+    {
+        foreach(var options in _floodSourceOptions)
+        {
+            if (Model.ByFloodCause.Contains(options.Value))
+            {
+                options.Selected = true;
+            }
+            else
+            {
+                options.Selected = false;
+            }
+        }
+    }
+
+    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions()
     {
         const string idPrefix = "flood-source";
         var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-        return [.. floodProblems.Select((o, idx) => CreateOption(o, idPrefix, selectedValues))];
+        return [.. floodProblems.Select((o, idx) => CreateFloodOption(o, idPrefix))];
     }
 
-    private static GdsOptionItem<Guid> CreateOption(FloodProblem floodProblem, string idPrefix, IList<Guid> selectedValues)
+    private static GdsOptionItem<Guid> CreateFloodOption(FloodProblem floodProblem, string idPrefix)
     {
         var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
         var label = floodProblem.TypeName.AsSpan();
-        var selected = selectedValues.Contains(floodProblem.Id);
+        //var selected = selectedValues.Contains(floodProblem.Id);
 
-        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
-    }
-
-    private static List<GdsOptionItem<ResultTypes>> CreateGdsOptionItems(IEnumerable<ResultTypes> results, ResultTypes selectedValue)
-    {
-        var optionItems = new List<GdsOptionItem<ResultTypes>>
-        {
-            new("0".AsSpan(), "Select an option".AsSpan(), default, false)
-        };
-        optionItems.AddRange(results.Select((o, idx) =>
-            new GdsOptionItem<ResultTypes>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o.ToString().AsSpan(), o, o.Equals(selectedValue))));
-        return optionItems;
-    }
-
-    private async Task OnTypeChange(GdsOptionItem<ResultTypes> option)
-    {
-        // Do something when the select value changes
-        Model.ShowResultsAs = option.Value;
-        StateHasChanged();
+        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, false);
     }
 
 }

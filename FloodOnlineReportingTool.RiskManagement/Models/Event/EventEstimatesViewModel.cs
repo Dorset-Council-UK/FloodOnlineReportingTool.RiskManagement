@@ -1,5 +1,6 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
 
@@ -41,5 +42,10 @@ public class EventEstimatesViewModel
 
     // Other properties
     public ConfidenceOptions? FloodExtentConfidence { get; set; }
+
+    public EventEstimatesViewModel ShallowCopy()
+    {
+        return (EventEstimatesViewModel)this.MemberwiseClone();
+    }
 
 }

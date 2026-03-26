@@ -12,7 +12,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 public partial class Results(
     ILogger<Results> logger,
     NavigationManager navigationManager,
-    ICommonRepository commonRepository, 
+    ICommonRepository commonRepository,
     ISearchResultsState searchResultsState) : IAsyncDisposable
 {
     private EditContext searchContext = default!;
@@ -49,46 +49,42 @@ public partial class Results(
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
+        if (string.IsNullOrEmpty(SearchReference))
         {
-            if (string.IsNullOrEmpty(SearchReference))
-            {
-                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
-                navigationManager.NavigateTo(SearchPages.Options.Url);
+            logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+            navigationManager.NavigateTo(SearchPages.Options.Url);
 
+            _isLoading = false;
+            StateHasChanged();
+            return;
+        }
+
+        var options = searchResultsState.Options;
+        if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+
+            if (savedSearch == null)
+            {
+                // Failure - No saved search found for reference
                 _isLoading = false;
                 StateHasChanged();
                 return;
             }
 
-            var options = searchResultsState.Options;
-            if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
-            {
-                var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+            // Convert Entity → ViewModel
+            Model = savedSearch.SavedSearchToResultsView().ShallowCopy();
 
-                if (savedSearch == null)
-                {
-                    // Failure - No saved search found for reference
-                    _isLoading = false;
-                    StateHasChanged();
-                    return;
-                }
-
-                // Convert Entity → ViewModel
-                Model = savedSearch.SavedSearchToResultsView();
-
-                // Persist in state for page navigation
-                searchResultsState.SetResultOptions(Model);
-            }
-            else
-            {
-                Model = options;
-            }
-
-            _isLoading = false;
-            StateHasChanged();
+            // Persist in state for page navigation
+            searchResultsState.SetResultOptions(Model);
         }
+        else
+        {
+            Model = options.ShallowCopy();
+        }
+
+        _isLoading = false;
     }
 }

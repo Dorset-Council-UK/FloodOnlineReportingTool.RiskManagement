@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
 public class EventDetailsViewModel : IEvent
@@ -20,4 +21,9 @@ public class EventDetailsViewModel : IEvent
     public int EstimatedTotalInternallyFlooded { get; set; } = 0;
     public string? EstimatedTotalInternallyFloodedString { get; set; }
     public string? StatusNote { get; set; } = string.Empty;
+
+    public EventDetailsViewModel ShallowCopy()
+    {
+        return (EventDetailsViewModel)this.MemberwiseClone();
+    }
 }
