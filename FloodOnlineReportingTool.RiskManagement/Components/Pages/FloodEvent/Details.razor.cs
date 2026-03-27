@@ -23,6 +23,7 @@ public partial class Details(
     private EditContext eventContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private EventDetailsViewModel Model { get; set; } = default!;
+    private EventDetailsViewModel? _modelFromState = null;
     private SearchResultsViewModel? SearchResults;
 
     [Parameter]
@@ -60,16 +61,22 @@ public partial class Details(
             ? (await commonRepository.GetInvestigationStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty) 
             : _investigationStatuses;
 
-        var details = floodEventState.Details;
-        if (details != null && string.Equals(details.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        if (_modelFromState == null)
         {
-            Model = details.ShallowCopy();
-        } else
-        {
-            // TODO: Check if the options need picking up from the database? 
+            _modelFromState = floodEventState.Details?.ShallowCopy();
+            if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+            {
+                Model = _modelFromState;
+                eventContext = new(Model);
+                eventContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+            }
+            else
+            {
+                // TODO: Check if the options need picking up from the database? 
 
-            // Clear the existing state if the search reference does not match, to avoid displaying stale data
-            floodEventState.SetEventDetails(Model);
+                // Clear the existing state if the search reference does not match, to avoid displaying stale data
+                floodEventState.SetEventDetails(Model);
+            }
         }
     }
 
