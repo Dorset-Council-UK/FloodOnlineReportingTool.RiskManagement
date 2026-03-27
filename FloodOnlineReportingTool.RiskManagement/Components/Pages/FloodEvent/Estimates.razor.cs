@@ -49,7 +49,7 @@ public partial class Estimates(
     {
         if (_modelFromState == null)
         {
-            _modelFromState = floodEventState.Estimates?.ShallowCopy();
+            _modelFromState = floodEventState.Estimates;
             if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
             {
                 Model = _modelFromState;
@@ -102,7 +102,6 @@ public partial class Estimates(
     private void BackToDetails()
     {
         Model.SearchReference = SearchReference ?? "";
-        floodEventState.SetEventEstimates(Model);
         navigationManager.NavigateTo($"{EventPages.Details.Url}/{SearchReference}");
         StateHasChanged();
         return;

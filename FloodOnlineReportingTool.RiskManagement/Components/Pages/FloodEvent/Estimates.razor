@@ -20,12 +20,11 @@
             <GdsSpinner Show="_isLoading" ShowMessage="true" />
             <GdsInsetText>
                 <p>
-                    The totals set on the previous page were:
+                    The maximum permitted:
                     <ul>
-                        <li>Internally Flooded: @Model.EstimatedTotalInternallyFlooded</li>
-                        <li>Externally Flooded: @Model.EstimatedTotalExternalOnly</li>
+                        <li>Internally flooded: @Model.EstimatedTotalInternallyFlooded</li>
+                        <li>Affected: @Model.EstimatedTotalExternalOnly</li>
                     </ul>
-                    Therefore you should not put any numbers bigger numbers on this page.
                 </p>
             </GdsInsetText>
             <div class="govuk-form-group">
@@ -36,7 +35,7 @@
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedResidentialFlooded">
-                                <GdsLabel Text="Internally Flooded:" />
+                                <GdsLabel Text="Internally flooded:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialFloodedString @bind-NumberValue=Model.EstimatedResidentialFlooded class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
@@ -66,7 +65,7 @@
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedCommercialFlooded">
-                                <GdsLabel Text="Internally Flooded:" />
+                                <GdsLabel Text="Internally flooded:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialFloodedString @bind-NumberValue=Model.EstimatedCommercialFlooded class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
@@ -91,11 +90,10 @@
 
             <GdsInsetText>
                 <p>
-                    The total set on the previous page was:
+                    The maximum permitted:
                     <ul>
                         <li>Disrupted Utilities: @Model.EstimatedDisruptedUtilities</li>
                     </ul>
-                    Therefore you should not put any numbers bigger numbers on this page.
                 </p>
             </GdsInsetText>
 
@@ -107,14 +105,14 @@
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-half">
                             <GdsFormGroup For="() => Model.EstimatedNoElectric">
-                                <GdsLabel Text="Electrics off:" />
+                                <GdsLabel Text="Switched off electrics:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoElectricString @bind-NumberValue=Model.EstimatedNoElectric class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
                             <GdsFormGroup For="() => Model.EstimatedNoGas">
-                                <GdsLabel Text="Gas off:" />
+                                <GdsLabel Text="Switched off gas:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoGasString @bind-NumberValue=Model.EstimatedNoGas class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>

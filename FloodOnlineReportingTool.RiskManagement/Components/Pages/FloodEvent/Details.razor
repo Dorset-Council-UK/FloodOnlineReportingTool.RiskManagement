@@ -30,7 +30,7 @@
                     </legend>
 
                     <GdsFormGroup For="() => Model.SearchTitle">
-                        <GdsLabel Text="Flood Event Name" />
+                        <GdsLabel Text="Flood event name" />
                         <GdsHint>This should be descriptive i.e. 2026 From-Until PlaceName Flooding Type.</GdsHint>
                         <GdsErrorMessage />
                         <GdsInputText @bind-Value=Model.SearchTitle class="govuk-input" />
@@ -42,7 +42,7 @@
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.RecordStatus">
-                                <GdsLabel Text="Record Status:" />
+                                <GdsLabel Text="Record status:" />
                                 <GdsErrorMessage />
                                 <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
                                     @foreach (var option in _eventStatuses)
@@ -54,7 +54,7 @@
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.FloodStatus">
-                                <GdsLabel Text="Flood Status:" />
+                                <GdsLabel Text="Flood status:" />
                                 <GdsErrorMessage />
                                 <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
                                     @foreach(var option in _floodStatuses)
@@ -66,7 +66,7 @@
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.InvestigationStatus">
-                                <GdsLabel Text="Investigation Status:" />
+                                <GdsLabel Text="Investigation status:" />
                                 <GdsErrorMessage />
                                 <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
                                     @foreach (var option in _investigationStatuses)
@@ -81,24 +81,27 @@
             </div>
             <div class="govuk-form-group">
                 <fieldset class="govuk-fieldset">
+                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                        <h2 class="govuk-fieldset__heading">Estimated Totals</h2>
+                    </legend>
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedTotalInternallyFlooded">
-                                <GdsLabel Text="Estimated Internally Flooded:" />
+                                <GdsLabel Text="Internally flooded:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedTotalExternalOnly">
-                                <GdsLabel Text="Estimated External Only (Affected):" />
+                                <GdsLabel Text="External only (Affected):" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedDisruptedUtilities">
-                                <GdsLabel Text="Estimated without utilities:" />
+                                <GdsLabel Text="Without utilities:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
@@ -111,14 +114,14 @@
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-half">
                             <GdsFormGroup For="() => Model.EstimatedVulnerable">
-                                <GdsLabel Text="Estimated Vulnerable:" />
+                                <GdsLabel Text="Vulnerable persons:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedVulnerableString @bind-NumberValue=Model.EstimatedVulnerable class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
                             <GdsFormGroup For="() => Model.EstimatedUninhabitable">
-                                <GdsLabel Text="Estimated Uninhabitable:" />
+                                <GdsLabel Text="Uninhabitable properties:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
@@ -129,7 +132,7 @@
             <div class="govuk-form-group">
                 <fieldset class="govuk-fieldset">
                     <GdsFormGroup For="() => Model.StatusNote">
-                        <GdsLabel Text="Status Notes (optional):" />
+                        <GdsLabel Text="Status notes (optional):" />
                         <GdsHint>This is a general comment about the flooding status and where the information about the event has come from.</GdsHint>
                         <GdsErrorMessage />
                         <textarea class="govuk-textarea" @bind=Model.StatusNote rows="5" aria-describedby="more-detail-hint"></textarea>

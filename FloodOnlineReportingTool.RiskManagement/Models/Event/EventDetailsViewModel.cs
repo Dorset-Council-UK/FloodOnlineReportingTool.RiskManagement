@@ -23,9 +23,4 @@ public class EventDetailsViewModel : IEvent
     public int? EstimatedDisruptedUtilities { get; set; }
     public string? EstimatedDisruptedUtilitiesString { get; set; }
     public string? StatusNote { get; set; } = string.Empty;
-
-    public EventDetailsViewModel ShallowCopy()
-    {
-        return (EventDetailsViewModel)this.MemberwiseClone();
-    }
 }

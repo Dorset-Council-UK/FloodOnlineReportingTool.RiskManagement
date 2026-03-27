@@ -41,10 +41,4 @@ public class EventEstimatesViewModel
 
     // Other properties
     public ConfidenceOptions? FloodExtentConfidence { get; set; }
-
-    public EventEstimatesViewModel ShallowCopy()
-    {
-        return (EventEstimatesViewModel)this.MemberwiseClone();
-    }
-
 }

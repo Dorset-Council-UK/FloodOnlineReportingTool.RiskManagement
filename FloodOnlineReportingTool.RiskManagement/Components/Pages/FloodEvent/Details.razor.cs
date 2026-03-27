@@ -63,7 +63,7 @@ public partial class Details(
 
         if (_modelFromState == null)
         {
-            _modelFromState = floodEventState.Details?.ShallowCopy();
+            _modelFromState = floodEventState.Details;
             if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
             {
                 Model = _modelFromState;
@@ -133,10 +133,10 @@ public partial class Details(
     private void GoToEstimates()
     {
         Model.SearchReference = SearchReference ?? "";
-        floodEventState.SetEventDetails(Model);
+        var existingDetails = floodEventState.Details;
         if (floodEventState.HasEstimates)
         {
-            var estimates = floodEventState.Estimates.ShallowCopy();
+            var estimates = floodEventState.Estimates;
             estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
             estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
             estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
@@ -147,7 +147,8 @@ public partial class Details(
             {
                 EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
                 EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
-                EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities
+                EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
+                SearchReference = SearchReference
             };
             floodEventState.SetEventEstimates(estimates);
         }
