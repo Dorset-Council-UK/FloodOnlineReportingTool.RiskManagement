@@ -13,14 +13,14 @@ public class EventDetailsViewModel : IEvent
     public Guid FloodStatus { get; set; } = EventStatusIds.PropertiesAffected;
     public Guid InvestigationStatus { get; set; } = Section19StatusIds.NoSection19;
     public int EstimatedVulnerable { get; set; } = 0;
-    public string? EstimatedVulnerableString { get; set; }
+    public string EstimatedVulnerableString { get; set; } = "0";
     public int EstimatedUninhabitable { get; set; } = 0;
-    public string? EstimatedUninhabitableString { get; set; }
+    public string EstimatedUninhabitableString { get; set; } = "0";
     public int EstimatedTotalExternalOnly { get; set; } = 0;
-    public string? EstimatedTotalExternalOnlyString { get; set; }
+    public string EstimatedTotalExternalOnlyString { get; set; } = "0";
     public int EstimatedTotalInternallyFlooded { get; set; } = 0;
-    public string? EstimatedTotalInternallyFloodedString { get; set; }
-    public int? EstimatedDisruptedUtilities { get; set; }
-    public string? EstimatedDisruptedUtilitiesString { get; set; }
+    public string EstimatedTotalInternallyFloodedString { get; set; } = "0";
+    public int EstimatedDisruptedUtilities { get; set; } = 0;
+    public string EstimatedDisruptedUtilitiesString { get; set; } = "0";
     public string? StatusNote { get; set; } = string.Empty;
 }

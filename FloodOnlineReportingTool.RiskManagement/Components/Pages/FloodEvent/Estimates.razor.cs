@@ -102,7 +102,10 @@ public partial class Estimates(
     private void BackToDetails()
     {
         Model.SearchReference = SearchReference ?? "";
-        navigationManager.NavigateTo($"{EventPages.Details.Url}/{SearchReference}");
+        if (estimatesContext.Validate())
+        {
+            navigationManager.NavigateTo($"{EventPages.Details.Url}/{SearchReference}");
+        }
         StateHasChanged();
         return;
     }

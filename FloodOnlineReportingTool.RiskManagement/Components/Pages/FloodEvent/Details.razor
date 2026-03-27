@@ -43,37 +43,37 @@
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.RecordStatus">
                                 <GdsLabel Text="Record status:" />
-                                <GdsErrorMessage />
                                 <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
                                     @foreach (var option in _eventStatuses)
                                     {
                                         <option value="@option.Key">@option.Value</option>
                                     }
                                 </GdsSelect>
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.FloodStatus">
                                 <GdsLabel Text="Flood status:" />
-                                <GdsErrorMessage />
                                 <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
                                     @foreach(var option in _floodStatuses)
                                     {
                                         <option value="@option.Key">@option.Value</option>
                                     }
                                 </GdsSelect>
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.InvestigationStatus">
                                 <GdsLabel Text="Investigation status:" />
-                                <GdsErrorMessage />
                                 <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
                                     @foreach (var option in _investigationStatuses)
                                     {
                                         <option value="@option.Key">@option.Value</option>
                                     }
                                 </GdsSelect>
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                     </div>
@@ -88,22 +88,22 @@
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedTotalInternallyFlooded">
                                 <GdsLabel Text="Internally flooded:" />
-                                <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedTotalExternalOnly">
                                 <GdsLabel Text="External only (Affected):" />
-                                <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedDisruptedUtilities">
                                 <GdsLabel Text="Without utilities:" />
-                                <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                     </div>
@@ -115,15 +115,15 @@
                         <div class="govuk-grid-column-one-half">
                             <GdsFormGroup For="() => Model.EstimatedVulnerable">
                                 <GdsLabel Text="Vulnerable persons:" />
-                                <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedVulnerableString @bind-NumberValue=Model.EstimatedVulnerable class="govuk-input govuk-input-width--10" />
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
                             <GdsFormGroup For="() => Model.EstimatedUninhabitable">
                                 <GdsLabel Text="Uninhabitable properties:" />
-                                <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
+                                <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                     </div>
