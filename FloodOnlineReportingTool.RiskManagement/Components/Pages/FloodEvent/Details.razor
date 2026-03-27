@@ -82,18 +82,25 @@
             <div class="govuk-form-group">
                 <fieldset class="govuk-fieldset">
                     <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
+                        <div class="govuk-grid-column-one-third">
                             <GdsFormGroup For="() => Model.EstimatedTotalInternallyFlooded">
                                 <GdsLabel Text="Estimated Internally Flooded:" />
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedUninhabitable">
-                                <GdsLabel Text="Estimated Uninhabitable:" />
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedTotalExternalOnly">
+                                <GdsLabel Text="Estimated External Only (Affected):" />
                                 <GdsErrorMessage />
-                                <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
+                                <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
+                            </GdsFormGroup>
+                        </div>
+                        <div class="govuk-grid-column-one-third">
+                            <GdsFormGroup For="() => Model.EstimatedDisruptedUtilities">
+                                <GdsLabel Text="Estimated without utilities:" />
+                                <GdsErrorMessage />
+                                <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
                     </div>
@@ -110,10 +117,10 @@
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedTotalExternalOnly">
-                                <GdsLabel Text="Estimated External Only (Affected):" />
+                            <GdsFormGroup For="() => Model.EstimatedUninhabitable">
+                                <GdsLabel Text="Estimated Uninhabitable:" />
                                 <GdsErrorMessage />
-                                <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
+                                <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
                             </GdsFormGroup>
                         </div>
                     </div>

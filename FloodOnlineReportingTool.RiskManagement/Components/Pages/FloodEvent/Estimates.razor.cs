@@ -19,6 +19,7 @@ public partial class Estimates(
 {
     private readonly CancellationTokenSource _cts = new();
     private EventEstimatesViewModel Model { get; set; } = default!;
+    private EventEstimatesViewModel? _modelFromState = null;
     private EditContext estimatesContext = default!;
 
     [Parameter]
@@ -28,47 +29,43 @@ public partial class Estimates(
 
     protected override void OnInitialized()
     {
+        if (string.IsNullOrEmpty(SearchReference))
+        {
+            logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+            navigationManager.NavigateTo(SearchPages.Options.Url);
+
+            _isLoading = false;
+            StateHasChanged();
+            return;
+        }
+
         // Setup model and edit context
         Model ??= new();
         estimatesContext = new(Model);
         estimatesContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+    }
 
-        var estimates = floodEventState.Estimates;
-        if (estimates != null && string.Equals(estimates.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_modelFromState == null)
         {
-            Model.SearchReference = estimates.SearchReference;
-            Model.EstimatedTotalInternallyFlooded = estimates.EstimatedTotalInternallyFlooded;
-            Model.EstimatedTotalExternalOnly = estimates.EstimatedTotalExternalOnly;
-            Model.EstimatedResidentialAffected = estimates.EstimatedResidentialAffected;
-            Model.EstimatedResidentialAffectedString = estimates.EstimatedResidentialAffectedString;
-            Model.EstimatedResidentialFlooded = estimates.EstimatedResidentialFlooded;
-            Model.EstimatedResidentialFloodedString = estimates.EstimatedResidentialFloodedString;
-            Model.EstimatedResidentialOther = estimates.EstimatedResidentialOther;
-            Model.EstimatedResidentialOtherString = estimates.EstimatedResidentialOtherString;
-            Model.EstimatedCommercialAffected = estimates.EstimatedCommercialAffected;
-            Model.EstimatedCommercialAffectedString = estimates.EstimatedCommercialAffectedString;
-            Model.EstimatedCommercialFlooded = estimates.EstimatedCommercialFlooded;
-            Model.EstimatedCommercialFloodedString = estimates.EstimatedCommercialFloodedString;
-            Model.EstimatedCommercialOther = estimates.EstimatedCommercialOther;
-            Model.EstimatedCommercialOtherString = estimates.EstimatedCommercialOtherString;
-            Model.EstimatedNoElectric = estimates.EstimatedNoElectric;
-            Model.EstimatedNoElectricString = estimates.EstimatedNoElectricString;
-            Model.EstimatedNoGas = estimates.EstimatedNoGas;
-            Model.EstimatedNoGasString = estimates.EstimatedNoGasString;
-            Model.EstimatedNoFoul = estimates.EstimatedNoFoul;
-            Model.EstimatedNoFoulString = estimates.EstimatedNoFoulString;
-            Model.EstimatedNoWaterSupply = estimates.EstimatedNoWaterSupply;
-            Model.EstimatedNoWaterSupplyString = estimates.EstimatedNoWaterSupplyString;
-            Model.EstimatedDisruptedUtilities = estimates.EstimatedDisruptedUtilities;
-            Model.EstimatedDisruptedUtilitiesString = estimates.EstimatedDisruptedUtilitiesString;
-            Model.FloodExtentConfidence = estimates.FloodExtentConfidence;
-        } else
-        {
-            // TODO: Check if the options need picking up from the database? 
+            _modelFromState = floodEventState.Estimates?.ShallowCopy();
+            if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+            {
+                Model = _modelFromState;
+                estimatesContext = new(Model);
+                estimatesContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+            }
+            else
+            {
+                // TODO: Check if the options need picking up from the database? 
 
-            // Clear the existing state if the search reference does not match, to avoid displaying stale data
-            floodEventState.SetEventEstimates(Model);
+                // Clear the existing state if the search reference does not match, to avoid displaying stale data
+                floodEventState.SetEventEstimates(Model);
+            }
         }
+
+        _isLoading = false;
     }
 
     public async ValueTask DisposeAsync()
@@ -85,25 +82,6 @@ public partial class Estimates(
         catch (Exception ex)
         {
             logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Results));
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            if (string.IsNullOrEmpty(SearchReference))
-            {
-                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
-                navigationManager.NavigateTo(SearchPages.Options.Url);
-
-                _isLoading = false;
-                StateHasChanged();
-                return;
-            }
-
-            _isLoading = false;
-            StateHasChanged();
         }
     }
 

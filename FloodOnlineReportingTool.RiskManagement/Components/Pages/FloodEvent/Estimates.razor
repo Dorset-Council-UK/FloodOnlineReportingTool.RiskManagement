@@ -18,6 +18,16 @@
             <FluentValidationValidator />
             <GdsErrorSummary />
             <GdsSpinner Show="_isLoading" ShowMessage="true" />
+            <GdsInsetText>
+                <p>
+                    The totals set on the previous page were:
+                    <ul>
+                        <li>Internally Flooded: @Model.EstimatedTotalInternallyFlooded</li>
+                        <li>Externally Flooded: @Model.EstimatedTotalExternalOnly</li>
+                    </ul>
+                    Therefore you should not put any numbers bigger numbers on this page.
+                </p>
+            </GdsInsetText>
             <div class="govuk-form-group">
                 <fieldset class="govuk-fieldset">
                     <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
@@ -80,7 +90,13 @@
             </div>
 
             <GdsInsetText>
-                Update this to allow more content and then insert hints about the total specified on the previous page (see model options)
+                <p>
+                    The total set on the previous page was:
+                    <ul>
+                        <li>Disrupted Utilities: @Model.EstimatedDisruptedUtilities</li>
+                    </ul>
+                    Therefore you should not put any numbers bigger numbers on this page.
+                </p>
             </GdsInsetText>
 
             <div class="govuk-form-group">
@@ -125,17 +141,6 @@
                             </GdsFormGroup>
                         </div>
                     </div>
-                </fieldset>
-            </div>
-
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <GdsFormGroup For="() => Model.EstimatedDisruptedUtilities">
-                        <GdsLabel Text="Total with disrupted utilities:" />
-                        <GdsHint>House 1 may have no gas but house 2 may have no electric. This value is so we know that the total with disrupted utilities is 2 rather than 1</GdsHint>
-                        <GdsErrorMessage />
-                        <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
-                    </GdsFormGroup>
                 </fieldset>
             </div>
 

@@ -134,6 +134,24 @@ public partial class Details(
     {
         Model.SearchReference = SearchReference ?? "";
         floodEventState.SetEventDetails(Model);
+        if (floodEventState.HasEstimates)
+        {
+            var estimates = floodEventState.Estimates.ShallowCopy();
+            estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
+            estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
+            estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+            floodEventState.SetEventEstimates(estimates);
+        } else
+        {
+            EventEstimatesViewModel estimates = new EventEstimatesViewModel
+            {
+                EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
+                EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
+                EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities
+            };
+            floodEventState.SetEventEstimates(estimates);
+        }
+         
         navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
 
         StateHasChanged();
