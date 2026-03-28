@@ -13,7 +13,8 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedTotalInternallyFloodedString)
                 .NotEmpty()
-                .WithMessage("Enter the number for internally flooded");
+                .Matches("^[0-9]*$")
+                .WithMessage("Enter a number for internally flooded");
 
         RuleFor(o => o.EstimatedTotalInternallyFlooded)
             .InclusiveBetween(0, 5000)
@@ -23,7 +24,8 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedTotalExternalOnlyString)
                 .NotEmpty()
-                .WithMessage("Enter the number for externally flooded");
+                .Matches("^[0-9]*$")
+                .WithMessage("Enter a number for externally flooded");
 
         RuleFor(o => o.EstimatedTotalExternalOnly)
             .InclusiveBetween(0, 5000)
@@ -33,7 +35,8 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedDisruptedUtilitiesString)
                 .NotEmpty()
-                .WithMessage("Enter the number for disrupted utilities");
+                .Matches("^[0-9]*$")
+                .WithMessage("Enter a number for disrupted utilities");
 
         RuleFor(o => o.EstimatedDisruptedUtilities)
             .InclusiveBetween(0, 5000)
@@ -43,7 +46,8 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedVulnerableString)
                 .NotEmpty()
-                .WithMessage("Enter the number for vulnerable persons");
+                .Matches("^[0-9]*$")
+                .WithMessage("Enter a number for vulnerable persons");
 
         RuleFor(o => o.EstimatedVulnerable)
             .InclusiveBetween(0, 5000)
@@ -53,7 +57,8 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedUninhabitableString)
                 .NotEmpty()
-                .WithMessage("Enter the number for uninhabitable properties");
+                .Matches("^[0-9]*$")
+                .WithMessage("Enter a number for uninhabitable properties");
 
         RuleFor(o => o.EstimatedUninhabitable)
             .InclusiveBetween(0, 5000)
@@ -64,7 +69,11 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
         RuleFor(o => o.SearchTitle)
             .MinimumLength(25)
             .WithMessage("The title must be more than 25 characters")
+            .MaximumLength(100)
+            .WithMessage("The title must be less than 100 characters");
+
+        RuleFor(o => o.StatusNote)
             .MaximumLength(500)
-            .WithMessage("The title must be less than 500 characters");
+            .WithMessage("The status note must be less than 500 characters");
     }
 }
