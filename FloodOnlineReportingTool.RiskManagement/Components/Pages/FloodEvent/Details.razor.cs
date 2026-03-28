@@ -13,10 +13,11 @@ using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
+
 public partial class Details(
     ILogger<Details> logger,
     NavigationManager navigationManager,
-    ICommonRepository commonRepository, 
+    ICommonRepository commonRepository,
     IFloodEventState floodEventState,
     ISearchResultsState searchResultsState) : IAsyncDisposable
 {
@@ -37,10 +38,21 @@ public partial class Details(
 
     protected override void OnInitialized()
     {
+        if (string.IsNullOrEmpty(SearchReference))
+        {
+            logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+            navigationManager.NavigateTo(SearchPages.Options.Url);
+
+            _isLoading = false;
+            StateHasChanged();
+            return;
+        }
+
         // Setup model and edit context
         Model ??= new();
         eventContext = new(Model);
         eventContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        Model.SearchReference = SearchReference;
     }
 
     protected override async Task OnParametersSetAsync()
@@ -51,14 +63,14 @@ public partial class Details(
         }
 
         // Configure option lists once on page load - No selections these are fixed option lists
-        _floodStatuses = _floodStatuses.Count == 0 
-            ? (await commonRepository.GetFloodStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty) 
+        _floodStatuses = _floodStatuses.Count == 0
+            ? (await commonRepository.GetFloodStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty)
             : _floodStatuses;
-        _eventStatuses = _eventStatuses.Count == 0 
-            ? (await commonRepository.GetEventStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty) 
+        _eventStatuses = _eventStatuses.Count == 0
+            ? (await commonRepository.GetEventStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty)
             : _eventStatuses;
-        _investigationStatuses = _investigationStatuses.Count == 0 
-            ? (await commonRepository.GetInvestigationStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty) 
+        _investigationStatuses = _investigationStatuses.Count == 0
+            ? (await commonRepository.GetInvestigationStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty)
             : _investigationStatuses;
 
         if (_modelFromState == null)
@@ -78,6 +90,8 @@ public partial class Details(
                 floodEventState.SetEventDetails(Model);
             }
         }
+
+        _isLoading = false;
     }
 
     public async ValueTask DisposeAsync()
@@ -97,28 +111,22 @@ public partial class Details(
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            if (string.IsNullOrEmpty(SearchReference))
-            {
-                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
-                navigationManager.NavigateTo(SearchPages.Options.Url);
-
-                _isLoading = false;
-                StateHasChanged();
-                return;
-            }
-
-            _isLoading = false;
-            StateHasChanged();
-        }
-    }
-
     private async Task OnValidSubmit()
     {
         // Save the record
+        if (SearchReference == null)
+        {
+            return;
+        }
+
+        var currentSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+        if (currentSearch == null)
+        {
+            return;
+        }
+
+        var floodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
+        await commonRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
 
         // Clear the model
         floodEventState.SetEventDetails(null);
@@ -132,7 +140,6 @@ public partial class Details(
 
     private void GoToEstimates()
     {
-        Model.SearchReference = SearchReference ?? "";
         if (eventContext.Validate())
         {
             var existingDetails = floodEventState.Details;

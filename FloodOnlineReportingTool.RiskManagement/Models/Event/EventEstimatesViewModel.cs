@@ -4,17 +4,8 @@ using FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
 
-public class EventEstimatesViewModel
+public class EventEstimatesViewModel : EventBaseModel
 {
-    // Common search properties (always required)
-    public string SearchReference { get; set; } = string.Empty;
-    // These three are set on the details page but included in this model for reference
-    // as they may need updating. For example, if properties flooded exceeds the internally flooded 
-    // estimate we can offer to update the total on save".
-    public int EstimatedTotalInternallyFlooded { get; set; } = 0;
-    public int EstimatedTotalExternalOnly { get; set; } = 0;
-    public int EstimatedDisruptedUtilities { get; set; } = 0;
-
     // Property estimates
     public int EstimatedResidentialAffected { get; set; } = 0;
     public string? EstimatedResidentialAffectedString { get; set; }

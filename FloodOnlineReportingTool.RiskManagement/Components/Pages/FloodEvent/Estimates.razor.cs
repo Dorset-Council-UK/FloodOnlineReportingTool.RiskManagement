@@ -88,6 +88,24 @@ public partial class Estimates(
     private async Task OnValidSubmit()
     {
         // Save the record
+        if (SearchReference == null)
+        {
+            return;
+        }
+
+        var currentSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+        if (currentSearch == null)
+        {
+            return;
+        }
+
+        var eventDetails = floodEventState.Details;
+        if (eventDetails == null) 
+        {
+            return;
+        }
+        var floodEvent = Model.ToFloodEvent(eventDetails, Model);
+        await commonRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
 
         // Clear the model
         floodEventState.SetEventDetails(null);

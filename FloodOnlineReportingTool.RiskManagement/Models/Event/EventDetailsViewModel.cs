@@ -1,26 +1,10 @@
-﻿using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Models.Search;
-
-namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
-public class EventDetailsViewModel : IEvent
+﻿namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
+public class EventDetailsViewModel : EventBaseModel
 {
-    // Common search properties (always required)
-    public string SearchReference { get; set; } = string.Empty;
-    public string SearchTitle { get; set; } = string.Empty;
-
-    // Common event properties (always required)
-    public Guid RecordStatus { get; set; } = EventStatusIds.RecoveryPhase;
-    public Guid FloodStatus { get; set; } = EventStatusIds.PropertiesAffected;
-    public Guid InvestigationStatus { get; set; } = Section19StatusIds.NoSection19;
-    public int EstimatedVulnerable { get; set; } = 0;
     public string EstimatedVulnerableString { get; set; } = "0";
-    public int EstimatedUninhabitable { get; set; } = 0;
     public string EstimatedUninhabitableString { get; set; } = "0";
-    public int EstimatedTotalExternalOnly { get; set; } = 0;
     public string EstimatedTotalExternalOnlyString { get; set; } = "0";
-    public int EstimatedTotalInternallyFlooded { get; set; } = 0;
     public string EstimatedTotalInternallyFloodedString { get; set; } = "0";
     public int EstimatedDisruptedUtilities { get; set; } = 0;
     public string EstimatedDisruptedUtilitiesString { get; set; } = "0";
-    public string? StatusNote { get; set; } = string.Empty;
 }
