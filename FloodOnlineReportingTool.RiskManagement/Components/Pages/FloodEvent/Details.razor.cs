@@ -84,7 +84,29 @@ public partial class Details(
             }
             else
             {
-                // TODO: Check if the options need picking up from the database? 
+                var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
+                if (databaseModel != null)
+                {
+                    Model.SearchTitle = databaseModel.SearchTitle;
+
+                    Model.RecordStatus = databaseModel.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase;
+                    Model.FloodStatus = databaseModel.FloodEvent?.RecordStatus ?? EventStatusIds.PropertiesAffected;
+                    Model.InvestigationStatus = databaseModel.FloodEvent?.InvestigationStatus ?? Section19StatusIds.NoSection19;
+
+                    Model.EstimatedTotalInternallyFlooded = databaseModel.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0;
+                    Model.EstimatedTotalInternallyFloodedString = Model.EstimatedTotalInternallyFlooded.ToString();
+                    Model.EstimatedTotalExternalOnly = databaseModel.FloodEvent?.EstimatedTotalExternalOnly ?? 0;
+                    Model.EstimatedTotalExternalOnlyString = Model.EstimatedTotalExternalOnly.ToString();
+                    Model.EstimatedDisruptedUtilities = databaseModel.FloodEvent?.EstimatedDisruptedUtilities ?? 0;
+                    Model.EstimatedDisruptedUtilitiesString = Model.EstimatedDisruptedUtilities.ToString();
+
+                    Model.EstimatedVulnerable = databaseModel.FloodEvent?.EstimatedVulnerable ?? 0;
+                    Model.EstimatedVulnerableString = Model.EstimatedVulnerable.ToString();
+                    Model.EstimatedUninhabitable = databaseModel.FloodEvent?.EstimatedUninhabitable ?? 0;
+                    Model.EstimatedUninhabitableString = Model.EstimatedUninhabitable.ToString();
+
+                    Model.StatusNote = databaseModel.FloodEvent?.StatusNote ?? "";
+                }
 
                 // Clear the existing state if the search reference does not match, to avoid displaying stale data
                 floodEventState.SetEventDetails(Model);

@@ -97,14 +97,34 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         return searchCriteria;
     }
 
-    public async Task<FloodEvent?> GetFloodEvent(Guid SavedSearchId, CancellationToken ct)
+    public async Task<SavedSearch?> GetFloodEvent(Guid? SavedSearchId, string? reference, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
-        return await context.SavedSearches
-                .AsNoTracking()
-                .Where(s => s.Id == SavedSearchId)
-                .Select(s => s.FloodEvent)
-                .FirstOrDefaultAsync(ct);   
+        reference = reference?.ToUpperInvariant();
+        SavedSearch? existingSearch;
+
+        // Test the ID based fields first
+        if (SavedSearchId.HasValue && SavedSearchId.Value != Guid.Empty)
+        {
+            existingSearch = await context.SavedSearches.AsNoTracking()
+                .Where(s => s.Id == SavedSearchId.Value)
+                .Include(s => s.FloodEvent)
+                .FirstOrDefaultAsync(ct);
+        } else
+        {
+            // Use the reference
+            existingSearch = await context.SavedSearches.AsNoTracking()
+                .Where(s => s.Reference == reference)
+                .Include(s => s.FloodEvent)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        if (existingSearch == null)
+        {
+            return null;
+        }
+
+        return existingSearch;
     }
 
     public async Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid SavedSearchId, FloodEvent floodEvent, CancellationToken ct)

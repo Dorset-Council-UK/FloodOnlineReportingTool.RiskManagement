@@ -11,7 +11,7 @@ public interface ICommonRepository
     Task<DownstreamApiLayer?> GetDownstreamApiLayers(string apiSourceRecord, CancellationToken ct);
     Task<SavedSearch?> GetSavedSearchByReference(string reference, CancellationToken ct);
     Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct);
-    Task<FloodEvent?> GetFloodEvent(Guid SavedSearchId, CancellationToken ct);
+    Task<SavedSearch?> GetFloodEvent(Guid? SavedSearchId, string? reference, CancellationToken ct);
     Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid SavedSearchId, FloodEvent floodEvent, CancellationToken ct);
     Task<IList<ReportStatus>> GetReportStatuses(CancellationToken ct);
     Task<IList<EventStatus>> GetEventStatuses(CancellationToken ct);
