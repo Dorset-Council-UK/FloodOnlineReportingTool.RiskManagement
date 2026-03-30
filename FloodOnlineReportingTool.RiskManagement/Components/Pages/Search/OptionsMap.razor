@@ -48,7 +48,12 @@
                                 <div class="govuk-form-group">
                                     <label class="govuk-label">Select a parish</label>
 
-                                    <GdsSelect T="string" @bind-Value="_selectedParish" @key="_selectKey" Options="@_parishResults" OnChange="@OnParishSelected" />
+                                    <GdsSelect T="string" @bind-Value="_selectedParish" @bind-Value:after="@OnParishSelected">
+                                        @foreach (var option in _parishResults)
+                                        {
+                                            <option value="@option">@option</option>
+                                        }
+                                    </GdsSelect>
                                 </div>
                             }
 
@@ -57,7 +62,12 @@
                                 <div class="govuk-form-group">
                                     <label class="govuk-label">Select a ward</label>
 
-                                    <GdsSelect T="string" @bind-Value="_selectedWard" @key="_selectKey" Options="@_wardResults" OnChange="@OnWardSelected" />
+                                    <GdsSelect T="string" @bind-Value="_selectedWard" @bind-Value:after="@OnWardSelected">
+                                        @foreach (var option in _wardResults)
+                                        {
+                                            <option value="@option">@option</option>
+                                        }
+                                    </GdsSelect> 
                                 </div>
                             }
 

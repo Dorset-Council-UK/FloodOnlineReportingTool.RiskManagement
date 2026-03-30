@@ -40,9 +40,9 @@ public partial class OptionsMap(
 
     private string _searchTerm = string.Empty;
     private bool _isSearching = false;
-    private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = [];
+    private IReadOnlyCollection<string> _parishResults = [];
     private string _selectedParish = string.Empty;
-    private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = [];
+    private IReadOnlyCollection<string> _wardResults = [];
     private string _selectedWard = string.Empty;
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
@@ -151,14 +151,12 @@ public partial class OptionsMap(
             var authState = await (AuthenticationState ?? throw new InvalidOperationException("Authentication state is required"));
             var user = authState.User;
 
-            var parishSearchResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
-            var wardSearchResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
-            if(parishSearchResults.Count + wardSearchResults.Count == 0)
+            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
+            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
+            if(_parishResults.Count == 0 && _wardResults.Count == 0)
             {
                 _regionSearchErrorMessage = $"No results could be found for {searchTerm}";
             }
-            _parishResults = CreateGdsOptionItems(parishSearchResults);
-            _wardResults = CreateGdsOptionItems(wardSearchResults);
             _selectKey++;
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
@@ -183,9 +181,9 @@ public partial class OptionsMap(
         }
     }
 
-    private async void OnParishSelected(GdsOptionItem<string> selectedValue)
+    private async Task OnParishSelected()
     {
-        var selectedParish = selectedValue.Value;
+        var selectedParish = _selectedParish;
         if (!string.IsNullOrWhiteSpace(selectedParish))
         {
             logger.LogInformation("User selected parish: {Parish}", selectedParish);
@@ -229,9 +227,9 @@ public partial class OptionsMap(
         }
     }
 
-    private async void OnWardSelected(GdsOptionItem<string> selectedValue)
+    private async Task OnWardSelected()
     {
-        var selectedWard = selectedValue.Value;
+        var selectedWard = _selectedWard;
         if (!string.IsNullOrWhiteSpace(selectedWard))
         {
             logger.LogInformation("User selected ward: {Ward}", selectedWard);
@@ -276,18 +274,6 @@ public partial class OptionsMap(
             }
             StateHasChanged();
         }
-    }
-
-    private static List<GdsOptionItem<string>> CreateGdsOptionItems(IEnumerable<string> results)
-    {
-        var optionItems = new List<GdsOptionItem<string>>
-        {
-            new("0".AsSpan(), "Select an option", string.Empty, false)
-        };
-        optionItems.AddRange(results.Select((o, idx) =>
-            new GdsOptionItem<string>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o, o, false)));
-
-        return optionItems;
     }
 
     private void ResetGeom()
