@@ -21,10 +21,9 @@ internal static class SearchMappingExtensions
             FloodSources = viewModel.ByFloodSource ?? [],
             UPRN = null,
             USRN = null,
-            Postcode = viewModel.ByPlaceName ?? string.Empty,
+            Postcode = viewModel.ByPostcode ?? string.Empty,
             ReporterString = viewModel.ByPersonsName ?? string.Empty,
             Geom = viewModel.ByPolygon,
-            ShowResultsAs = viewModel.ShowResultsAs,
             PagingSize = null,
             SortBy = string.Empty,
             SortOrder = SortOptions.Ascending,
@@ -46,7 +45,7 @@ internal static class SearchMappingExtensions
             FloodSources = viewModel.ByFloodSource ?? [],
             UPRN = null,
             USRN = null,
-            Postcode = viewModel.ByPlaceName ?? string.Empty,
+            Postcode = viewModel.ByPostcode ?? string.Empty,
             ReporterString = viewModel.ByPersonsName ?? string.Empty,
             Geom = viewModel.ByPolygon,
             PagingSize = null,
@@ -75,11 +74,9 @@ internal static class SearchMappingExtensions
             FromDate = ConvertToGdsDate(savedSearch.ResultsFrom),
             ToDate = ConvertToGdsDate(savedSearch.ResultsTo),
             ByFloodSource = savedSearch.FloodSources.ToList(),
-            ByPlaceName = savedSearch.Postcode,
+            ByPostcode = savedSearch.Postcode,
             ByPersonsName = savedSearch.ReporterString,
-            ByPolygon = savedSearch.Geom,
-            ShowResultsAs = savedSearch.ShowResultsAs,
-            Buffer = null
+            ByPolygon = savedSearch.Geom
         };
     }
 
@@ -95,7 +92,7 @@ internal static class SearchMappingExtensions
             FromDate = ConvertToGdsDate(savedSearch.ResultsFrom),
             ToDate = ConvertToGdsDate(savedSearch.ResultsTo),
             ByFloodSource = savedSearch.FloodSources.ToList(),
-            ByPlaceName = savedSearch.Postcode,
+            ByPostcode = savedSearch.Postcode,
             ByPersonsName = savedSearch.ReporterString,
             ByPolygon = savedSearch.Geom,
             ShowResultsAs= savedSearch.ShowResultsAs,

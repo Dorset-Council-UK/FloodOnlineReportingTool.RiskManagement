@@ -1,6 +1,4 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Components;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models;
@@ -12,7 +10,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.QuickGrid;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.Identity.Web;
 using System.Text;
 
@@ -27,7 +24,7 @@ public partial class Results(ILogger<Results> logger,
                              NavigationManager navigationManager) : IAsyncDisposable
 {
     private EditContext _editContext = null!;
-    private ValidationMessageStore _messageStore = null!;
+    private ValidationMessageStore _messageStore = default!;
     private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel SearchResultsViewModel { get; set; } = default!;
     public PagedResult<SearchResultFloodReport> SearchResults { get; set; } = default!;
@@ -50,6 +47,7 @@ public partial class Results(ILogger<Results> logger,
         SearchResultsViewModel ??= new();
         _editContext = new(SearchResultsViewModel);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _messageStore = new ValidationMessageStore(_editContext);
     }
 
     public async ValueTask DisposeAsync()
@@ -69,47 +67,42 @@ public partial class Results(ILogger<Results> logger,
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
+        if (string.IsNullOrEmpty(SearchReference))
         {
-            if (string.IsNullOrEmpty(SearchReference))
-            {
-                logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
-                navigationManager.NavigateTo(SearchPages.Options.Url);
-            }
-
-            var options = searchResultsState.Options;
-            if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
-            {
-                var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
-
-                if (savedSearch == null)
-                {
-                    // Failure - No saved search found for reference
-                    _isLoading = false;
-                    StateHasChanged();
-                    return;
-                }
-
-                // Convert Entity → ViewModel
-                SearchResultsViewModel = savedSearch.SavedSearchToResultsView();
-                
-                // Persist in state for page navigation
-                searchResultsState.SetResultOptions(SearchResultsViewModel);
-
-                //execute the API search
-                await Search();
-            }
-            else
-            {
-                SearchResultsViewModel = options;
-            }
-
-            SearchResultsProvider = ProvideSearchResults;
-            _isLoading = false;
-            StateHasChanged();
+            logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+            navigationManager.NavigateTo(SearchPages.Options.Url);
         }
+
+        var options = searchResultsState.Options;
+        if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+
+            if (savedSearch == null)
+            {
+                // Failure - No saved search found for reference
+                _isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            // Convert Entity → ViewModel
+            SearchResultsViewModel = savedSearch.SavedSearchToResultsView();
+                
+            // Persist in state for page navigation
+            searchResultsState.SetResultOptions(SearchResultsViewModel);
+        }
+        else
+        {
+            SearchResultsViewModel = options;
+        }
+        //execute the API search
+        await Search();
+        SearchResultsProvider = ProvideSearchResults;
+        _isLoading = false;
+        StateHasChanged();
     }
 
     private async ValueTask<GridItemsProviderResult<SearchResultFloodReport>> ProvideSearchResults(
@@ -124,7 +117,8 @@ public partial class Results(ILogger<Results> logger,
                 SearchResultsViewModel.FromDate.DateUtc,
                 SearchResultsViewModel.ToDate.DateUtc,
                 SearchResultsViewModel.ByFloodSource,
-                null, null, null,
+                null, null, SearchResultsViewModel.ByPostcode,
+                SearchResultsViewModel.ByPolygon,
                 pageNumber, pageSize,
                 request.CancellationToken);
 
@@ -154,7 +148,14 @@ public partial class Results(ILogger<Results> logger,
         try
         {
             var pageNumber = SearchResultsViewModel.PageNumber ?? 1;
-            SearchResults = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc, SearchResultsViewModel.ToDate.DateUtc, SearchResultsViewModel.ByFloodSource, null, null, null, pageNumber);
+            SearchResults = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
+                                                                        SearchResultsViewModel.ToDate.DateUtc,
+                                                                        SearchResultsViewModel.ByFloodSource,
+                                                                        null,
+                                                                        null,
+                                                                        SearchResultsViewModel.ByPostcode,
+                                                                        SearchResultsViewModel.ByPolygon,
+                                                                        pageNumber);
 
             _searchState = SearchResults is null || SearchResults.TotalCount == 0
                 ? SearchState.NoResults
@@ -235,7 +236,9 @@ public partial class Results(ILogger<Results> logger,
                     SearchResultsViewModel.FromDate.DateUtc,
                     SearchResultsViewModel.ToDate.DateUtc,
                     SearchResultsViewModel.ByFloodSource,
-                    null, null, null,
+                    null, null, 
+                    SearchResultsViewModel.ByPostcode, 
+                    SearchResultsViewModel.ByPolygon,
                     page, pageSize,
                     _cts.Token);
 

@@ -40,37 +40,29 @@ public partial class Options(
         Model ??= new();
         searchContext = new(Model);
         searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodSource);
     }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnParametersSetAsync()
     {
-        if (firstRender)
+        var options = searchOptionsState.Options;
+        // GdsInputDate caches the GdsDate object reference on first render, so the existing
+        // objects must be mutated in-place rather than replaced to keep the component in sync.
+        if (options is not null)
         {
-            var options = searchOptionsState.Options;
-            // GdsInputDate caches the GdsDate object reference on first render, so the existing
-            // objects must be mutated in-place rather than replaced to keep the component in sync.
-            if (options is not null)
-            {
-                Model.FromDate.DayText = options.FromDate.DayText;
-                Model.FromDate.MonthText = options.FromDate.MonthText;
-                Model.FromDate.YearText = options.FromDate.YearText;
-                Model.ToDate.DayText = options.ToDate.DayText;
-                Model.ToDate.MonthText = options.ToDate.MonthText;
-                Model.ToDate.YearText = options.ToDate.YearText;
-                Model.ByPlaceName = options.ByPlaceName;
-                Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodSource = options.ByFloodSource;
-                Model.ByPolygon = options.ByPolygon;
-                Model.ShowResultsAs = options.ShowResultsAs;
-                Model.BufferText = options.BufferText;
-                Model.Buffer = options.Buffer;
-            }
-            _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodSource);
-
-            _isLoading = false;
-            StateHasChanged();
+            Model.FromDate.DayText = options.FromDate.DayText;
+            Model.FromDate.MonthText = options.FromDate.MonthText;
+            Model.FromDate.YearText = options.FromDate.YearText;
+            Model.ToDate.DayText = options.ToDate.DayText;
+            Model.ToDate.MonthText = options.ToDate.MonthText;
+            Model.ToDate.YearText = options.ToDate.YearText;
+            Model.ByPostcode = options.ByPostcode;
+            Model.ByPersonsName = options.ByPersonsName;
+            Model.ByFloodSource = options.ByFloodSource;
+            Model.ByPolygon = options.ByPolygon;
         }
+        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodSource);
+
+        _isLoading = false;
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()

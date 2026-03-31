@@ -14,51 +14,72 @@
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        @if (SearchResultsViewModel.ByReference == null && !_isLoading)
+        @if (SearchResults is null && !_isLoading)
         {
             <p>Sorry, something went wrong. We were unable to load the results</p>
         } else
         {
-            
             <div class="govuk-tabs" data-module="govuk-tabs">
                 <h2 class="govuk-tabs__title">
                     View results as
                 </h2>
                 <ul class="govuk-tabs__list">
-                    <li class="govuk-tabs__list-item @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.List ? "govuk-tabs__list-item--selected" : "")">
-                        <a class="govuk-tabs__tab" href="#list">
-                            List
-                        </a>
-                    </li>
-                    <li class="govuk-tabs__list-item @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Table ? "govuk-tabs__list-item--selected" : "")">
+                    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
                         <a class="govuk-tabs__tab" href="#table">
                             Table
                         </a>
                     </li>
-                    <li class="govuk-tabs__list-item  @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Map ? "govuk-tabs__list-item--selected" : "")">
+                    <li class="govuk-tabs__list-item">
+                        <a class="govuk-tabs__tab" href="#list">
+                            List
+                        </a>
+                    </li>
+                    <li class="govuk-tabs__list-item">
                         <a class="govuk-tabs__tab" href="#map">
                             Map
                         </a>
                     </li>
                 </ul>
-                <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.List ? "" : "govuk-tabs__panel--hidden")" id="list">
-                    <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
-                </div>
-                <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Table ? "" : "govuk-tabs__panel--hidden")" id="table">
-                    @if (SearchResultsProvider is not null)
+                <div class="govuk-tabs__panel" id="table">
+                    @if (SearchResults is not null && SearchResults.TotalCount != 0)
                     {
-                        <SearchResultTable ItemsProvider="SearchResultsProvider" />
+                        @if (SearchResultsProvider is not null)
+                        {
+                            <SearchResultTable ItemsProvider="SearchResultsProvider" />
+                        }
+                    }
+                    else
+                    {
+                        <NoResultsMessage />
                     }
                 </div>
-                <div class="govuk-tabs__panel @(SearchResultsViewModel.ShowResultsAs == Data.Models.Enums.ResultTypes.Map ? "" : "govuk-tabs__panel--hidden")" id="map">
-                    <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />
-                    @if (_mapResultsTooMany)
+                <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
+                    @if (SearchResults is not null && SearchResults.TotalCount != 0)
                     {
-                        <GdsWarning Text="There are too many results to display on the map. Please refine your search to fewer than 1,000 results." />
+                        <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
                     }
-                    <div style="height:400px;" class="govuk-!-margin-bottom-2">
-                        <MiniMap @ref="_miniMapRef" OnBecameVisible="OnMapBecameVisible"></MiniMap>
-                    </div>
+                    else
+                    {
+                        <NoResultsMessage />
+                    }
+                </div>
+                <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="map">
+                    @if(SearchResults is not null && SearchResults.TotalCount != 0)
+                    {
+                        <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />
+                        @if (_mapResultsTooMany)
+                        {
+                            <GdsWarning Text="There are too many results to display on the map. Please refine your search to fewer than 1,000 results." />
+                        }
+                    
+                        <div style="height:400px;" class="govuk-!-margin-bottom-2">
+                            <MiniMap @ref="_miniMapRef" OnBecameVisible="OnMapBecameVisible"></MiniMap>
+                        </div>
+                    }
+                    else
+                    {
+                        <NoResultsMessage />
+                    }
                 </div>
             </div>
         }

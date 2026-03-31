@@ -74,13 +74,10 @@ public partial class OptionsMap(
                 Model.ToDate.DayText = options.ToDate.DayText;
                 Model.ToDate.MonthText = options.ToDate.MonthText;
                 Model.ToDate.YearText = options.ToDate.YearText;
-                Model.ByPlaceName = options.ByPlaceName;
+                Model.ByPostcode = options.ByPostcode;
                 Model.ByPersonsName = options.ByPersonsName;
                 Model.ByFloodSource = options.ByFloodSource;
                 Model.ByPolygon = options.ByPolygon;
-                Model.ShowResultsAs = options.ShowResultsAs;
-                Model.BufferText = options.BufferText;
-                Model.Buffer = options.Buffer;
             }
 
             _isLoading = false;
@@ -183,94 +180,68 @@ public partial class OptionsMap(
     private async Task OnParishSelected(GdsOptionItem<string> selectedParish)
     {
         if (selectedParish is not null)
-        {
-            logger.LogInformation("User selected parish: {Parish}", selectedParish.Value);
-
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-
-            // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish.Value, user, _cts.Token);
-
-            if (geometry != null)
-            {
-                if (geometry is MultiPolygon multiPolygon)
-                {
-                    if (Model.ByPolygon != null)
-                    {
-                        var unionGeom = Model.ByPolygon.Union(geometry);
-                        if (unionGeom is MultiPolygon newMultiPolygon)
-                        {
-                            Model.ByPolygon = newMultiPolygon;
-
-                        } else if (unionGeom is Polygon singlePolygon)
-                        {
-                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
-                        } else
-                        {
-                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
-                        }
-                    }
-                    else
-                    {
-                        Model.ByPolygon = multiPolygon;
-                    }
-                } else
-                {
-                    logger.LogWarning("Geometry for parish {Parish} is not a MultiPolygon as expected. Type: {GeometryType}",
-                        selectedParish, geometry.GeometryType);
-                }
-            }
-            StateHasChanged();
-        }
+            await SelectRegion("parish", selectedParish);
     }
 
     private async Task OnWardSelected(GdsOptionItem<string> selectedWard)
     {
         if (selectedWard is not null)
+            await SelectRegion("ward", selectedWard);
+    }
+
+    private async Task SelectRegion(string source, GdsOptionItem<string> selected)
+    {
+        logger.LogInformation("User selected {Source}: {Value}", source, selected.Value);
+
+        var authState = await AuthenticationState!;
+        var user = authState.User;
+
+        var geometry = await geoServerClient.GetGeometryFromSourceBySearch(source, selected.Value, user, _cts.Token);
+
+        if (geometry is MultiPolygon multiPolygon)
         {
-            logger.LogInformation("User selected ward: {Ward}", selectedWard.Value);
-
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-
-            // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard.Value, user, _cts.Token);
-
-            if (geometry != null)
-            {
-                if (geometry is MultiPolygon multiPolygon)
-                {
-                    if (Model.ByPolygon != null)
-                    {
-                        var unionGeom = Model.ByPolygon.Union(geometry);
-                        if (unionGeom is MultiPolygon newMultiPolygon)
-                        {
-                            Model.ByPolygon = newMultiPolygon;
-
-                        }
-                        else if (unionGeom is Polygon singlePolygon)
-                        {
-                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
-                        }
-                        else
-                        {
-                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
-                        }
-                    }
-                    else
-                    {
-                        Model.ByPolygon = multiPolygon;
-                    }
-                }
-                else
-                {
-                    logger.LogWarning("Geometry for ward {Ward} is not a MultiPolygon as expected. Type: {GeometryType}",
-                        selectedWard, geometry.GeometryType);
-                }
-            }
-            StateHasChanged();
+            var merged = MergePolygon(multiPolygon);
+            if (merged is not null)
+                Model.ByPolygon = merged;
         }
+        else if (geometry is not null)
+        {
+            logger.LogWarning("Geometry for {Source} {Value} is not a MultiPolygon as expected. Type: {GeometryType}",
+                source, selected.Value, geometry.GeometryType);
+        }
+
+        StateHasChanged();
+    }
+
+    private MultiPolygon? MergePolygon(MultiPolygon incoming)
+    {
+        const int srid = 27700;
+
+        MultiPolygon? result;
+
+        if (Model.ByPolygon is null)
+        {
+            result = incoming;
+        }
+        else
+        {
+            var unionGeom = Model.ByPolygon.Union(incoming);
+            result = unionGeom switch
+            {
+                MultiPolygon mp => mp,
+                Polygon p => new MultiPolygon([p]),
+                _ => null
+            };
+
+            if (result is null)
+            {
+                logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
+                return null;
+            }
+        }
+
+        result.SRID = srid;
+        return result;
     }
 
     private static List<GdsOptionItem<string>> CreateGdsOptionItems(IEnumerable<string> results)

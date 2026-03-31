@@ -12,9 +12,8 @@
             <FluentValidationValidator />
             <GdsErrorSummary />
 
-            <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-            <GdsFormGroup For="() => _isReferenceKnown" Id="reference_or_search" Show="!_isLoading">
+            <GdsFormGroup For="() => _isReferenceKnown" Id="reference_or_search">
                 <InputRadioGroup @bind-Value="_isReferenceKnown">
                     <GdsFieldsetGroup>
                         <Heading>
@@ -45,10 +44,8 @@
                 </InputRadioGroup>
             </GdsFormGroup>
 
-            @if (!_isLoading)
-            {
-                <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button></p>
-            }
+            <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button></p>
+
         </EditForm>
     </Authorized>
 
