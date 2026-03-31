@@ -5,7 +5,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Validators;
 
 public partial class EventDetailsViewModelValidator : AbstractValidator<EventDetailsViewModel>
 {
+#pragma warning disable MA0051 // Method is too long
     public EventDetailsViewModelValidator()
+#pragma warning restore MA0051 // Method is too long
     {
         RuleFor(o => o.SearchReference)
             .NotEmpty()
@@ -13,6 +15,7 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedTotalInternallyFloodedString)
                 .NotEmpty()
+                .WithMessage("Enter a number for internally flooded")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for internally flooded");
 
@@ -24,6 +27,7 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedTotalExternalOnlyString)
                 .NotEmpty()
+                .WithMessage("Enter a number for externally flooded")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for externally flooded");
 
@@ -35,6 +39,7 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedDisruptedUtilitiesString)
                 .NotEmpty()
+                .WithMessage("Enter a number for disrupted utilities")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for disrupted utilities");
 
@@ -46,6 +51,7 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedVulnerableString)
                 .NotEmpty()
+                .WithMessage("Enter a number for vulnerable persons")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for vulnerable persons");
 
@@ -57,6 +63,7 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.EstimatedUninhabitableString)
                 .NotEmpty()
+                .WithMessage("Enter a number for uninhabitable properties")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for uninhabitable properties");
 
@@ -68,7 +75,7 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
 
         RuleFor(o => o.SearchTitle)
             .MinimumLength(25)
-            .WithMessage("The title must be more than 25 characters")
+            .WithMessage("The title must be at least 25 characters")
             .MaximumLength(100)
             .WithMessage("The title must be less than 100 characters");
 

@@ -1,7 +1,6 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 

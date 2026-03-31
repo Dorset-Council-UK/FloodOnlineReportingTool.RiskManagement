@@ -1,6 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
-using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;

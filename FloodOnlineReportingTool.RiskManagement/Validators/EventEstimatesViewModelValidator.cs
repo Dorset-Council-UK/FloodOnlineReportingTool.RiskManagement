@@ -5,7 +5,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Validators;
 
 public partial class EventEstimatesViewModelValidator : AbstractValidator<EventEstimatesViewModel>
 {
+#pragma warning disable MA0051 // Method is too long
     public EventEstimatesViewModelValidator()
+#pragma warning restore MA0051 // Method is too long
     {
         RuleFor(o => o.SearchReference)
             .NotEmpty()
@@ -13,6 +15,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedResidentialFloodedString)
                 .NotEmpty()
+                .WithMessage("Enter a number for residential flooded")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for residential flooded");
 
@@ -24,6 +27,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedCommercialFloodedString)
                 .NotEmpty()
+                .WithMessage("Enter a number for commercial flooded")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for commercial flooded");
 
@@ -35,6 +39,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedResidentialAffectedString)
                 .NotEmpty()
+                .WithMessage("Enter a number for residential affected")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for residential affected");
 
@@ -46,6 +51,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedCommercialAffectedString)
                 .NotEmpty()
+                .WithMessage("Enter a number for commercial affected")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for commercial affected");
 
@@ -57,6 +63,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedResidentialOtherString)
                 .NotEmpty()
+                .WithMessage("Enter a number for residential other")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for residential other");
 
@@ -66,6 +73,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedCommercialOtherString)
                 .NotEmpty()
+                .WithMessage("Enter a number for commercial other")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for commercial other");
 
@@ -75,6 +83,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedNoElectricString)
                 .NotEmpty()
+                .WithMessage("Enter a number for without electricity")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for without electricity");
 
@@ -86,6 +95,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedNoGasString)
                 .NotEmpty()
+                .WithMessage("Enter a number for without gas")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for without gas");
 
@@ -97,6 +107,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedNoFoulString)
                 .NotEmpty()
+                .WithMessage("Enter a number for without foul sewer")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for without foul sewer");
 
@@ -108,6 +119,7 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
 
         RuleFor(o => o.EstimatedNoWaterSupplyString)
                 .NotEmpty()
+                .WithMessage("Enter a number for without water supply")
                 .Matches("^[0-9]*$")
                 .WithMessage("Enter a number for without water supply");
 

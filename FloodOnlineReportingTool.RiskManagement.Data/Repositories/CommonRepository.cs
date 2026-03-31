@@ -155,6 +155,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
 
         existingSearch = await context.SavedSearches
                 .Where(s => s.Id == SavedSearchId)
+                .Include (s => s.FloodEvent)
                 .FirstOrDefaultAsync(ct);
 
         if (existingSearch == null)
