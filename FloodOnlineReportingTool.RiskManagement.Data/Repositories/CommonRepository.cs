@@ -108,7 +108,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
             return false;
         }
         existingSearch.SearchTitle = Title;
-        context.SaveChanges();
+        await context.SaveChangesAsync(ct);
         return true;
     }
 

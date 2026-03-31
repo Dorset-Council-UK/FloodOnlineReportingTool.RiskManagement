@@ -114,7 +114,7 @@ public partial class Details(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Results));
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Details));
         }
     }
 

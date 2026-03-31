@@ -30,7 +30,7 @@ public partial class Index(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Results));
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Index));
         }
     }
 
