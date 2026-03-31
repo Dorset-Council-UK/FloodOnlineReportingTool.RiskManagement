@@ -34,21 +34,21 @@
                     </legend>
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedResidentialFlooded">
+                            <GdsFormGroup For="() => Model.EstimatedResidentialFloodedString">
                                 <GdsLabel Text="Internally flooded:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialFloodedString @bind-NumberValue=Model.EstimatedResidentialFlooded class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedResidentialAffected">
+                            <GdsFormGroup For="() => Model.EstimatedResidentialAffectedString">
                                 <GdsLabel Text="Affected:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialAffectedString @bind-NumberValue=Model.EstimatedResidentialAffected class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedResidentialOther">
+                            <GdsFormGroup For="() => Model.EstimatedResidentialOtherString">
                                 <GdsLabel Text="Other:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialOtherString @bind-NumberValue=Model.EstimatedResidentialOther class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
@@ -64,21 +64,21 @@
                     </legend>
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedCommercialFlooded">
+                            <GdsFormGroup For="() => Model.EstimatedCommercialFloodedString">
                                 <GdsLabel Text="Internally flooded:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialFloodedString @bind-NumberValue=Model.EstimatedCommercialFlooded class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedCommercialAffected">
+                            <GdsFormGroup For="() => Model.EstimatedCommercialAffectedString">
                                 <GdsLabel Text="Affected:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialAffectedString @bind-NumberValue=Model.EstimatedCommercialAffected class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedCommercialOther">
+                            <GdsFormGroup For="() => Model.EstimatedCommercialOtherString">
                                 <GdsLabel Text="Other:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialOtherString @bind-NumberValue=Model.EstimatedCommercialOther class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
@@ -104,14 +104,14 @@
                     </legend>
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoElectric">
+                            <GdsFormGroup For="() => Model.EstimatedNoElectricString">
                                 <GdsLabel Text="Switched off electrics:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoElectricString @bind-NumberValue=Model.EstimatedNoElectric class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoGas">
+                            <GdsFormGroup For="() => Model.EstimatedNoGasString">
                                 <GdsLabel Text="Switched off gas:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoGasString @bind-NumberValue=Model.EstimatedNoGas class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
@@ -125,14 +125,14 @@
                 <fieldset class="govuk-fieldset">
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoFoul">
+                            <GdsFormGroup For="() => Model.EstimatedNoFoulString">
                                 <GdsLabel Text="Foul sewer unavailable:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoFoulString @bind-NumberValue=Model.EstimatedNoFoul class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoWaterSupply">
+                            <GdsFormGroup For="() => Model.EstimatedNoWaterSupplyString">
                                 <GdsLabel Text="Water supply unavailable:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoWaterSupplyString @bind-NumberValue=Model.EstimatedNoWaterSupply class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />

@@ -86,21 +86,21 @@
                     </legend>
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedTotalInternallyFlooded">
+                            <GdsFormGroup For="() => Model.EstimatedTotalInternallyFloodedString">
                                 <GdsLabel Text="Internally flooded:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedTotalExternalOnly">
+                            <GdsFormGroup For="() => Model.EstimatedTotalExternalOnlyString">
                                 <GdsLabel Text="External only (Affected):" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedDisruptedUtilities">
+                            <GdsFormGroup For="() => Model.EstimatedDisruptedUtilitiesString">
                                 <GdsLabel Text="Without utilities:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
@@ -113,14 +113,14 @@
                 <fieldset class="govuk-fieldset">
                     <div class="govuk-grid-row">
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedVulnerable">
+                            <GdsFormGroup For="() => Model.EstimatedVulnerableString">
                                 <GdsLabel Text="Vulnerable persons:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedVulnerableString @bind-NumberValue=Model.EstimatedVulnerable class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
                         </div>
                         <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedUninhabitable">
+                            <GdsFormGroup For="() => Model.EstimatedUninhabitableString">
                                 <GdsLabel Text="Uninhabitable properties:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
