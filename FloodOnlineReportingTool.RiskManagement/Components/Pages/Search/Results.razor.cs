@@ -15,7 +15,7 @@ public partial class Results(
     ICommonRepository commonRepository,
     ISearchResultsState searchResultsState) : IAsyncDisposable
 {
-    private EditContext searchContext = default!;
+    private EditContext EditContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel Model { get; set; } = default!;
 
@@ -28,8 +28,8 @@ public partial class Results(
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new(Model);
-        searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
     public async ValueTask DisposeAsync()
@@ -75,14 +75,16 @@ public partial class Results(
             }
 
             // Convert Entity → ViewModel
-            Model = savedSearch.SavedSearchToResultsView().ShallowCopy();
+            Model = savedSearch.SavedSearchToResultsView();
 
             // Persist in state for page navigation
             searchResultsState.SetResultOptions(Model);
         }
         else
         {
-            Model = options.ShallowCopy();
+            Model = options;
+            EditContext = new(Model);
+            EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         }
 
         _isLoading = false;

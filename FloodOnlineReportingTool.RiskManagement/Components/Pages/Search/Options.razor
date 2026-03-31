@@ -9,7 +9,7 @@
 <GdsBreadcrumbs Items="Breadcrumbs" />
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
-        <EditForm EditContext="searchContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
+        <EditForm EditContext="EditContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
             <FluentValidationValidator />
             <GdsErrorSummary />
 

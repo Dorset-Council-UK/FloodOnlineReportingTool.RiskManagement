@@ -32,7 +32,7 @@ public partial class Options(
 
     private SearchOptionsViewModel Model { get; set; } = default!;
 
-    private EditContext searchContext = default!;
+    private EditContext EditContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
@@ -42,8 +42,8 @@ public partial class Options(
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new(Model);
-        searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
     protected override async Task OnParametersSetAsync()
@@ -56,7 +56,9 @@ public partial class Options(
         var options = searchOptionsState.Options;
         if (options is not null)
         {
-            Model = options.ShallowCopy();
+            Model = options;
+            EditContext = new(Model);
+            EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         }
 
         SetGdsOptions();
@@ -138,7 +140,6 @@ public partial class Options(
     {
         var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
         var label = floodProblem.TypeName.AsSpan();
-        //var selected = selectedValues.Contains(floodProblem.Id);
 
         return new GdsOptionItem<Guid>(id, label, floodProblem.Id, false);
     }
