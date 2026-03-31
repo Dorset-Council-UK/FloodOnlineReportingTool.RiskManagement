@@ -46,7 +46,6 @@ public partial class OptionsMap(
     private string _selectedWard = string.Empty;
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
-    private int _selectKey = 0;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -122,7 +121,6 @@ public partial class OptionsMap(
             _regionSearchErrorMessage = "Please enter at least 3 characters to search";
             _parishResults = [];
             _wardResults = [];
-            _selectKey++;
             StateHasChanged();
             return;
         }
@@ -150,7 +148,6 @@ public partial class OptionsMap(
             {
                 _regionSearchErrorMessage = $"No results could be found for {searchTerm}";
             }
-            _selectKey++;
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
                 _parishResults.Count, searchTerm);
