@@ -146,12 +146,12 @@ public partial class Details(
         return;
     }
 
-    private void GoToEstimates()
+    private async Task GoToEstimates()
     {
         if (EditContext.Validate())
         {
             var existingDetails = floodEventState.Details;
-            if (floodEventState.HasEstimates)
+            if (floodEventState.HasEstimates && string.Equals(floodEventState.Estimates?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
             {
                 var estimates = floodEventState.Estimates;
                 estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
@@ -161,13 +161,28 @@ public partial class Details(
             }
             else
             {
-                EventEstimatesViewModel estimates = new EventEstimatesViewModel
+                var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
+                EventEstimatesViewModel estimates;
+                if (databaseModel != null)
                 {
-                    EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
-                    EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
-                    EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
-                    SearchReference = SearchReference
-                };
+                    estimates = new();
+
+                    estimates = estimates.ToModel(databaseModel);
+                    estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
+                    estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
+                    estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+                    estimates.SearchReference = SearchReference;
+                } else
+                {
+                    estimates = new EventEstimatesViewModel
+                    {
+                        EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
+                        EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
+                        EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
+                        SearchReference = SearchReference
+                    };
+                }
+
                 floodEventState.SetEventEstimates(estimates);
             }
 

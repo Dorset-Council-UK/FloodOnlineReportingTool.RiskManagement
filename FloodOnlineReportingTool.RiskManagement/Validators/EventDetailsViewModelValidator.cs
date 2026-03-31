@@ -67,7 +67,6 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
             .When(o => !string.IsNullOrWhiteSpace(o.EstimatedUninhabitableString));
 
         RuleFor(o => o.SearchTitle)
-            .NotEmpty()
             .MinimumLength(25)
             .WithMessage("The title must be more than 25 characters")
             .MaximumLength(100)

@@ -10,27 +10,27 @@ public class EventEstimatesViewModel : EventBaseModel
 {
     // Property estimates
     public int EstimatedResidentialAffected { get; set; } = 0;
-    public string? EstimatedResidentialAffectedString { get; set; }
+    public string EstimatedResidentialAffectedString { get; set; } = "0";
     public int EstimatedResidentialFlooded { get; set; } = 0;
-    public string? EstimatedResidentialFloodedString { get; set; }
+    public string EstimatedResidentialFloodedString { get; set; } = "0";
     public int EstimatedResidentialOther { get; set; } = 0;
-    public string? EstimatedResidentialOtherString { get; set; }
+    public string EstimatedResidentialOtherString { get; set; } = "0";
     public int EstimatedCommercialAffected { get; set; } = 0;
-    public string? EstimatedCommercialAffectedString { get; set; }
+    public string EstimatedCommercialAffectedString { get; set; } = "0";
     public int EstimatedCommercialFlooded { get; set; } = 0;
-    public string? EstimatedCommercialFloodedString { get; set; }
+    public string EstimatedCommercialFloodedString { get; set; } = "0";
     public int EstimatedCommercialOther { get; set; } = 0;
-    public string? EstimatedCommercialOtherString { get; set; }
+    public string EstimatedCommercialOtherString { get; set; } = "0";
 
     // Utility estimates
     public int EstimatedNoElectric { get; set; } = 0;
-    public string? EstimatedNoElectricString { get; set; }
+    public string EstimatedNoElectricString { get; set; } = "0";
     public int EstimatedNoGas { get; set; } = 0;
-    public string? EstimatedNoGasString { get; set; }
+    public string EstimatedNoGasString { get; set; } = "0";
     public int EstimatedNoFoul { get; set; } = 0;
-    public string? EstimatedNoFoulString { get; set; }
+    public string EstimatedNoFoulString { get; set; } = "0";
     public int EstimatedNoWaterSupply { get; set; } = 0;
-    public string? EstimatedNoWaterSupplyString { get; set; }
+    public string EstimatedNoWaterSupplyString { get; set; } = "0";
 
     // Other properties
     public ConfidenceOptions? FloodExtentConfidence { get; set; }
