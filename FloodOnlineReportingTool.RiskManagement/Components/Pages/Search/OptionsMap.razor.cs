@@ -32,7 +32,7 @@ public partial class OptionsMap(
 
     private SearchOptionsViewModel Model { get; set; } = default!;
 
-    private EditContext searchContext = default!;
+    private EditContext EditContext = default!;
     private EditContext regionContext = default!;
     private EditContext digitisingContext = default!;
     private readonly CancellationTokenSource _cts = new();
@@ -55,11 +55,11 @@ public partial class OptionsMap(
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new EditContext(Model);
-        searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new EditContext(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         // Reuse the same EditContext instance for all sections to keep validation state consistent
-        regionContext = searchContext;
-        digitisingContext = searchContext;
+        regionContext = EditContext;
+        digitisingContext = EditContext;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -71,19 +71,12 @@ public partial class OptionsMap(
             // objects must be mutated in-place rather than replaced to keep the component in sync.
             if (options is not null)
             {
-                Model.FromDate.DayText = options.FromDate.DayText;
-                Model.FromDate.MonthText = options.FromDate.MonthText;
-                Model.FromDate.YearText = options.FromDate.YearText;
-                Model.ToDate.DayText = options.ToDate.DayText;
-                Model.ToDate.MonthText = options.ToDate.MonthText;
-                Model.ToDate.YearText = options.ToDate.YearText;
-                Model.ByPlaceName = options.ByPlaceName;
-                Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodCause = options.ByFloodCause;
-                Model.ByPolygon = options.ByPolygon;
-                Model.ShowResultsAs = options.ShowResultsAs;
-                Model.BufferText = options.BufferText;
-                Model.Buffer = options.Buffer;
+                Model = options;
+                EditContext = new EditContext(Model);
+                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                // Reuse the same EditContext instance for all sections to keep validation state consistent
+                regionContext = EditContext;
+                digitisingContext = EditContext;
             }
 
             _isLoading = false;
