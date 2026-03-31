@@ -164,7 +164,6 @@ public partial class Results(ILogger<Results> logger,
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
             logger.LogWarning(ex, "Consent required while searching flood locations");
-            var searchAgain = true;
             consentHandler.HandleException(ex);
         }
         catch (Exception ex)
@@ -186,14 +185,6 @@ public partial class Results(ILogger<Results> logger,
             _editContext.NotifyValidationStateChanged();
         }
     }
-
-    //private bool ValidSearch()
-    //{
-    //    _messageStore.Clear();
-    //    var valid = _editContext.Validate();
-    //    logger.LogDebug("Search flood locations form valid: {IsValid}", valid);
-    //    return valid;
-    //}
 
     private async Task OnPageChanged(int newPageNumber)
     {

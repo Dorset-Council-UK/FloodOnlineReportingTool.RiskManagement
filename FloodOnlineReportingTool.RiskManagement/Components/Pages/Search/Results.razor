@@ -19,53 +19,39 @@
             <p>Sorry, something went wrong. We were unable to load the results</p>
         } else
         {
-            <div class="govuk-tabs" data-module="govuk-tabs">
-                <h2 class="govuk-tabs__title">
-                    View results as
-                </h2>
-                <ul class="govuk-tabs__list">
-                    <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-                        <a class="govuk-tabs__tab" href="#table">
-                            Table
-                        </a>
-                    </li>
-                    <li class="govuk-tabs__list-item">
-                        <a class="govuk-tabs__tab" href="#list">
-                            List
-                        </a>
-                    </li>
-                    <li class="govuk-tabs__list-item">
-                        <a class="govuk-tabs__tab" href="#map">
-                            Map
-                        </a>
-                    </li>
-                </ul>
-                <div class="govuk-tabs__panel" id="table">
-                    @if (SearchResults is not null && SearchResults.TotalCount != 0)
-                    {
+            if (!_isLoading && (SearchResults is not null && SearchResults.TotalCount != 0))
+            {
+                <div class="govuk-tabs" data-module="govuk-tabs">
+                    <h2 class="govuk-tabs__title">
+                        View results as
+                    </h2>
+                    <ul class="govuk-tabs__list">
+                        <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                            <a class="govuk-tabs__tab" href="#table">
+                                Table
+                            </a>
+                        </li>
+                        <li class="govuk-tabs__list-item">
+                            <a class="govuk-tabs__tab" href="#list">
+                                List
+                            </a>
+                        </li>
+                        <li class="govuk-tabs__list-item">
+                            <a class="govuk-tabs__tab" href="#map">
+                                Map
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="govuk-tabs__panel" id="table">
                         @if (SearchResultsProvider is not null)
                         {
                             <SearchResultTable ItemsProvider="SearchResultsProvider" />
                         }
-                    }
-                    else
-                    {
-                        <NoResultsMessage />
-                    }
-                </div>
-                <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
-                    @if (SearchResults is not null && SearchResults.TotalCount != 0)
-                    {
+                    </div>
+                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
                         <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
-                    }
-                    else
-                    {
-                        <NoResultsMessage />
-                    }
-                </div>
-                <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="map">
-                    @if(SearchResults is not null && SearchResults.TotalCount != 0)
-                    {
+                    </div>
+                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="map">
                         <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />
                         @if (_mapResultsTooMany)
                         {
@@ -75,13 +61,14 @@
                         <div style="height:400px;" class="govuk-!-margin-bottom-2">
                             <MiniMap @ref="_miniMapRef" OnBecameVisible="OnMapBecameVisible"></MiniMap>
                         </div>
-                    }
-                    else
-                    {
-                        <NoResultsMessage />
-                    }
+                    </div>
                 </div>
-            </div>
+            }
+            else if(!_isLoading)
+            {
+                <NoResultsMessage />
+            }
+            
         }
     </Authorized>
     <NotAuthorized>
