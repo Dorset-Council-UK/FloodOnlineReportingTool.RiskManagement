@@ -20,7 +20,7 @@ public partial class Estimates(
     private readonly CancellationTokenSource _cts = new();
     private EventEstimatesViewModel Model { get; set; } = default!;
     private EventEstimatesViewModel? _modelFromState = null;
-    private EditContext estimatesContext = default!;
+    private EditContext EditContext = default!;
 
     [Parameter]
     public string? SearchReference { get; set; }
@@ -41,8 +41,8 @@ public partial class Estimates(
 
         // Setup model and edit context
         Model ??= new();
-        estimatesContext = new(Model);
-        estimatesContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
     protected override async Task OnParametersSetAsync()
@@ -53,14 +53,21 @@ public partial class Estimates(
             if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
             {
                 Model = _modelFromState;
-                estimatesContext = new(Model);
-                estimatesContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                EditContext = new(Model);
+                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
             }
             else
             {
-                // TODO: Check if the options need picking up from the database? 
+                var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
+                if (databaseModel != null)
+                {
+                    Model = Model.ToModel(databaseModel);
+                    EditContext = new(Model);
+                    EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                }
 
                 // Clear the existing state if the search reference does not match, to avoid displaying stale data
+                Model.SearchReference = SearchReference ?? "";
                 floodEventState.SetEventEstimates(Model);
             }
         }
@@ -120,7 +127,7 @@ public partial class Estimates(
     private void BackToDetails()
     {
         Model.SearchReference = SearchReference ?? "";
-        if (estimatesContext.Validate())
+        if (EditContext.Validate())
         {
             navigationManager.NavigateTo($"{EventPages.Details.Url}/{SearchReference}");
         }

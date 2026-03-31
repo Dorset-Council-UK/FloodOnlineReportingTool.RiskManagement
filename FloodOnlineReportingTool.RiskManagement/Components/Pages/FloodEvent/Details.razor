@@ -18,7 +18,7 @@
 <!--<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">-->
 <AuthorizeView Context="authContext">
     <Authorized>
-        <EditForm EditContext="eventContext" OnValidSubmit="OnValidSubmit" FormName="CreateEventForm">
+        <EditForm EditContext="EditContext" OnValidSubmit="OnValidSubmit" FormName="CreateEventForm">
             <FluentValidationValidator />
             <GdsErrorSummary />
             <GdsSpinner Show="_isLoading" ShowMessage="true" />

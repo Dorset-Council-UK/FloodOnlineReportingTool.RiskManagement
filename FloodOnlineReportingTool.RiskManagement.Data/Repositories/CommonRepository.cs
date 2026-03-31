@@ -97,6 +97,21 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         return searchCriteria;
     }
 
+    public async Task<bool> SetSavedSearchTitle(Guid id, string Title, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        var existingSearch = await context.SavedSearches
+                .Where(s => s.Id ==id)
+                .FirstOrDefaultAsync(ct);
+        if (existingSearch == null)
+        {
+            return false;
+        }
+        existingSearch.SearchTitle = Title;
+        context.SaveChanges();
+        return true;
+    }
+
     public async Task<SavedSearch?> GetFloodEvent(Guid? SavedSearchId, string? reference, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);

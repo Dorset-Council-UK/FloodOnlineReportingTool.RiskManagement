@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
 
@@ -19,7 +20,6 @@ public abstract class EventBaseModel
     public int EstimatedTotalExternalOnly { get; set; } = 0;
     public int EstimatedTotalInternallyFlooded { get; set; } = 0;
     public int EstimatedDisruptedUtilities { get; set; } = 0;
-    public string? StatusNote { get; set; }
 
     public FloodEvent ToFloodEvent(EventDetailsViewModel details, EventEstimatesViewModel? estimates)
     {

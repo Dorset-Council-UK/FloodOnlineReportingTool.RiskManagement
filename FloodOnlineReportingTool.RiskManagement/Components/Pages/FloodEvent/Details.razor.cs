@@ -21,7 +21,7 @@ public partial class Details(
     IFloodEventState floodEventState,
     ISearchResultsState searchResultsState) : IAsyncDisposable
 {
-    private EditContext eventContext = default!;
+    private EditContext EditContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private EventDetailsViewModel Model { get; set; } = default!;
     private EventDetailsViewModel? _modelFromState = null;
@@ -50,8 +50,8 @@ public partial class Details(
 
         // Setup model and edit context
         Model ??= new();
-        eventContext = new(Model);
-        eventContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         Model.SearchReference = SearchReference;
     }
 
@@ -79,36 +79,21 @@ public partial class Details(
             if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
             {
                 Model = _modelFromState;
-                eventContext = new(Model);
-                eventContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                EditContext = new(Model);
+                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
             }
             else
             {
                 var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
                 if (databaseModel != null)
                 {
-                    Model.SearchTitle = databaseModel.SearchTitle;
-
-                    Model.RecordStatus = databaseModel.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase;
-                    Model.FloodStatus = databaseModel.FloodEvent?.RecordStatus ?? EventStatusIds.PropertiesAffected;
-                    Model.InvestigationStatus = databaseModel.FloodEvent?.InvestigationStatus ?? Section19StatusIds.NoSection19;
-
-                    Model.EstimatedTotalInternallyFlooded = databaseModel.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0;
-                    Model.EstimatedTotalInternallyFloodedString = Model.EstimatedTotalInternallyFlooded.ToString();
-                    Model.EstimatedTotalExternalOnly = databaseModel.FloodEvent?.EstimatedTotalExternalOnly ?? 0;
-                    Model.EstimatedTotalExternalOnlyString = Model.EstimatedTotalExternalOnly.ToString();
-                    Model.EstimatedDisruptedUtilities = databaseModel.FloodEvent?.EstimatedDisruptedUtilities ?? 0;
-                    Model.EstimatedDisruptedUtilitiesString = Model.EstimatedDisruptedUtilities.ToString();
-
-                    Model.EstimatedVulnerable = databaseModel.FloodEvent?.EstimatedVulnerable ?? 0;
-                    Model.EstimatedVulnerableString = Model.EstimatedVulnerable.ToString();
-                    Model.EstimatedUninhabitable = databaseModel.FloodEvent?.EstimatedUninhabitable ?? 0;
-                    Model.EstimatedUninhabitableString = Model.EstimatedUninhabitable.ToString();
-
-                    Model.StatusNote = databaseModel.FloodEvent?.StatusNote ?? "";
+                    Model = Model.ToModel(databaseModel);
+                    EditContext = new(Model);
+                    EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
                 }
 
                 // Clear the existing state if the search reference does not match, to avoid displaying stale data
+                Model.SearchReference = SearchReference ?? "";
                 floodEventState.SetEventDetails(Model);
             }
         }
@@ -148,6 +133,7 @@ public partial class Details(
         }
 
         var floodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
+        await commonRepository.SetSavedSearchTitle(currentSearch.Id, Model.SearchTitle, _cts.Token);
         await commonRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
 
         // Clear the model
@@ -162,7 +148,7 @@ public partial class Details(
 
     private void GoToEstimates()
     {
-        if (eventContext.Validate())
+        if (EditContext.Validate())
         {
             var existingDetails = floodEventState.Details;
             if (floodEventState.HasEstimates)

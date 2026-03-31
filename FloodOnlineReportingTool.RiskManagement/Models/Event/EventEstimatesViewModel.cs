@@ -1,6 +1,8 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
 
@@ -32,4 +34,43 @@ public class EventEstimatesViewModel : EventBaseModel
 
     // Other properties
     public ConfidenceOptions? FloodExtentConfidence { get; set; }
+
+    public EventEstimatesViewModel ToModel(SavedSearch model)
+    {
+        EventEstimatesViewModel viewModel = new()
+        {
+            SearchTitle = model.SearchTitle,
+            RecordStatus = model.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase,
+            FloodStatus = model.FloodEvent?.FloodStatus ?? EventStatusIds.PropertiesAffected,
+            InvestigationStatus = model.FloodEvent?.InvestigationStatus ?? Section19StatusIds.NoSection19,
+            EstimatedTotalInternallyFlooded = model.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0,
+            EstimatedTotalExternalOnly = model.FloodEvent?.EstimatedTotalExternalOnly ?? 0,
+            EstimatedDisruptedUtilities = model.FloodEvent?.EstimatedDisruptedUtilities ?? 0,
+            EstimatedVulnerable = model.FloodEvent?.EstimatedVulnerable ?? 0,
+            EstimatedUninhabitable = model.FloodEvent?.EstimatedUninhabitable ?? 0,
+            EstimatedResidentialAffected = model.FloodEvent?.EstimatedResidentialAffected ?? 0,
+            EstimatedResidentialAffectedString = (model.FloodEvent?.EstimatedResidentialAffected ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedResidentialFlooded = model.FloodEvent?.EstimatedResidentialFlooded ?? 0,
+            EstimatedResidentialFloodedString = (model.FloodEvent?.EstimatedResidentialFlooded ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedResidentialOther = model.FloodEvent?.EstimatedResidentialOther ?? 0,
+            EstimatedResidentialOtherString = (model.FloodEvent?.EstimatedResidentialOther ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedCommercialAffected = model.FloodEvent?.EstimatedCommercialAffected ?? 0,
+            EstimatedCommercialAffectedString = (model.FloodEvent?.EstimatedCommercialAffected ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedCommercialFlooded = model.FloodEvent?.EstimatedCommercialFlooded ?? 0,
+            EstimatedCommercialFloodedString = (model.FloodEvent?.EstimatedCommercialFlooded ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedCommercialOther = model.FloodEvent?.EstimatedCommercialOther ?? 0,
+            EstimatedCommercialOtherString = (model.FloodEvent?.EstimatedCommercialOther ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedNoElectric = model.FloodEvent?.EstimatedNoElectric ?? 0,
+            EstimatedNoElectricString = (model.FloodEvent?.EstimatedNoElectric ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedNoGas = model.FloodEvent?.EstimatedNoGas ?? 0,
+            EstimatedNoGasString = (model.FloodEvent?.EstimatedNoGas ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedNoFoul = model.FloodEvent?.EstimatedNoFoul ?? 0,
+            EstimatedNoFoulString = (model.FloodEvent?.EstimatedNoFoul ?? 0).ToString(CultureInfo.InvariantCulture),
+            EstimatedNoWaterSupply = model.FloodEvent?.EstimatedNoWaterSupply ?? 0,
+            EstimatedNoWaterSupplyString = (model.FloodEvent?.EstimatedNoWaterSupply ?? 0).ToString(CultureInfo.InvariantCulture),
+            FloodExtentConfidence = model.FloodEvent?.FloodExtentConfidence ?? ConfidenceOptions.Unknown
+        };
+
+        return viewModel;
+    }
 }
