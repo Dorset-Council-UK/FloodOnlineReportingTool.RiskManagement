@@ -1,6 +1,6 @@
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 
-namespace FloodOnlineReportingTool.RiskManagement.Services;
+namespace FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 
 public class SearchOptionsState : ISearchOptionsState
 {

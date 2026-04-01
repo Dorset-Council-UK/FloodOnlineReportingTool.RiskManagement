@@ -9,7 +9,7 @@
 <GdsBreadcrumbs Items="Breadcrumbs" />
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
-        <EditForm EditContext="searchContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
+        <EditForm EditContext="EditContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
             <FluentValidationValidator />
             <GdsErrorSummary />
 
@@ -77,29 +77,6 @@
                         <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="@GoToMap" Text="Add or modify search area" />
                     </div>
                 </div>
-            </div>
-
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Result options</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
-                            <GdsFormGroup For="() => Model.ShowResultsAs">
-                                <GdsLabel Text="Show results as" />
-                                <GdsErrorMessage />
-                                <InputSelect @bind-Value="Model.ShowResultsAs" class="govuk-select">
-                                    <option value="">Select an option</option>
-                                    @foreach (var searchType in Enum.GetValues<ResultTypes>())
-                                    {
-                                        <option value="@searchType">@searchType</option>
-                                    }
-                                </InputSelect>
-                            </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
             </div>
 
             <div class="govuk-form-group">
