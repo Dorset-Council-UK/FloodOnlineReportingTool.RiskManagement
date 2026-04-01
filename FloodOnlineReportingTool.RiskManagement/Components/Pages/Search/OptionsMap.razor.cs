@@ -1,6 +1,3 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
-using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -9,7 +6,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using NetTopologySuite.Geometries;
 using System.Globalization;
 
@@ -254,18 +250,6 @@ public partial class OptionsMap(
 
         result.SRID = srid;
         return result;
-    }
-
-    private static List<GdsOptionItem<string>> CreateGdsOptionItems(IEnumerable<string> results)
-    {
-        var optionItems = new List<GdsOptionItem<string>>
-        {
-            new("0".AsSpan(), "Select an option", string.Empty, false)
-        };
-        optionItems.AddRange(results.Select((o, idx) =>
-            new GdsOptionItem<string>((idx + 1).ToString(CultureInfo.InvariantCulture).AsSpan(), o, o, false)));
-
-        return optionItems;
     }
 
     private void ResetGeom()

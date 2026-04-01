@@ -64,7 +64,7 @@ public partial class Results(ILogger<Results> logger,
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Options));
+            logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Results));
         }
     }
 
@@ -165,19 +165,19 @@ public partial class Results(ILogger<Results> logger,
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
-            logger.LogWarning(ex, "Consent required while searching flood locations");
+            logger.LogWarning(ex, "Consent required while searching flood reports");
             consentHandler.HandleException(ex);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error while searching flood locations");
+            logger.LogError(ex, "Error while searching flood reports");
 
             _searchState = SearchState.Error;
 
             var formErrorField = FieldIdentifier.Create(() => SearchResultsViewModel.PageNumber);
             _messageStore.Add(formErrorField,
             [
-                "There was a problem searching for flood locations",
+                "There was a problem searching for flood reports",
                 "Please try again and if the problem persists, contact support.",
             ]);
             if (environment.IsDevelopment())

@@ -1,6 +1,4 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
