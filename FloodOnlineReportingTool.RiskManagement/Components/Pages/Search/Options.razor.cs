@@ -118,7 +118,7 @@ public partial class Options(
     {
         foreach(var options in _floodSourceOptions)
         {
-            if (Model.ByFloodCause.Contains(options.Value))
+            if (Model.ByFloodSource.Contains(options.Value))
             {
                 options.Selected = true;
             }

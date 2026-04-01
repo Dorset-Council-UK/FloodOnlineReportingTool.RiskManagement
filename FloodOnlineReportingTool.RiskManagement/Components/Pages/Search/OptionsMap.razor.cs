@@ -47,6 +47,9 @@ public partial class OptionsMap(
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
 
+    private Guid _wardSelectKey = Guid.NewGuid();
+    private Guid _parishSelectKey = Guid.NewGuid();
+
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
 
@@ -176,31 +179,36 @@ public partial class OptionsMap(
         }
         finally
         {
+            //reset the selection key
+            _parishSelectKey = Guid.NewGuid();
+            _wardSelectKey = Guid.NewGuid();
             _isSearching = false;
             StateHasChanged();
         }
     }
 
-    private async Task OnParishSelected(GdsOptionItem<string> selectedParish)
+    private async Task OnParishSelected()
     {
-        if (selectedParish is not null)
+        var selectedParish = _selectedParish;
+        if (!string.IsNullOrEmpty(selectedParish))
             await SelectRegion("parish", selectedParish);
     }
 
-    private async Task OnWardSelected(GdsOptionItem<string> selectedWard)
+    private async Task OnWardSelected()
     {
-        if (selectedWard is not null)
+        var selectedWard = _selectedWard;
+        if (!string.IsNullOrEmpty(selectedWard))
             await SelectRegion("ward", selectedWard);
     }
 
-    private async Task SelectRegion(string source, GdsOptionItem<string> selected)
+    private async Task SelectRegion(string source, string selected)
     {
-        logger.LogInformation("User selected {Source}: {Value}", source, selected.Value);
+        logger.LogInformation("User selected {Source}: {Value}", source, selected);
 
         var authState = await AuthenticationState!;
         var user = authState.User;
 
-        var geometry = await geoServerClient.GetGeometryFromSourceBySearch(source, selected.Value, user, _cts.Token);
+        var geometry = await geoServerClient.GetGeometryFromSourceBySearch(source, selected, user, _cts.Token);
 
         if (geometry is MultiPolygon multiPolygon)
         {
@@ -211,7 +219,7 @@ public partial class OptionsMap(
         else if (geometry is not null)
         {
             logger.LogWarning("Geometry for {Source} {Value} is not a MultiPolygon as expected. Type: {GeometryType}",
-                source, selected.Value, geometry.GeometryType);
+                source, selected, geometry.GeometryType);
         }
 
         StateHasChanged();

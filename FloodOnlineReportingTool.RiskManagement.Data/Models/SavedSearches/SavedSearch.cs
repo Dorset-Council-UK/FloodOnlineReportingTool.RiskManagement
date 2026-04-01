@@ -18,7 +18,7 @@ public record SavedSearch
     // Saved search properties
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public string Reference { get; set; } = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
-    public string SearchTitle { get; init; } = string.Empty;
+    public string SearchTitle { get; set; } = string.Empty;
 
     // Search parameters
 

@@ -12,7 +12,7 @@
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
         @if (!_isLoading)
         {
-            <EditForm EditContext="searchContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
+            <EditForm EditContext="EditContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
                 <FluentValidationValidator />
                 <GdsErrorSummary />
 
