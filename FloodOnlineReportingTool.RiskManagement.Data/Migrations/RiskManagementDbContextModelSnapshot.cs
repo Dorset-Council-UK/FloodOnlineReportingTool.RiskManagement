@@ -19,7 +19,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("fortriskmanagement")
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
@@ -748,7 +748,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .HasColumnType("uuid[]");
 
                     b.Property<MultiPolygon>("Geom")
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(multipolygon, 27700)");
 
                     b.PrimitiveCollection<Guid[]>("LimitByOrganisation")
                         .IsRequired()
