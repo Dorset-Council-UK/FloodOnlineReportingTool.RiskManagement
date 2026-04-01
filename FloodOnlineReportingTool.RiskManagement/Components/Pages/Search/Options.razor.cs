@@ -1,9 +1,11 @@
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
-using FloodOnlineReportingTool.RiskManagement.Extensions; 
+using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
@@ -28,41 +30,37 @@ public partial class Options(
 
     private SearchOptionsViewModel Model { get; set; } = default!;
 
-    private EditContext searchContext = default!;
+    private EditContext EditContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new(Model);
-        searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
+
     protected override async Task OnParametersSetAsync()
     {
-        var options = searchOptionsState.Options;
+        // Configure option lists once on page load - No selections these are fixed option lists
+        _floodSourceOptions = _floodSourceOptions.Count == 0 ? await CreateFloodSourceOptions() : _floodSourceOptions;
+
         // GdsInputDate caches the GdsDate object reference on first render, so the existing
         // objects must be mutated in-place rather than replaced to keep the component in sync.
+        var options = searchOptionsState.Options;
         if (options is not null)
         {
-            Model.FromDate.DayText = options.FromDate.DayText;
-            Model.FromDate.MonthText = options.FromDate.MonthText;
-            Model.FromDate.YearText = options.FromDate.YearText;
-            Model.ToDate.DayText = options.ToDate.DayText;
-            Model.ToDate.MonthText = options.ToDate.MonthText;
-            Model.ToDate.YearText = options.ToDate.YearText;
-            Model.ByPostcode = options.ByPostcode;
-            Model.ByPersonsName = options.ByPersonsName;
-            Model.ByFloodSource = options.ByFloodSource;
-            Model.ByPolygon = options.ByPolygon;
+            Model = options;
+            EditContext = new(Model);
+            EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         }
-        _floodSourceOptions = await CreateFloodSourceOptions(Model.ByFloodSource);
 
+        SetGdsOptions();
         _isLoading = false;
-        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()
@@ -116,20 +114,34 @@ public partial class Options(
         navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
     }
 
-    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions(IList<Guid> selectedValues)
+    private void SetGdsOptions()
+    {
+        foreach(var options in _floodSourceOptions)
+        {
+            if (Model.ByFloodCause.Contains(options.Value))
+            {
+                options.Selected = true;
+            }
+            else
+            {
+                options.Selected = false;
+            }
+        }
+    }
+
+    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions()
     {
         const string idPrefix = "flood-source";
         var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-        return [.. floodProblems.Select((o, idx) => CreateOption(o, idPrefix, selectedValues))];
+        return [.. floodProblems.Select((o, idx) => CreateFloodOption(o, idPrefix))];
     }
 
-    private static GdsOptionItem<Guid> CreateOption(FloodProblem floodProblem, string idPrefix, IList<Guid> selectedValues)
+    private static GdsOptionItem<Guid> CreateFloodOption(FloodProblem floodProblem, string idPrefix)
     {
         var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
         var label = floodProblem.TypeName.AsSpan();
-        var selected = selectedValues.Contains(floodProblem.Id);
 
-        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
+        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, false);
     }
-    
+
 }

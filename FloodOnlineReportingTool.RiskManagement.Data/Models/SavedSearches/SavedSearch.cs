@@ -43,7 +43,7 @@ public record SavedSearch
 
 
     // Foreign key
-    public Guid? FloodEventId { get; init; }
-    public FloodEvent? FloodEvent { get; init; }
+    public Guid? FloodEventId { get; set; }
+    public FloodEvent? FloodEvent { get; set; }
 
 }

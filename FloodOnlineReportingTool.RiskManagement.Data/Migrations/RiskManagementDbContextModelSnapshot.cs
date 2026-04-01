@@ -52,9 +52,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<int?>("EstimatedNoGas")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("EstimatedNoPhone")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("EstimatedNoWaterSupply")
                         .HasColumnType("integer");
 
@@ -67,16 +64,16 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<int?>("EstimatedResidentialOther")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("EstimatedTotalExternalOnly")
+                    b.Property<int>("EstimatedTotalExternalOnly")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("EstimatedTotalInternallyFlooded")
+                    b.Property<int>("EstimatedTotalInternallyFlooded")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("EstimatedUninhabitable")
+                    b.Property<int>("EstimatedUninhabitable")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("EstimatedVulnerable")
+                    b.Property<int>("EstimatedVulnerable")
                         .HasColumnType("integer");
 
                     b.Property<int?>("FloodExtentConfidence")

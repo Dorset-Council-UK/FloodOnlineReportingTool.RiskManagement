@@ -4,6 +4,7 @@ using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -31,7 +32,7 @@ public partial class OptionsMap(
 
     private SearchOptionsViewModel Model { get; set; } = default!;
 
-    private EditContext searchContext = default!;
+    private EditContext EditContext = default!;
     private EditContext regionContext = default!;
     private EditContext digitisingContext = default!;
     private readonly CancellationTokenSource _cts = new();
@@ -39,11 +40,12 @@ public partial class OptionsMap(
 
     private string _searchTerm = string.Empty;
     private bool _isSearching = false;
-    private IReadOnlyCollection<GdsOptionItem<string>> _parishResults = [];
-    private IReadOnlyCollection<GdsOptionItem<string>> _wardResults = [];
+    private IReadOnlyCollection<string> _parishResults = [];
+    private string _selectedParish = string.Empty;
+    private IReadOnlyCollection<string> _wardResults = [];
+    private string _selectedWard = string.Empty;
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
-    private int _selectKey = 0;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -52,11 +54,11 @@ public partial class OptionsMap(
     {
         // Setup model and edit context
         Model ??= new();
-        searchContext = new EditContext(Model);
-        searchContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext = new EditContext(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         // Reuse the same EditContext instance for all sections to keep validation state consistent
-        regionContext = searchContext;
-        digitisingContext = searchContext;
+        regionContext = EditContext;
+        digitisingContext = EditContext;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -68,6 +70,12 @@ public partial class OptionsMap(
             // objects must be mutated in-place rather than replaced to keep the component in sync.
             if (options is not null)
             {
+                Model = options;
+                EditContext = new EditContext(Model);
+                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                // Reuse the same EditContext instance for all sections to keep validation state consistent
+                regionContext = EditContext;
+                digitisingContext = EditContext;
                 Model.FromDate.DayText = options.FromDate.DayText;
                 Model.FromDate.MonthText = options.FromDate.MonthText;
                 Model.FromDate.YearText = options.FromDate.YearText;
@@ -123,7 +131,6 @@ public partial class OptionsMap(
             _regionSearchErrorMessage = "Please enter at least 3 characters to search";
             _parishResults = [];
             _wardResults = [];
-            _selectKey++;
             StateHasChanged();
             return;
         }
@@ -145,15 +152,12 @@ public partial class OptionsMap(
             var authState = await (AuthenticationState ?? throw new InvalidOperationException("Authentication state is required"));
             var user = authState.User;
 
-            var parishSearchResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
-            var wardSearchResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
-            if(parishSearchResults.Count + wardSearchResults.Count == 0)
+            _parishResults = await geoServerClient.SearchNameAsync("parish", searchTerm, user, _searchCts.Token);
+            _wardResults = await geoServerClient.SearchNameAsync("ward", searchTerm, user, _searchCts.Token);
+            if(_parishResults.Count == 0 && _wardResults.Count == 0)
             {
                 _regionSearchErrorMessage = $"No results could be found for {searchTerm}";
             }
-            _parishResults = CreateGdsOptionItems(parishSearchResults);
-            _wardResults = CreateGdsOptionItems(wardSearchResults);
-            _selectKey++;
 
             logger.LogInformation("Parish search returned {Count} results for term: {SearchTerm}",
                 _parishResults.Count, searchTerm);

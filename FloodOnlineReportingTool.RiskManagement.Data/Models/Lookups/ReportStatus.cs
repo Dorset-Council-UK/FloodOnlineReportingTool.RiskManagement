@@ -1,6 +1,8 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
 
-public record ReportStatus
+namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+
+public record ReportStatus : IOption
 {
     public ReportStatus(Guid id, string text, int order)
     {

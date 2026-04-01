@@ -4,7 +4,7 @@ using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -74,6 +74,8 @@ public partial class Results(ILogger<Results> logger,
             logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
             navigationManager.NavigateTo(SearchPages.Options.Url);
         }
+                return;
+            }
 
         var options = searchResultsState.Options;
         if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
@@ -86,8 +88,6 @@ public partial class Results(ILogger<Results> logger,
                 _isLoading = false;
                 StateHasChanged();
                 return;
-            }
-
             // Convert Entity → ViewModel
             SearchResultsViewModel = savedSearch.SavedSearchToResultsView();
                 
@@ -252,7 +252,7 @@ public partial class Results(ILogger<Results> logger,
             {
                 await _miniMapRef.UpdateMarkersAsync(markers);
             }
-
+                Model = options;
             _mapDataLoaded = true;
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
@@ -297,6 +297,8 @@ public partial class Results(ILogger<Results> logger,
         sb.Append("</div>");
 
         return sb.ToString();
+            StateHasChanged();
+        }
     }
 
 }

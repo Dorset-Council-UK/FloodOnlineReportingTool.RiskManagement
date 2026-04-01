@@ -1,5 +1,6 @@
 using FloodOnlineReportingTool.RiskManagement.Components;
 using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using FluentValidation;
 using Microsoft.Identity.Web;
 
@@ -20,6 +21,7 @@ builder.AddDatabase();
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
 builder.Services.AddScoped<ISearchOptionsState, SearchOptionsState>();
 builder.Services.AddScoped<ISearchResultsState, SearchResultsState>();
+builder.Services.AddScoped<IFloodEventState, FloodEventState>();
 
 // Add Blazor services
 builder.Services
