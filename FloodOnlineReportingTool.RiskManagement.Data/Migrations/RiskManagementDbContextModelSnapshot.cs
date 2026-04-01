@@ -743,12 +743,16 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<Guid?>("FloodEventId")
                         .HasColumnType("uuid");
 
-                    b.PrimitiveCollection<Guid[]>("FloodSources")
+                    b.PrimitiveCollection<Guid[]>("FloodPrimaryCauses")
+                        .IsRequired()
+                        .HasColumnType("uuid[]");
+
+                    b.PrimitiveCollection<Guid[]>("FloodSecondaryCauses")
                         .IsRequired()
                         .HasColumnType("uuid[]");
 
                     b.Property<MultiPolygon>("Geom")
-                        .HasColumnType("geometry(multipolygon, 27700)");
+                        .HasColumnType("geometry");
 
                     b.PrimitiveCollection<Guid[]>("LimitByOrganisation")
                         .IsRequired()
