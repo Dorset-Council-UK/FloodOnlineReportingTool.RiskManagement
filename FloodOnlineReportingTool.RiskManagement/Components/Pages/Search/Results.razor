@@ -1,4 +1,5 @@
-﻿@page "/search/results"
+﻿@page "/search/results/{SearchReference}"
+@page "/search/results"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
@@ -6,7 +7,7 @@
 
 <PageTitle>Search Results</PageTitle>
 
-<GdsBackLink Href="@SearchPages.Options.Url"></GdsBackLink>
+<GdsBackLink Href="@($"{SearchPages.Options.Url}/{SearchReference}")"></GdsBackLink>
 
 <h1 class="govuk-heading-l">Search Results</h1>
 

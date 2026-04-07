@@ -31,8 +31,8 @@ public partial class Results(ILogger<Results> logger,
     public PagedResult<SearchResultFloodReport> SearchResults { get; set; } = default!;
     private SearchState? _searchState;
 
-    [SupplyParameterFromQuery(Name = "ref")]
-    public required string SearchReference { get; set; }
+    [Parameter]
+    public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
     public GridItemsProvider<SearchResultFloodReport>? SearchResultsProvider { get; private set; }

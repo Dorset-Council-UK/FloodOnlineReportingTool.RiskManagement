@@ -8,6 +8,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 public class SearchOptionsViewModel : ISearchOptions
 {
+    public string? SearchReference { get; set; }
+
     // Common search parameters
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? ByReference { get; set; }

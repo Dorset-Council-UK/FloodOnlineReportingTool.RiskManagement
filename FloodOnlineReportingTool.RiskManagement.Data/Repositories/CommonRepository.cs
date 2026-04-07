@@ -1,9 +1,11 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
@@ -96,6 +98,49 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         await context.SaveChangesAsync(ct);
 
         return searchCriteria;
+    }
+
+    public async Task<SavedSearch> UpdateSavedSearch(string reference, SavedSearch searchCriteria, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+        var existingSearch = await context.SavedSearches.AsNoTracking()
+            .Where(s => s.Reference == reference)
+            .FirstOrDefaultAsync(ct);
+
+        if (existingSearch == null)
+        {
+            return searchCriteria;
+        }
+
+        var updatedSearch = existingSearch with
+        {
+            Id = existingSearch.Id, // Ensure ID remains unchanged
+            Reference = existingSearch.Reference, // Ensure Reference remains unchanged
+            FloodEventId = existingSearch.FloodEventId, // Ensure FloodEventId remains unchanged
+            SearchTitle = searchCriteria.SearchTitle,
+            ResultsFrom = searchCriteria.ResultsFrom,
+            ResultsTo = searchCriteria.ResultsTo,
+            FloodSources = searchCriteria.FloodSources,
+            UPRN = searchCriteria.UPRN,
+            USRN = searchCriteria.USRN,
+            Postcode = searchCriteria.Postcode,
+            ReporterString = searchCriteria.ReporterString,
+            Geom = searchCriteria.Geom,
+            PagingSize = searchCriteria.PagingSize,
+            SortBy = searchCriteria.SortBy,
+            SortOrder = searchCriteria.SortOrder,
+            LimitByOrganisation = searchCriteria.LimitByOrganisation,
+            LimitByStatus = searchCriteria.LimitByStatus,
+            ShowResultsAs = searchCriteria.ShowResultsAs
+        };
+
+        // TODO - this works but can result in duplicate searches. We need to handle this. 
+
+        context.SavedSearches.Update(updatedSearch);
+        await context.SaveChangesAsync(ct);
+
+        return updatedSearch;
     }
 
     public async Task<bool> SetSavedSearchTitle(Guid id, string Title, CancellationToken ct)
