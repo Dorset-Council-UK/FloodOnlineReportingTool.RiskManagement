@@ -81,7 +81,7 @@ public partial class Results(ILogger<Results> logger,
 
 
         var options = searchResultsState.Options;
-        if (options is null || !string.Equals(options.ByReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        if (options is null || !string.Equals(options.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
         {
             var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
 
@@ -94,7 +94,8 @@ public partial class Results(ILogger<Results> logger,
             }
             // Convert Entity → ViewModel
             SearchResultsViewModel = savedSearch.SavedSearchToResultsView();
-                
+            SearchResultsViewModel.SearchReference = SearchReference;
+
             // Persist in state for page navigation
             searchResultsState.SetResultOptions(SearchResultsViewModel);
         }
@@ -102,6 +103,12 @@ public partial class Results(ILogger<Results> logger,
         {
             SearchResultsViewModel = options;
         }
+
+        // Ensure the context is linked to the (possibly new) view model and messages cleared
+        _editContext = new(SearchResultsViewModel);
+        _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _messageStore = new ValidationMessageStore(_editContext);
+
         //execute the API search
         await Search();
         SearchResultsProvider = ProvideSearchResults;
