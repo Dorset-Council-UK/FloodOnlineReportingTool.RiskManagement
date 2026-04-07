@@ -41,6 +41,7 @@ public partial class Results(ILogger<Results> logger,
     private bool _isLoadingMapData;
     private bool _mapDataLoaded;
     private bool _mapResultsTooMany;
+    private bool _gettingToken;
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,6 +50,7 @@ public partial class Results(ILogger<Results> logger,
         _editContext = new(SearchResultsViewModel);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _messageStore = new ValidationMessageStore(_editContext);
+        _gettingToken = true;
     }
 
     public async ValueTask DisposeAsync()
@@ -162,9 +164,13 @@ public partial class Results(ILogger<Results> logger,
             _searchState = SearchResults is null || SearchResults.TotalCount == 0
                 ? SearchState.NoResults
                 : SearchState.ResultsFound;
+
+            _gettingToken = false;
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
+            _gettingToken = true;
+            StateHasChanged();
             logger.LogWarning(ex, "Consent required while searching flood reports");
             consentHandler.HandleException(ex);
         }
