@@ -7,7 +7,7 @@
 
 <PageTitle>Search Results</PageTitle>
 
-<GdsBackLink Href="@SearchPages.Options.Url"></GdsBackLink>
+<GdsBackLink Href="@($"{SearchPages.Options.Url}/{SearchReference}")"></GdsBackLink>
 
 <h1 class="govuk-heading-l">Search Results</h1>
 
@@ -15,55 +15,105 @@
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        @if (!_isLoading && Model.ByReference == null)
+        @if (_gettingToken)
+        {
+            <p>Please wait whilst we authenticate you...</p>
+        }
+        else if (SearchResults is null && !_isLoading)
         {
             <p>Sorry, something went wrong. We were unable to load the results</p>
-        }
-        else if (Model.ByReference != null)
+        } else
         {
-            @if (Model.ShowResultsAs == Data.Models.Enums.ResultTypes.List)
+            if (!_isLoading && (SearchResults is not null && SearchResults.TotalCount != 0))
             {
-                <SearchResultList />
-            }
-            else
-            {
-                <p>Not Implemented</p>
-            }
-        }
-        <br/>
-        <div class="govuk-form-group">
-            <fieldset class="govuk-fieldset">
-                <div class="govuk-grid-row">
-                    @if (!_isLoading)
-                    {
-                        <details class="govuk-details">
-                            <summary class="govuk-details__summary">
-                                <span class="govuk-details__summary-text">
-                                    Why upgrade to a flood event?
-                                </span>
-                            </summary>
-                            <div class="govuk-details__text">
-                                <p class="govuk-body">
-                                    This allows you to:
-                                </p>
-                                <ul>
-                                    <li>Generate reports into serious flooding (Section 19)</li>
-                                    <li>Add estimated impacts</li>
-                                    <li>Record actions taken</li>
-                                    <li>Enables comment / media functions</li>
-                                    <li>Enables public engagement tools</li>
-                                </ul>
-
-                                <p class="govuk-body">
-                                    Reports identified within this search will be asked to complete the investigation form. You must override this default if you wish to defer the action.
-                                </p>
-                            </div>
-                        </details>
-                        <GdsStartButton Href="@($"{EventPages.Details.Url}/{SearchReference}")" Text="Create flood event" />
-                    }
+                <div class="govuk-tabs" data-module="govuk-tabs">
+                    <h2 class="govuk-tabs__title">
+                        View results as
+                    </h2>
+                    <ul class="govuk-tabs__list">
+                        <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
+                            <a class="govuk-tabs__tab" href="#table">
+                                Table
+                            </a>
+                        </li>
+                        <li class="govuk-tabs__list-item">
+                            <a class="govuk-tabs__tab" href="#list">
+                                List
+                            </a>
+                        </li>
+                        <li class="govuk-tabs__list-item">
+                            <a class="govuk-tabs__tab" href="#map">
+                                Map
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="govuk-tabs__panel" id="table">
+                        @if (SearchResultsProvider is not null)
+                        {
+                            <SearchResultTable ItemsProvider="SearchResultsProvider" />
+                        }
+                    </div>
+                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
+                        <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
+                    </div>
+                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="map">
+                        <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />
+                        @if (_mapResultsTooMany)
+                        {
+                            <GdsWarning Text="There are too many results to display on the map. Please refine your search to fewer than 1,000 results." />
+                        }
+                    
+                        <div style="height:400px;" class="govuk-!-margin-bottom-2">
+                            <MiniMap @ref="_miniMapRef" OnBecameVisible="OnMapBecameVisible"></MiniMap>
+                        </div>
+                    </div>
                 </div>
-            </fieldset>
-        </div>
+
+                @if (SearchResultsViewModel.FromDate.DateUtc is not null && SearchResultsViewModel.ToDate.DateUtc is not null)
+                {
+                    <div class="govuk-form-group">
+                        <fieldset class="govuk-fieldset">
+                            <div class="govuk-grid-row">
+                                @if (!_isLoading)
+                                {
+                                    <details class="govuk-details">
+                                        <summary class="govuk-details__summary">
+                                            <span class="govuk-details__summary-text">
+                                                Why upgrade to a flood event?
+                                            </span>
+                                        </summary>
+                                        <div class="govuk-details__text">
+                                            <p class="govuk-body">
+                                                This allows you to:
+                                            </p>
+                                            <ul>
+                                                <li>Generate reports into serious flooding (Section 19)</li>
+                                                <li>Add estimated impacts</li>
+                                                <li>Record actions taken</li>
+                                                <li>Enables comment / media functions</li>
+                                                <li>Enables public engagement tools</li>
+                                            </ul>
+
+                                            <p class="govuk-body">
+                                                Reports identified within this search will be asked to complete the investigation form. You must override this default if you wish to defer the action.
+                                            </p>
+                                        </div>
+                                    </details>
+                                    <GdsStartButton Href="@($"{EventPages.Details.Url}/{SearchReference}")" Text="Create flood event" />
+                                }
+                            </div>
+                        </fieldset>
+                    </div>
+                }
+                
+
+            }
+            else if(!_isLoading)
+            {
+                <NoResultsMessage />
+            }
+            
+        }
 
     </Authorized>
     <NotAuthorized>

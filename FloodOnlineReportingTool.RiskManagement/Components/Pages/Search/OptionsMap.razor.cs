@@ -1,6 +1,3 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
-using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -9,7 +6,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using NetTopologySuite.Geometries;
 using System.Globalization;
 
@@ -47,6 +43,9 @@ public partial class OptionsMap(
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
 
+    private Guid _wardSelectKey = Guid.NewGuid();
+    private Guid _parishSelectKey = Guid.NewGuid();
+
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationState { get; set; }
 
@@ -76,6 +75,16 @@ public partial class OptionsMap(
                 // Reuse the same EditContext instance for all sections to keep validation state consistent
                 regionContext = EditContext;
                 digitisingContext = EditContext;
+                Model.FromDate.DayText = options.FromDate.DayText;
+                Model.FromDate.MonthText = options.FromDate.MonthText;
+                Model.FromDate.YearText = options.FromDate.YearText;
+                Model.ToDate.DayText = options.ToDate.DayText;
+                Model.ToDate.MonthText = options.ToDate.MonthText;
+                Model.ToDate.YearText = options.ToDate.YearText;
+                Model.ByPostcode = options.ByPostcode;
+                Model.ByPersonsName = options.ByPersonsName;
+                Model.ByFloodSource = options.ByFloodSource;
+                Model.ByPolygon = options.ByPolygon;
             }
 
             _isLoading = false;
@@ -166,6 +175,9 @@ public partial class OptionsMap(
         }
         finally
         {
+            //reset the selection key
+            _parishSelectKey = Guid.NewGuid();
+            _wardSelectKey = Guid.NewGuid();
             _isSearching = false;
             StateHasChanged();
         }
@@ -174,96 +186,70 @@ public partial class OptionsMap(
     private async Task OnParishSelected()
     {
         var selectedParish = _selectedParish;
-        if (!string.IsNullOrWhiteSpace(selectedParish))
-        {
-            logger.LogInformation("User selected parish: {Parish}", selectedParish);
-
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-
-            // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("parish", selectedParish, user, _cts.Token);
-
-            if (geometry != null)
-            {
-                if (geometry is MultiPolygon multiPolygon)
-                {
-                    if (Model.ByPolygon != null)
-                    {
-                        var unionGeom = Model.ByPolygon.Union(geometry);
-                        if (unionGeom is MultiPolygon newMultiPolygon)
-                        {
-                            Model.ByPolygon = newMultiPolygon;
-
-                        } else if (unionGeom is Polygon singlePolygon)
-                        {
-                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
-                        } else
-                        {
-                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
-                        }
-                    }
-                    else
-                    {
-                        Model.ByPolygon = multiPolygon;
-                    }
-                } else
-                {
-                    logger.LogWarning("Geometry for parish {Parish} is not a MultiPolygon as expected. Type: {GeometryType}",
-                        selectedParish, geometry.GeometryType);
-                }
-            }
-            StateHasChanged();
-        }
+        if (!string.IsNullOrEmpty(selectedParish))
+            await SelectRegion("parish", selectedParish);
     }
 
     private async Task OnWardSelected()
     {
         var selectedWard = _selectedWard;
-        if (!string.IsNullOrWhiteSpace(selectedWard))
+        if (!string.IsNullOrEmpty(selectedWard))
+            await SelectRegion("ward", selectedWard);
+    }
+
+    private async Task SelectRegion(string source, string selected)
+    {
+        logger.LogInformation("User selected {Source}: {Value}", source, selected);
+
+        var authState = await AuthenticationState!;
+        var user = authState.User;
+
+        var geometry = await geoServerClient.GetGeometryFromSourceBySearch(source, selected, user, _cts.Token);
+
+        if (geometry is MultiPolygon multiPolygon)
         {
-            logger.LogInformation("User selected ward: {Ward}", selectedWard);
-
-            var authState = await AuthenticationState!;
-            var user = authState.User;
-
-            // Store selection in your model
-            var geometry = await geoServerClient.GetGeometryFromSourceBySearch("ward", selectedWard, user, _cts.Token);
-
-            if (geometry != null)
-            {
-                if (geometry is MultiPolygon multiPolygon)
-                {
-                    if (Model.ByPolygon != null)
-                    {
-                        var unionGeom = Model.ByPolygon.Union(geometry);
-                        if (unionGeom is MultiPolygon newMultiPolygon)
-                        {
-                            Model.ByPolygon = newMultiPolygon;
-
-                        }
-                        else if (unionGeom is Polygon singlePolygon)
-                        {
-                            Model.ByPolygon = new MultiPolygon(new[] { singlePolygon });
-                        }
-                        else
-                        {
-                            logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
-                        }
-                    }
-                    else
-                    {
-                        Model.ByPolygon = multiPolygon;
-                    }
-                }
-                else
-                {
-                    logger.LogWarning("Geometry for ward {Ward} is not a MultiPolygon as expected. Type: {GeometryType}",
-                        selectedWard, geometry.GeometryType);
-                }
-            }
-            StateHasChanged();
+            var merged = MergePolygon(multiPolygon);
+            if (merged is not null)
+                Model.ByPolygon = merged;
         }
+        else if (geometry is not null)
+        {
+            logger.LogWarning("Geometry for {Source} {Value} is not a MultiPolygon as expected. Type: {GeometryType}",
+                source, selected, geometry.GeometryType);
+        }
+
+        StateHasChanged();
+    }
+
+    private MultiPolygon? MergePolygon(MultiPolygon incoming)
+    {
+        const int srid = 27700;
+
+        MultiPolygon? result;
+
+        if (Model.ByPolygon is null)
+        {
+            result = incoming;
+        }
+        else
+        {
+            var unionGeom = Model.ByPolygon.Union(incoming);
+            result = unionGeom switch
+            {
+                MultiPolygon mp => mp,
+                Polygon p => new MultiPolygon([p]),
+                _ => null
+            };
+
+            if (result is null)
+            {
+                logger.LogWarning("Union result is unexpected geometry type: {GeometryType}", unionGeom.GeometryType);
+                return null;
+            }
+        }
+
+        result.SRID = srid;
+        return result;
     }
 
     private void ResetGeom()

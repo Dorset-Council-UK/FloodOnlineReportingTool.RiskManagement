@@ -43,12 +43,13 @@
                                     @_regionSearchErrorMessage
                                 </p>
                             }
-                            @if (_parishResults.Any() && _parishResults.Count > 1)
+                            @if (_parishResults.Any() && _parishResults.Count >= 1)
                             {
                                 <div class="govuk-form-group">
                                     <label class="govuk-label">Select a parish</label>
 
-                                    <GdsSelect T="string" @bind-Value="_selectedParish" @bind-Value:after="@OnParishSelected">
+                                    <GdsSelect @key="_parishSelectKey" T="string" @bind-Value="_selectedParish" @bind-Value:after="@OnParishSelected">
+                                        <option value=""></option>
                                         @foreach (var option in _parishResults)
                                         {
                                             <option value="@option">@option</option>
@@ -57,12 +58,13 @@
                                 </div>
                             }
 
-                            @if (_wardResults.Any() && _wardResults.Count > 1)
+                            @if (_wardResults.Any() && _wardResults.Count >= 1)
                             {
                                 <div class="govuk-form-group">
                                     <label class="govuk-label">Select a ward</label>
 
-                                    <GdsSelect T="string" @bind-Value="_selectedWard" @bind-Value:after="@OnWardSelected">
+                                    <GdsSelect @key="_wardSelectKey" T="string" @bind-Value="_selectedWard" @bind-Value:after="@OnWardSelected">
+                                        <option value=""></option>
                                         @foreach (var option in _wardResults)
                                         {
                                             <option value="@option">@option</option>
@@ -72,7 +74,7 @@
                             }
 
                         </EditForm>
-                        <EditForm EditContext="digitisingContext" FormName="DigitisingForm">
+@*                         <EditForm EditContext="digitisingContext" FormName="DigitisingForm">
                             <FluentValidationValidator />
                             <GdsErrorSummary />
                             <h2>Add by location</h2>
@@ -82,7 +84,7 @@
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
                             </GdsFormGroup>
-                        </EditForm>
+                        </EditForm> *@
                     </div>
 
                     <div class="govuk-grid-column-two-thirds-from-desktop">

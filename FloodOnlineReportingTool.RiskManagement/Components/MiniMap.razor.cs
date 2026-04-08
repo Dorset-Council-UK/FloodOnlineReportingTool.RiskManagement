@@ -64,8 +64,17 @@ public partial class MiniMap : IAsyncDisposable
     [Parameter]
     public bool ZoomToGeometry { get; set; } = true;
 
+    /// <summary>
+    /// Callback invoked the first time the map container becomes visible (e.g. when
+    /// a GDS tabs panel is shown). Useful for deferring expensive data loads until the
+    /// map is actually viewed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnBecameVisible { get; set; }
+
     private readonly string _mapId = $"mini-map-{Guid.NewGuid():N}";
     private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<MiniMap>? _dotNetRef;
     private bool _mapInitialized;
     private string? _lastRenderedGeoJson;
 
@@ -96,6 +105,12 @@ public partial class MiniMap : IAsyncDisposable
             wmsLayerConfigs);
 
         _mapInitialized = true;
+
+        if (OnBecameVisible.HasDelegate)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await _jsModule.InvokeVoidAsync("observeVisibility", _mapId, _dotNetRef, nameof(OnMapBecameVisible));
+        }
 
         var geoJson = GetGeoJson();
         if (geoJson is not null)
@@ -164,6 +179,37 @@ public partial class MiniMap : IAsyncDisposable
         await _jsModule.InvokeVoidAsync("updateGeometry", _mapId, geoJson, zoomToGeometry);
     }
 
+    /// <summary>
+    /// Programmatically updates the markers displayed on the map.
+    /// </summary>
+    /// <param name="markers">
+    /// The markers to display. Pass <see langword="null"/> or an empty list to clear.
+    /// </param>
+    public async Task UpdateMarkersAsync(IReadOnlyList<MapMarkerData>? markers)
+    {
+        if (_jsModule is null)
+        {
+            return;
+        }
+
+        string? json = null;
+        if (markers is { Count: > 0 })
+        {
+            json = JsonSerializer.Serialize(markers, JsonSerializerOptions.Web);
+        }
+
+        await _jsModule.InvokeVoidAsync("updateMarkers", _mapId, json);
+    }
+
+    /// <summary>
+    /// Called from JavaScript when the map container first becomes visible.
+    /// </summary>
+    [JSInvokable]
+    public async Task OnMapBecameVisible()
+    {
+        await OnBecameVisible.InvokeAsync();
+    }
+
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
     {
@@ -179,6 +225,8 @@ public partial class MiniMap : IAsyncDisposable
                 // The Blazor circuit has disconnected; disposal via JS is not required.
             }
         }
+
+        _dotNetRef?.Dispose();
 
         GC.SuppressFinalize(this);
     }

@@ -1,0 +1,20 @@
+@using FloodOnlineReportingTool.Contracts.Shared.Search
+@using Microsoft.AspNetCore.Components.QuickGrid
+
+<div class="grid">
+    <QuickGrid @ref="_grid" ItemsProvider="ItemsProvider" Pagination="_pagination" class="govuk-table quickgrid-hide-empty-rows">
+        <TemplateColumn Title="Reference">
+            <a href="flood-report/details/@context.Id" class="govuk-link">@context.Id</a>
+        </TemplateColumn>
+        <TemplateColumn Title="Impact Start">
+            @context.ImpactStartUtc.GdsReadable()
+        </TemplateColumn>
+        <TemplateColumn Title="Reported">
+            @context.CreatedUtc.GdsReadable()
+        </TemplateColumn>
+        <TemplateColumn Title="Sources">
+            @(context.Sources.Count > 0 ? string.Join(", ", context.Sources.Select(s => s.Name)) : "No flood sources identified")
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="_pagination"  />
+</div>

@@ -1,4 +1,5 @@
-﻿@page "/search/options"
+﻿@page "/search/options/{SearchReference}"
+@page "/search/options"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
@@ -9,90 +10,92 @@
 <GdsBreadcrumbs Items="Breadcrumbs" />
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
-        <EditForm EditContext="EditContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
-            <FluentValidationValidator />
-            <GdsErrorSummary />
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+        @if (!_isLoading)
+        {
+            <EditForm EditContext="EditContext" OnSubmit="OnSubmit" FormName="CreateSearchOptions">
+                <FluentValidationValidator />
+                <GdsErrorSummary />
 
-            <GdsSpinner Show="_isLoading" ShowMessage="true" />
-
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Search options</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <GdsInputDate Id="search-start" For="() => Model.FromDate" Show="!_isLoading">
-                                <Heading>
-                                    <GdsLabel For="Model.FromDate" Text="Reports from" />
-                                </Heading>
-                            </GdsInputDate>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
-                            <GdsInputDate Id="search-end" For="() => Model.ToDate" Show="!_isLoading">
-                                <Heading>
-                                    <GdsLabel For="Model.ToDate" Text="Report until" />
-                                </Heading>
-                            </GdsInputDate>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.ByPersonsName">
-                                <GdsLabel Text="Search for reports by the person's name" />
-                                <GdsErrorMessage />
-                                <GdsInputText @bind-Value=Model.ByPersonsName class="govuk-input govuk-input--width-50" />
-                            </GdsFormGroup>
-                                </div>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                            <h2 class="govuk-fieldset__heading">Search options</h2>
+                        </legend>
+                        <div class="govuk-grid-row">
                             <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.ByPlaceName">
-                                <GdsLabel Text="Search by affected postcode" />
-                                <GdsErrorMessage />
-                                <GdsInputText @bind-Value=Model.ByPlaceName class="govuk-input govuk-input--width-25" />
-                            </GdsFormGroup>
+                                <GdsInputDate Id="search-start" For="() => Model.FromDate" Show="!_isLoading">
+                                    <Heading>
+                                        <GdsLabel For="Model.FromDate" Text="Reports from" />
+                                    </Heading>
+                                </GdsInputDate>
+                            </div>
+                            <div class="govuk-grid-column-one-half">
+                                <GdsInputDate Id="search-end" For="() => Model.ToDate" Show="!_isLoading">
+                                    <Heading>
+                                        <GdsLabel For="Model.ToDate" Text="Report until" />
+                                    </Heading>
+                                </GdsInputDate>
+                            </div>
                         </div>
-                    </div>
-                </fieldset>
-            </div>
+                    </fieldset>
+                </div>
 
-            <div class="govuk-form-group">
-                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-one-half">
-                        <fieldset class="govuk-fieldset">
-                            <GdsLabel Text="Filter results by the cause of flooding" />
-                            <GdsHint>Select all that apply</GdsHint>
-                            <GdsErrorMessage />
-                            <GdsCheckboxes Smaller="true" Options="_floodSourceOptions" />
-                        </fieldset>
-                    </div>
-                    <div class="govuk-grid-column-one-half">
-                        <div style="height:400px;" class="govuk-!-margin-bottom-2">
-                            <MiniMap Geometry="Model.ByPolygon"></MiniMap>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <div class="govuk-grid-row">
+                            <div class="govuk-grid-column-one-half">
+                                <GdsFormGroup For="() => Model.ByPersonsName">
+                                    <GdsLabel Text="Search for reports by the person's name" />
+                                    <GdsErrorMessage />
+                                    <GdsInputText @bind-Value=Model.ByPersonsName class="govuk-input govuk-input--width-50" />
+                                </GdsFormGroup>
+                            </div>
+                            <div class="govuk-grid-column-one-half">
+                                <GdsFormGroup For="() => Model.ByPostcode">
+                                    <GdsLabel Text="Search by affected postcode" />
+                                    <GdsErrorMessage />
+                                    <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
+                                </GdsFormGroup>
+                            </div>
                         </div>
-                        <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="@GoToMap" Text="Add or modify search area" />
+                    </fieldset>
+                </div>
+
+                <div class="govuk-form-group">
+                    <div class="govuk-grid-row">
+                        <div class="govuk-grid-column-one-half">
+                            <fieldset class="govuk-fieldset">
+                                <GdsLabel Text="Filter results by the source of flooding" />
+                                <GdsHint>Select all that apply</GdsHint>
+                                <GdsErrorMessage />
+                                <GdsCheckboxes Smaller="true" Options="_floodSourceOptions" />
+                            </fieldset>
+                        </div>
+                        <div class="govuk-grid-column-one-half">
+                            <div style="height:400px;" class="govuk-!-margin-bottom-2">
+                                <MiniMap Geometry="Model.ByPolygon"></MiniMap>
+                            </div>
+                            <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="@GoToMap" Text="Add or modify search area" />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
-                            @if (!_isLoading)
-                            {
-                                <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button>
-                            }
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <div class="govuk-grid-row">
+                            <div class="govuk-grid-column-full">
+                                @if (!_isLoading)
+                                {
+                                    <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button>
+                                }
+                            </div>
                         </div>
-                    </div>
-                </fieldset>
-            </div>
+                    </fieldset>
+                </div>
 
-        </EditForm>
+            </EditForm>
+        }
     </Authorized>
 
     <NotAuthorized>

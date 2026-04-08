@@ -1,9 +1,11 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
@@ -31,7 +33,6 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
     public async Task<SavedSearch?> GetSavedSearchByReference(string reference, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
-        reference = reference.ToUpperInvariant();
         return await context.SavedSearches.AsNoTracking()
                 .Where(s => s.Reference == reference)
                 .FirstOrDefaultAsync(ct);
@@ -40,7 +41,6 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
     public async Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
-        reference = reference?.ToUpperInvariant();
         SavedSearch? existingSearch;
 
         // Test the ID based fields first
@@ -53,6 +53,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         }
         if (string.IsNullOrEmpty(reference) == false)
         {
+
             existingSearch = await context.SavedSearches.AsNoTracking()
                 .Where(s => s.Reference == reference)
                 .FirstOrDefaultAsync(ct);
@@ -67,7 +68,7 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         }
 
         // Try to find existing search with matching criteria (exclude Id and SearchTitle)
-        var primaryCauseIds = searchCriteria.FloodPrimaryCauses.OrderBy(x => x).ToList();
+        var primaryCauseIds = searchCriteria.FloodSources.OrderBy(x => x).ToList();
         var primaryCauseCount = primaryCauseIds.Count;
 
         // Database filtering: Simple fields + count + geometry (PostGIS)
@@ -78,23 +79,68 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
                 s.ResultsTo == searchCriteria.ResultsTo &&
                 s.Postcode == searchCriteria.Postcode &&
                 s.ReporterString == searchCriteria.ReporterString &&
-                s.FloodPrimaryCauses.Count == primaryCauseCount &&
+                s.FloodSources.Count == primaryCauseCount &&
                 ((s.Geom == null && searchCriteria.Geom == null) ||
                  (s.Geom != null && searchCriteria.Geom != null && s.Geom.EqualsTopologically(searchCriteria.Geom))))
             .ToListAsync(ct);
 
         // In-memory: Only check collection equality (can't translate SequenceEqual)
         existingSearch = candidates.FirstOrDefault(s =>
-            s.FloodPrimaryCauses.OrderBy(x => x).SequenceEqual(primaryCauseIds));
+            s.FloodSources.OrderBy(x => x).SequenceEqual(primaryCauseIds));
 
-        if (existingSearch != null) { return existingSearch; }
+        if (existingSearch != null)
+        {
+            return existingSearch;
+        }
 
         // Create new saved search
-        if (!string.IsNullOrEmpty(reference)) { searchCriteria.Reference = reference; }
         context.SavedSearches.Add(searchCriteria);
         await context.SaveChangesAsync(ct);
 
         return searchCriteria;
+    }
+
+    public async Task<SavedSearch> UpdateSavedSearch(string reference, SavedSearch searchCriteria, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+        var existingSearch = await context.SavedSearches.AsNoTracking()
+            .Where(s => s.Reference == reference)
+            .FirstOrDefaultAsync(ct);
+
+        if (existingSearch == null)
+        {
+            return searchCriteria;
+        }
+
+        var updatedSearch = existingSearch with
+        {
+            Id = existingSearch.Id, // Ensure ID remains unchanged
+            Reference = existingSearch.Reference, // Ensure Reference remains unchanged
+            FloodEventId = existingSearch.FloodEventId, // Ensure FloodEventId remains unchanged
+            SearchTitle = searchCriteria.SearchTitle,
+            ResultsFrom = searchCriteria.ResultsFrom,
+            ResultsTo = searchCriteria.ResultsTo,
+            FloodSources = searchCriteria.FloodSources,
+            UPRN = searchCriteria.UPRN,
+            USRN = searchCriteria.USRN,
+            Postcode = searchCriteria.Postcode,
+            ReporterString = searchCriteria.ReporterString,
+            Geom = searchCriteria.Geom,
+            PagingSize = searchCriteria.PagingSize,
+            SortBy = searchCriteria.SortBy,
+            SortOrder = searchCriteria.SortOrder,
+            LimitByOrganisation = searchCriteria.LimitByOrganisation,
+            LimitByStatus = searchCriteria.LimitByStatus,
+            ShowResultsAs = searchCriteria.ShowResultsAs
+        };
+
+        // TODO - this works but can result in duplicate searches. We need to handle this. 
+
+        context.SavedSearches.Update(updatedSearch);
+        await context.SaveChangesAsync(ct);
+
+        return updatedSearch;
     }
 
     public async Task<bool> SetSavedSearchTitle(Guid id, string Title, CancellationToken ct)

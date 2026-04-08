@@ -10,6 +10,9 @@ internal class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
     {
         builder.HasKey(e => e.Id);
 
+        builder.Property(e => e.Geom)
+            .HasColumnType("geometry(multipolygon, 27700)");
+
         // Store enums as integers in the database
         builder.Property(e => e.ShowResultsAs)
                 .HasConversion<int>();

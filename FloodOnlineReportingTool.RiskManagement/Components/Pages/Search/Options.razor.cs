@@ -1,5 +1,3 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
@@ -34,6 +32,9 @@ public partial class Options(
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
 
+    [Parameter]
+    public string? SearchReference { get; set; }
+
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
 
     protected override void OnInitialized()
@@ -46,17 +47,27 @@ public partial class Options(
 
     protected override async Task OnParametersSetAsync()
     {
+        
+        
+
         // Configure option lists once on page load - No selections these are fixed option lists
         _floodSourceOptions = _floodSourceOptions.Count == 0 ? await CreateFloodSourceOptions() : _floodSourceOptions;
 
         // GdsInputDate caches the GdsDate object reference on first render, so the existing
         // objects must be mutated in-place rather than replaced to keep the component in sync.
         var options = searchOptionsState.Options;
+        if (SearchReference is not null && !string.Equals(options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            // Replace the stored model with the details from the saved search by reference
+            var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+            options = savedSearch?.SavedSearchToOptionsView();
+        }
         if (options is not null)
         {
             Model = options;
             EditContext = new(Model);
             EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+            Model.SearchReference = SearchReference;
         }
 
         SetGdsOptions();
@@ -83,7 +94,9 @@ public partial class Options(
     private async Task OnSubmit()
     {
         // Update flood cause selection from checkboxes
-        Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        
+        // Persist in state for page navigation
         
         // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
@@ -94,10 +107,18 @@ public partial class Options(
             var savedSearchEntity = Model.OptionsViewToSavedSearch(null);
             
             // Get or create SavedSearch in database
-            var savedSearch = await commonRepository.GetOrCreateSavedSearch(null, null, savedSearchEntity, _cts.Token);
+            if (Model.SearchReference is null)
+            {
+                var savedSearch = await commonRepository.GetOrCreateSavedSearch(null, null, savedSearchEntity, _cts.Token);
+                Model.SearchReference = savedSearch.Reference ?? null;
+            } else
+            {
+                await commonRepository.UpdateSavedSearch(Model.SearchReference, savedSearchEntity, _cts.Token);
+            }
+            
 
             // Navigate to results
-            navigationManager.NavigateTo($"{SearchPages.Results.Url}/{savedSearch.Reference}");
+            navigationManager.NavigateTo($"{SearchPages.Results.Url}/{Model.SearchReference}");
         }
         catch (Exception ex)
         {
@@ -107,7 +128,7 @@ public partial class Options(
 
     private void GoToMap()
     {
-        Model.ByFloodCause = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
+        Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         searchOptionsState.SetOptions(Model);
         navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
     }
@@ -116,7 +137,7 @@ public partial class Options(
     {
         foreach(var options in _floodSourceOptions)
         {
-            if (Model.ByFloodCause.Contains(options.Value))
+            if (Model.ByFloodSource.Contains(options.Value))
             {
                 options.Selected = true;
             }

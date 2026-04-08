@@ -8,6 +8,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 public class SearchOptionsViewModel : ISearchOptions
 {
+    public string? SearchReference { get; set; }
+
     // Common search parameters
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? ByReference { get; set; }
@@ -18,26 +20,13 @@ public class SearchOptionsViewModel : ISearchOptions
     [GdsFieldErrorClass(GdsFieldTypes.Date)]
     public GdsDate ToDate { get; set; } = new();
 
-    public IList<Guid> ByFloodCause { get; set; } = [];
+    public IList<Guid> ByFloodSource { get; set; } = [];
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? ByPlaceName { get; set; }
+    public string? ByPostcode { get; set; }
 
     [GdsFieldErrorClass(GdsFieldTypes.Input)]
     public string? ByPersonsName { get; set; }
     [JsonConverter(typeof(MultiPolygonJsonConverter))]
     public MultiPolygon? ByPolygon { get; set; }
-
-    // Result properties
-    [GdsFieldErrorClass(GdsFieldTypes.Select)]
-    public ResultTypes ShowResultsAs { get; set; } = ResultTypes.List;
-
-
-    // View specific parameters 
-
-    // Only used to convert a point from the map to a polygon search. 
-    // we will only use the geometry for searches rather than easting / northing. 
-    [GdsFieldErrorClass(GdsFieldTypes.Input)]
-    public string? BufferText { get; set; }
-    public int? Buffer { get; set; }
 }

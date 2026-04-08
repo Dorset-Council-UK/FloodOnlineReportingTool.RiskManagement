@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
 using System.Globalization;
 using System.Text.Json;
@@ -213,6 +214,49 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         }
 
         logger.LogInformation("Successfully retrieved {TotalCount} flood roads with flood reports", pagedResults.TotalCount);
+        return pagedResults;
+    }
+
+    public async Task<PagedResult<SearchResultFloodReport>> SearchFloodReports(DateTimeOffset? resultsFrom, DateTimeOffset? resultsTo, ICollection<Guid> floodSources, long? uprn, long? usrn, string? postcode, MultiPolygon? geom, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    {
+        logger.LogInformation("Searching flood reports: PageNumber={PageNumber}, PageSize={PageSize}", pageNumber, pageSize);
+
+        var request = new
+        {
+            resultsFrom,
+            resultsTo,
+            floodSources,
+            uprn,
+            usrn,
+            postcode,
+            geom
+        };
+
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/search?pageNumber={pageNumber}&pageSize={pageSize}");
+        var pagedResults = await downstreamApi.CallApiForUserAsync<object, PagedResult<SearchResultFloodReport>>(
+            RiskManagementOptions.ReportStatusApi,
+            request,
+            options =>
+            {
+                options.HttpMethod = HttpMethod.Post.Method;
+                options.RelativePath = relativePath;
+                options.Serializer = (input) => JsonContent.Create(input, options: _jsonSerializerOptions);
+                options.Deserializer = (content) =>
+                {
+                    if (content is null) return null;
+                    var stream = content.ReadAsStream(ct);
+                    return JsonSerializer.Deserialize<PagedResult<SearchResultFloodReport>>(stream, _jsonSerializerOptions);
+                };
+            },
+            cancellationToken: ct);
+
+        if (pagedResults is null)
+        {
+            logger.LogWarning("No flood reports found");
+            return new([], 0, pageSize, pageNumber, 0);
+        }
+
+        logger.LogInformation("Successfully retrieved {TotalCount} flood reports", pagedResults.TotalCount);
         return pagedResults;
     }
 }

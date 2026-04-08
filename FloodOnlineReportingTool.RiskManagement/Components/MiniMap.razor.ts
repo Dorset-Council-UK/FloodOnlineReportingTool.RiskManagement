@@ -20,6 +20,23 @@ const GEOMETRY_FILL_LAYER_ID = 'mini-map-geometry-fill';
 const GEOMETRY_LINE_LAYER_ID = 'mini-map-geometry-line';
 const GEOMETRY_CIRCLE_LAYER_ID = 'mini-map-geometry-circle';
 
+const MARKERS_SOURCE_ID = 'mini-map-markers';
+const MARKERS_LAYER_ID = 'mini-map-markers-circle';
+
+interface MarkerData {
+    id: string;
+    latitude: number;
+    longitude: number;
+    popupHtml: string;
+}
+
+interface DotNetObject {
+    invokeMethodAsync(methodName: string): Promise<void>;
+}
+
+const activePopups = new Map<string, maplibregl.Popup>();
+const markerEventsRegistered = new Set<string>();
+
 /**
  * Initialises a MapLibre GL map inside the element with the given ID, using the OS
  * Vector Tile Service as its basemap.
@@ -103,6 +120,70 @@ export function updateGeometry(
 }
 
 /**
+ * Updates (or clears) the markers displayed on the map.
+ *
+ * @param containerId   The id of the map container element.
+ * @param markersJson   A JSON array of MarkerData objects, or null to remove any existing markers.
+ */
+export function updateMarkers(
+    containerId: string,
+    markersJson: string | null
+): void {
+    const map = mapInstances.get(containerId);
+    if (!map) {
+        return;
+    }
+
+    if (map.loaded()) {
+        applyMarkers(map, containerId, markersJson);
+    } else {
+        map.once('load', () => applyMarkers(map, containerId, markersJson));
+    }
+}
+
+/**
+ * Observes the map container for visibility changes (e.g. when shown via GDS tabs)
+ * and invokes a .NET callback the first time it becomes visible.
+ *
+ * @param containerId    The id of the map container element.
+ * @param dotNetRef      A DotNetObjectReference to invoke the callback on.
+ * @param callbackMethod The name of the [JSInvokable] method to call.
+ */
+export function observeVisibility(
+    containerId: string,
+    dotNetRef: DotNetObject,
+    callbackMethod: string
+): void {
+    const container = document.getElementById(containerId);
+    if (!container) {
+        return;
+    }
+
+    const tabPanel = container.closest('.govuk-tabs__panel');
+    if (!tabPanel) {
+        // Not inside a GDS tabs panel – invoke immediately
+        dotNetRef.invokeMethodAsync(callbackMethod);
+        return;
+    }
+
+    // If the panel is already visible, invoke immediately
+    if (!tabPanel.classList.contains('govuk-tabs__panel--hidden')) {
+        dotNetRef.invokeMethodAsync(callbackMethod);
+        return;
+    }
+
+    // Watch for the hidden class being removed
+    const observer = new MutationObserver(() => {
+        if (!tabPanel.classList.contains('govuk-tabs__panel--hidden')) {
+            dotNetRef.invokeMethodAsync(callbackMethod);
+            observer.disconnect();
+        }
+    });
+
+    observer.observe(tabPanel, { attributes: true, attributeFilter: ['class'] });
+}
+
+/**
  * Removes the map instance and frees its resources.
  *
  * @param containerId  The id of the map container element.
@@ -113,6 +194,8 @@ export function destroyMap(containerId: string): void {
         map.remove();
         mapInstances.delete(containerId);
     }
+    activePopups.delete(containerId);
+    markerEventsRegistered.delete(containerId);
 }
 
 // ---------------------------------------------------------------------------
@@ -364,6 +447,127 @@ function calculateBounds(
     }
 
     return [minX, minY, maxX, maxY];
+}
+
+function applyMarkers(
+    map: maplibregl.Map,
+    containerId: string,
+    markersJson: string | null
+): void {
+    removeMarkerLayers(map, containerId);
+
+    if (!markersJson) {
+        return;
+    }
+
+    let markers: MarkerData[];
+    try {
+        markers = JSON.parse(markersJson) as MarkerData[];
+    } catch {
+        console.warn('MiniMap: invalid markers JSON supplied – markers will not be rendered.');
+        return;
+    }
+
+    if (markers.length === 0) {
+        return;
+    }
+
+    const features = markers.map(m => ({
+        type: 'Feature' as const,
+        geometry: {
+            type: 'Point' as const,
+            coordinates: [m.longitude, m.latitude] as [number, number]
+        },
+        properties: {
+            id: m.id,
+            popupHtml: m.popupHtml
+        }
+    }));
+
+    map.addSource(MARKERS_SOURCE_ID, {
+        type: 'geojson',
+        data: {
+            type: 'FeatureCollection' as const,
+            features
+        } as maplibregl.GeoJSONSourceSpecification['data']
+    });
+
+    map.addLayer({
+        id: MARKERS_LAYER_ID,
+        type: 'circle',
+        source: MARKERS_SOURCE_ID,
+        paint: {
+            'circle-color': '#d4351c',
+            'circle-radius': 7,
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2,
+        }
+    });
+
+    if (!markerEventsRegistered.has(containerId)) {
+        map.on('mouseenter', MARKERS_LAYER_ID, () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', MARKERS_LAYER_ID, () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.on('click', MARKERS_LAYER_ID, (e: maplibregl.MapLayerMouseEvent) => {
+            if (!e.features || e.features.length === 0) return;
+
+            const feature = e.features[0];
+            const geom = feature.geometry as { type: string; coordinates: number[] };
+            const coords = geom.coordinates.slice() as [number, number];
+            const popupHtml = (feature.properties?.popupHtml as string) ?? '';
+
+            const existing = activePopups.get(containerId);
+            if (existing) existing.remove();
+
+            const popup = new maplibregl.Popup({ offset: 10, maxWidth: '300px' })
+                .setLngLat(coords)
+                .setHTML(popupHtml)
+                .addTo(map);
+
+            activePopups.set(containerId, popup);
+        });
+
+        markerEventsRegistered.add(containerId);
+    }
+
+    fitToMarkerBounds(map, markers);
+}
+
+function removeMarkerLayers(map: maplibregl.Map, containerId: string): void {
+    if (map.getLayer(MARKERS_LAYER_ID)) {
+        map.removeLayer(MARKERS_LAYER_ID);
+    }
+    if (map.getSource(MARKERS_SOURCE_ID)) {
+        map.removeSource(MARKERS_SOURCE_ID);
+    }
+    const popup = activePopups.get(containerId);
+    if (popup) {
+        popup.remove();
+        activePopups.delete(containerId);
+    }
+}
+
+function fitToMarkerBounds(map: maplibregl.Map, markers: MarkerData[]): void {
+    if (markers.length === 0) return;
+
+    let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+    for (const m of markers) {
+        if (m.longitude < minLng) minLng = m.longitude;
+        if (m.latitude < minLat) minLat = m.latitude;
+        if (m.longitude > maxLng) maxLng = m.longitude;
+        if (m.latitude > maxLat) maxLat = m.latitude;
+    }
+
+    if (Math.abs(maxLng - minLng) < 0.0001 && Math.abs(maxLat - minLat) < 0.0001) {
+        map.flyTo({ center: [(minLng + maxLng) / 2, (minLat + maxLat) / 2], zoom: 14 });
+    } else {
+        map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 50, maxZoom: 16 });
+    }
 }
 
 function buildWmsTileUrl(layer: WmsLayerConfig): string {

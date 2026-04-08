@@ -17,9 +17,8 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
 
             // All other fields must be null/empty when searching by report reference
             // Note: FromDate and ToDate are non-nullable so we don't validate them here
-            RuleFor(o => o.ByPlaceName).Empty().WithMessage("Postcode must not be set when searching by report reference");
+            RuleFor(o => o.ByPostcode).Empty().WithMessage("Postcode must not be set when searching by report reference");
             RuleFor(o => o.ByPersonsName).Empty().WithMessage("Name must not be set when searching by report reference");
-            RuleFor(o => o.Buffer).Null().WithMessage("Buffer must not be set when searching by report reference");
             RuleFor(o => o.ByPolygon).Empty().WithMessage("Area must not be set when searching by report reference");
         });
 
@@ -31,9 +30,9 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
             // At least one of the other fields must be populated
             RuleFor(o => o)
                 .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
-                           !string.IsNullOrWhiteSpace(o.ByPlaceName) ||
+                           !string.IsNullOrWhiteSpace(o.ByPostcode) ||
                            !string.IsNullOrWhiteSpace(o.ByPersonsName) ||
-                           o.ByFloodCause?.Count > 0 || 
+                           o.ByFloodSource?.Count > 0 || 
                            o.ByPolygon != null)
                 .WithMessage("Enter at least one search criterion")
                 .WithName("SearchCriteria");

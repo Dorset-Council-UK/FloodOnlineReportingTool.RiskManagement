@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
@@ -94,4 +95,6 @@ public interface IReportStatusClient
     /// Exceptions must be handled by Blazor to allow the use of <see cref="Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException"/>
     /// </remarks>
     Task<PagedResult<SearchResultFloodRoad>> SearchFloodRoadsFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
+
+    Task<PagedResult<SearchResultFloodReport>> SearchFloodReports(DateTimeOffset? resultsFrom, DateTimeOffset? resultsTo, ICollection<Guid> floodSources, long? uprn, long? usrn, string? postcode, MultiPolygon? geom, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
 }
