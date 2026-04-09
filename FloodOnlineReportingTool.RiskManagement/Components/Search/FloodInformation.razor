@@ -2,7 +2,7 @@
 @using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups
 
 <div itemscope itemtype="https://schema.org/CreativeWork" class="govuk-!-padding-top-3 govuk-!-padding-bottom-3 border-top">
-    <h2 class="govuk-heading-m" itemprop="headline"><a href="flood-report/details/@SearchResult.Id" class="govuk-link">@SearchResult.Id</a></h2>
+    <h2 class="govuk-heading-m" itemprop="headline"><a href="@SearchResult.ViewUri" target="_blank" class="govuk-link">@SearchResult.Reference</a></h2>
     <h3 class="govuk-heading-s">Flooding started on @SearchResult.ImpactStartUtc.GdsReadable()</h3>
     <p>Source: @(SearchResult.Sources.Count > 0 ? string.Join(", ", SearchResult.Sources.Select(s => s.Name)) : "No flood sources identified")</p>
     @if (SearchResult.UpdatedUtc is not null)
