@@ -93,6 +93,14 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        if (EditContext.Validate())
+        {
+            await OnValidSubmit();
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
         // Update flood cause selection from checkboxes
         Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         
