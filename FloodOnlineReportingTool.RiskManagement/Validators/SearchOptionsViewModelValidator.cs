@@ -85,8 +85,13 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .When(o => o.FromDate.DateUtc != null && o.ToDate.DateUtc != null)
                 .OverridePropertyName(o => o.ToDate);
 
-            // TODO - Postcode validations
-            
+            // UK Postcode validations
+            RuleFor(o => o.ByPostcode)
+                .Matches("^([Gg][Ii][Rr] 0[Aa]{2})|((([A-Za-z][0-9]{1,2})|(([A-Za-z][A-Ha-hJ-Yj-y][0-9]{1,2})|(([A-Za-z][0-9][A-Za-z])|([A-Za-z][A-Ha-hJ-Yj-y][0-9]?[A-Za-z])))) [0-9][A-Za-z]{2})$")
+                .WithMessage("Enter a valid UK postcode")
+                .When(o => !string.IsNullOrWhiteSpace(o.ByPostcode))
+                .OverridePropertyName(o => o.ByPostcode);
+
             // Reporter validations
             RuleFor(o => o.ByPersonsName)
                 .MaximumLength(100)
