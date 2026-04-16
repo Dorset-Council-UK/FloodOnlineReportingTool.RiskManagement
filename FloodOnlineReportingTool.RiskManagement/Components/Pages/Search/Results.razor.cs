@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models;
@@ -28,14 +29,15 @@ public partial class Results(ILogger<Results> logger,
     private ValidationMessageStore _messageStore = default!;
     private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel SearchResultsViewModel { get; set; } = default!;
-    public PagedResult<SearchResultFloodReport> SearchResults { get; set; } = default!;
+    public PagedResult<FloodResultItem> SearchResults { get; set; } = default!;
     private SearchState? _searchState;
+    private IList<ReportStatus> _reportStatuses = [];
 
     [Parameter]
     public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
-    public GridItemsProvider<SearchResultFloodReport>? SearchResultsProvider { get; private set; }
+    public GridItemsProvider<FloodResultItem>? SearchResultsProvider { get; private set; }
 
     private MiniMap? _miniMapRef;
     private bool _isLoadingMapData;
@@ -50,6 +52,7 @@ public partial class Results(ILogger<Results> logger,
         _editContext = new(SearchResultsViewModel);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _messageStore = new ValidationMessageStore(_editContext);
+        _reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
         _gettingToken = true;
     }
 
@@ -116,15 +119,15 @@ public partial class Results(ILogger<Results> logger,
         StateHasChanged();
     }
 
-    private async ValueTask<GridItemsProviderResult<SearchResultFloodReport>> ProvideSearchResults(
-        GridItemsProviderRequest<SearchResultFloodReport> request)
+    private async ValueTask<GridItemsProviderResult<FloodResultItem>> ProvideSearchResults(
+        GridItemsProviderRequest<FloodResultItem> request)
     {
         try
         {
             var pageSize = request.Count ?? SearchResultsViewModel.PagingSize;
             var pageNumber = (request.StartIndex / pageSize) + 1;
 
-            var result = await reportStatusClient.SearchFloodReports(
+            var rawResult = await reportStatusClient.SearchFloodReports(
                 SearchResultsViewModel.FromDate.DateUtc,
                 SearchResultsViewModel.ToDate.DateUtc,
                 SearchResultsViewModel.ByFloodSource,
@@ -132,20 +135,21 @@ public partial class Results(ILogger<Results> logger,
                 SearchResultsViewModel.ByPolygon,
                 pageNumber, pageSize,
                 request.CancellationToken);
+            var result = rawResult.ToFloodResultItem(_reportStatuses);
 
-            List<SearchResultFloodReport> items = result?.Results.ToList() ?? [];
+            List<FloodResultItem> items = result?.Results.ToList() ?? [];
             return GridItemsProviderResult.From(items, result?.TotalCount ?? 0);
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
             logger.LogWarning(ex, "Consent required while fetching flood reports for table view");
             consentHandler.HandleException(ex);
-            return GridItemsProviderResult.From<SearchResultFloodReport>([], 0);
+            return GridItemsProviderResult.From<FloodResultItem>([], 0);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error while fetching flood reports for table view");
-            return GridItemsProviderResult.From<SearchResultFloodReport>([], 0);
+            return GridItemsProviderResult.From<FloodResultItem>([], 0);
         }
     }
 
@@ -159,7 +163,7 @@ public partial class Results(ILogger<Results> logger,
         try
         {
             var pageNumber = SearchResultsViewModel.PageNumber ?? 1;
-            SearchResults = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
+            var rawResult = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
                                                                         SearchResultsViewModel.ToDate.DateUtc,
                                                                         SearchResultsViewModel.ByFloodSource,
                                                                         null,
@@ -167,6 +171,7 @@ public partial class Results(ILogger<Results> logger,
                                                                         SearchResultsViewModel.ByPostcode,
                                                                         SearchResultsViewModel.ByPolygon,
                                                                         pageNumber);
+            SearchResults = rawResult.ToFloodResultItem(_reportStatuses);
 
             _searchState = SearchResults is null || SearchResults.TotalCount == 0
                 ? SearchState.NoResults
@@ -232,13 +237,13 @@ public partial class Results(ILogger<Results> logger,
 
         try
         {
-            var allResults = new List<SearchResultFloodReport>();
+            var allResults = new List<FloodResultItem>();
             const int pageSize = 100;
             var totalPages = (int)Math.Ceiling((double)SearchResults.TotalCount / pageSize);
 
             for (var page = 1; page <= totalPages; page++)
             {
-                var result = await reportStatusClient.SearchFloodReports(
+                var rawResult = await reportStatusClient.SearchFloodReports(
                     SearchResultsViewModel.FromDate.DateUtc,
                     SearchResultsViewModel.ToDate.DateUtc,
                     SearchResultsViewModel.ByFloodSource,
@@ -248,9 +253,11 @@ public partial class Results(ILogger<Results> logger,
                     page, pageSize,
                     _cts.Token);
 
+                var result = rawResult.ToFloodResultItem(_reportStatuses);
+
                 if (result?.Results is not null)
                 {
-                    allResults.AddRange(result.Results);
+                    allResults.AddRange(result.Results.ToList());
                 }
             }
 
@@ -289,16 +296,17 @@ public partial class Results(ILogger<Results> logger,
         }
     }
 
-    private static string BuildPopupHtml(SearchResultFloodReport report)
+    private static string BuildPopupHtml(FloodResultItem report)
     {
         var sb = new StringBuilder();
-        sb.Append($"<div class=\"govuk-body-s govuk-!-margin-bottom-0\"><strong>{report.Id}</strong><br/>");
+        sb.Append($"<div class=\"govuk-body-s govuk-!-margin-bottom-0\"><strong>{report.Reference}</strong><br/>");
+        sb.Append($"<strong>Report status:</strong> {report.RecordStatus}<br/>");
 
         if (report.ImpactStartUtc is not null)
         {
             sb.Append($"<strong>Flooding started:</strong> {report.ImpactStartUtc.Value:d MMMM yyyy}<br/>");
         }
-        var sources = report.Sources.Count > 0 ? string.Join(", ", report.Sources.Select(s => s.Name)) : "No flood sources identified";
+        var sources = report.Causes.Count > 0 ? string.Join(", ", report.Causes.Select(s => s.Name)) : "No flooding sources identified";
         sb.Append($"<strong>Sources:</strong> {sources}<br/>");
         sb.Append($"<strong>Created:</strong> {report.CreatedUtc:d MMMM yyyy}<br/>");
 
@@ -307,7 +315,7 @@ public partial class Results(ILogger<Results> logger,
             sb.Append($"<strong>Updated:</strong> {report.UpdatedUtc.Value:d MMMM yyyy}<br/>");
         }
 
-        sb.Append($"<a href=\"flood-report/details/{report.Id}\" class=\"govuk-link\">View details</a>");
+        sb.Append($"<a href=\"{report.ViewUri}\" target=\"_blank\" class=\"govuk-link\">View details</a>");
         sb.Append("</div>");
 
         return sb.ToString();

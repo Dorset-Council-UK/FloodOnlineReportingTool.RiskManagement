@@ -1,13 +1,15 @@
 ﻿@using FloodOnlineReportingTool.Contracts.Shared.Search
 @using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups
+@using FloodOnlineReportingTool.RiskManagement.Models.Search
 
 <div itemscope itemtype="https://schema.org/CreativeWork" class="govuk-!-padding-top-3 govuk-!-padding-bottom-3 border-top">
     <h2 class="govuk-heading-m" itemprop="headline"><a href="@SearchResult.ViewUri" target="_blank" class="govuk-link">@SearchResult.Reference</a></h2>
-    <h3 class="govuk-heading-s">Flooding started on @SearchResult.ImpactStartUtc.GdsReadable()</h3>
-    <p>Source: @(SearchResult.Sources.Count > 0 ? string.Join(", ", SearchResult.Sources.Select(s => s.Name)) : "No flood sources identified")</p>
+    <h3 class="govuk-heading-s">Record Status: @SearchResult.RecordStatus</h3>
+    <p>Flooding started on @SearchResult.ImpactStartUtc.GdsReadable()</p>
+    <p>Source: @(SearchResult.Causes.Count > 0 ? string.Join(", ", SearchResult.Causes.Select(s => s.Name)) : "No flooding sources identified")</p>
     @if (SearchResult.UpdatedUtc is not null)
     {
-        <div itemprop="dateModified" content="@SearchResult.UpdatedUtc.Value.ToString("O")" style="color: var(--govuk-color-dark-grey)" class="govuk-!-padding-top-2">
+        <div itemprop="dateModified" content="@SearchResult.UpdatedUtc.Value.ToString(" O")" style="color: var(--govuk-color-dark-grey)" class="govuk-!-padding-top-2">
             Updated @SearchResult.UpdatedUtc.GdsReadable()
         </div>
     }
@@ -21,5 +23,5 @@
 
 @code {
     [Parameter, EditorRequired]
-    public SearchResultFloodReport SearchResult { get; set; }
+    public FloodResultItem SearchResult { get; set; }
 }
