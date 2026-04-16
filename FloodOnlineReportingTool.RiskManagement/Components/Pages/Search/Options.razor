@@ -29,7 +29,6 @@
                                         <GdsLabel For="Model.FromDate" Text="Reports from" />
                                     </Heading>
                                 </GdsInputDate>
-                                <ValidationMessage For="() => Model.FromDate" />
                             </div>
                             <div class="govuk-grid-column-one-half">
                                 <GdsInputDate Id="search-end" For="() => Model.ToDate" Show="!_isLoading">
@@ -37,7 +36,6 @@
                                         <GdsLabel For="Model.ToDate" Text="Report until" />
                                     </Heading>
                                 </GdsInputDate>
-                                <ValidationMessage For="() => Model.ToDate" />
                             </div>   
                         </div>
                     </fieldset>
@@ -52,7 +50,6 @@
                                     <GdsErrorMessage />
                                     <GdsInputText @bind-Value=Model.ByPersonsName class="govuk-input govuk-input--width-50" />
                                 </GdsFormGroup>
-                                <ValidationMessage For="() => Model.ByPersonsName" />
                             </div>
                             <div class="govuk-grid-column-one-half">
                                 <GdsFormGroup For="() => Model.ByPostcode">
@@ -60,7 +57,6 @@
                                     <GdsErrorMessage />
                                     <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" />
                                 </GdsFormGroup>
-                                <ValidationMessage For="() => Model.ByPostcode" />
                             </div>
                         </div>
                     </fieldset>
