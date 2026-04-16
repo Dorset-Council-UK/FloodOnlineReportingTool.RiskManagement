@@ -96,8 +96,9 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
             // Reporter validations
             RuleFor(o => o.ByPersonsName)
                 .MaximumLength(100)
+                .WithMessage("Name must be 100 characters or fewer")
                 .MinimumLength(2)
-                .WithMessage("Name must be more than 2 characters and less than 100 characters")
+                .WithMessage("Name must be at least 2 characters")
                 .When(o => !string.IsNullOrWhiteSpace(o.ByPersonsName))
                 .OverridePropertyName(o => o.ByPersonsName);
         });
