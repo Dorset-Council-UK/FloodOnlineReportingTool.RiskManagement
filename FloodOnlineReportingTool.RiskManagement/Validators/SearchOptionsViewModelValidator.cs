@@ -51,7 +51,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .YearInclusiveBetween(1900, now.Year + 1)
                 .CorrectDaysInMonth()
                 .IsRealDate()
-                .WithName("Flooding start date");
+                .WithMessage("Enter a valid date");
 
             RuleFor(o => o.ToDate)
                 .Cascade(CascadeMode.Stop)
@@ -64,9 +64,8 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .YearInclusiveBetween(1900, now.Year + 1)
                 .CorrectDaysInMonth()
                 .IsRealDate()
-                .WithName("Flooding end date");
+                .WithMessage("Enter a valid date");
 
-            // If the date is in the future when it needs to be today or in the past
             RuleFor(o => o.FromDate.DateUtc)
                 .LessThanOrEqualTo(now)
                 .WithMessage("Flooding start date must be today or in the past")
@@ -96,7 +95,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
             RuleFor(o => o.ByPersonsName)
                 .MaximumLength(100)
                 .MinimumLength(2)
-                .WithMessage("Name must be 100 characters or fewer")
+                .WithMessage("Name must be more than 2 characters and less than 100 characters")
                 .When(o => !string.IsNullOrWhiteSpace(o.ByPersonsName))
                 .OverridePropertyName(o => o.ByPersonsName);
         });
