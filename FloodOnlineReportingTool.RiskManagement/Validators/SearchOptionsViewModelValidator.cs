@@ -20,6 +20,53 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
             RuleFor(o => o.ByPostcode).Empty().WithMessage("Postcode must not be set when searching by report reference");
             RuleFor(o => o.ByPersonsName).Empty().WithMessage("Name must not be set when searching by report reference");
             RuleFor(o => o.ByPolygon).Empty().WithMessage("Area must not be set when searching by report reference");
+
+            var now = DateTimeOffset.UtcNow;
+
+            RuleFor(o => o.FromDate)
+                .Cascade(CascadeMode.Stop)
+                .DayMonthYearNotEmpty()
+                .DayMustBeNumber()
+                .MonthMustBeNumber()
+                .YearMustBeNumber()
+                .DayInclusiveBetween(1, 31)
+                .MonthInclusiveBetween(1, 12)
+                .YearInclusiveBetween(1900, now.Year + 1)
+                .CorrectDaysInMonth()
+                .IsRealDate()
+                .WithName("Flooding start date");
+
+            RuleFor(o => o.ToDate)
+                .Cascade(CascadeMode.Stop)
+                .DayMonthYearNotEmpty()
+                .DayMustBeNumber()
+                .MonthMustBeNumber()
+                .YearMustBeNumber()
+                .DayInclusiveBetween(1, 31)
+                .MonthInclusiveBetween(1, 12)
+                .YearInclusiveBetween(1900, now.Year + 1)
+                .CorrectDaysInMonth()
+                .IsRealDate()
+                .WithName("Flooding end date");
+
+            // If the date is in the future when it needs to be today or in the past
+            RuleFor(o => o.FromDate.DateUtc)
+                .LessThanOrEqualTo(now)
+                .WithMessage("Flooding start date must be today or in the past")
+                .When(o => o.FromDate.DateUtc != null)
+                .OverridePropertyName(o => o.FromDate);
+
+            RuleFor(o => o.ToDate.DateUtc)
+                .LessThanOrEqualTo(now)
+                .WithMessage("Flooding end date must be today or in the past")
+                .When(o => o.ToDate.DateUtc != null)
+                .OverridePropertyName(o => o.ToDate);
+
+            RuleFor(o => o.ToDate.DateUtc)
+                .GreaterThanOrEqualTo(o => o.FromDate.DateUtc)
+                .WithMessage("Flooding end date must be the same as or after the flooding start date")
+                .When(o => o.FromDate.DateUtc != null && o.ToDate.DateUtc != null)
+                .OverridePropertyName(o => o.ToDate);
         });
 
         // All other options require options to be valid, and at least one must be populated
