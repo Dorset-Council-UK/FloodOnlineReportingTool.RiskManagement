@@ -20,6 +20,22 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
             RuleFor(o => o.ByPostcode).Empty().WithMessage("Postcode must not be set when searching by report reference");
             RuleFor(o => o.ByPersonsName).Empty().WithMessage("Name must not be set when searching by report reference");
             RuleFor(o => o.ByPolygon).Empty().WithMessage("Area must not be set when searching by report reference");
+        });
+
+        // All other options require options to be valid, and at least one must be populated
+        When(o => string.IsNullOrWhiteSpace(o.ByReference), () =>
+        {
+            RuleFor(o => o.ByReference).Empty().WithMessage("Report reference must not be set for this search type");
+
+            // At least one of the other fields must be populated
+            RuleFor(o => o)
+                .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
+                           !string.IsNullOrWhiteSpace(o.ByPostcode) ||
+                           !string.IsNullOrWhiteSpace(o.ByPersonsName) ||
+                           o.ByFloodSource?.Count > 0 || 
+                           o.ByPolygon != null)
+                .WithMessage("Enter at least one search criterion")
+                .WithName("SearchCriteria");
 
             var now = DateTimeOffset.UtcNow;
 
@@ -67,22 +83,6 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .WithMessage("Flooding end date must be the same as or after the flooding start date")
                 .When(o => o.FromDate.DateUtc != null && o.ToDate.DateUtc != null)
                 .OverridePropertyName(o => o.ToDate);
-        });
-
-        // All other options require options to be valid, and at least one must be populated
-        When(o => string.IsNullOrWhiteSpace(o.ByReference), () =>
-        {
-            RuleFor(o => o.ByReference).Empty().WithMessage("Report reference must not be set for this search type");
-
-            // At least one of the other fields must be populated
-            RuleFor(o => o)
-                .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
-                           !string.IsNullOrWhiteSpace(o.ByPostcode) ||
-                           !string.IsNullOrWhiteSpace(o.ByPersonsName) ||
-                           o.ByFloodSource?.Count > 0 || 
-                           o.ByPolygon != null)
-                .WithMessage("Enter at least one search criterion")
-                .WithName("SearchCriteria");
         });
     }
 
