@@ -51,7 +51,8 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .YearInclusiveBetween(1900, now.Year + 1)
                 .CorrectDaysInMonth()
                 .IsRealDate()
-                .WithMessage("Enter a valid date");
+                .WithMessage("Enter a valid date")
+                .When(o => o.FromDate.DateUtc != null);
 
             RuleFor(o => o.ToDate)
                 .Cascade(CascadeMode.Stop)
@@ -64,7 +65,8 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .YearInclusiveBetween(1900, now.Year + 1)
                 .CorrectDaysInMonth()
                 .IsRealDate()
-                .WithMessage("Enter a valid date");
+                .WithMessage("Enter a valid date")
+                .When(o => o.ToDate.DateUtc != null);
 
             RuleFor(o => o.FromDate.DateUtc)
                 .LessThanOrEqualTo(now)
