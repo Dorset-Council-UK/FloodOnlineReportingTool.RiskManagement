@@ -37,6 +37,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .WithMessage("Enter at least one search criterion")
                 .WithName("SearchCriteria");
 
+            // Date validations
             var now = DateTimeOffset.UtcNow;
 
             RuleFor(o => o.FromDate)
@@ -83,6 +84,16 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .WithMessage("Flooding end date must be the same as or after the flooding start date")
                 .When(o => o.FromDate.DateUtc != null && o.ToDate.DateUtc != null)
                 .OverridePropertyName(o => o.ToDate);
+
+            // TODO - Postcode validations
+            
+            // Reporter validations
+            RuleFor(o => o.ByPersonsName)
+                .MaximumLength(100)
+                .MinimumLength(2)
+                .WithMessage("Name must be 100 characters or fewer")
+                .When(o => !string.IsNullOrWhiteSpace(o.ByPersonsName))
+                .OverridePropertyName(o => o.ByPersonsName);
         });
     }
 
