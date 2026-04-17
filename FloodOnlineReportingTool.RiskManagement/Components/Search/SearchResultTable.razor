@@ -4,7 +4,7 @@
 <div class="grid">
     <QuickGrid @ref="_grid" ItemsProvider="ItemsProvider" Pagination="_pagination" class="govuk-table quickgrid-hide-empty-rows">
         <TemplateColumn Title="Reference">
-            <a href="@context.ViewUri" target="_blank" class="govuk-link">@context.Reference</a>
+            <a href="@context.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">@context.Reference</a>
         </TemplateColumn>
         <TemplateColumn Title="Status">
             @context.RecordStatus

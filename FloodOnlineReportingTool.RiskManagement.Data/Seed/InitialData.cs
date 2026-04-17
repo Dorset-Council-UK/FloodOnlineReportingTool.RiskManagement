@@ -43,7 +43,7 @@ internal static class InitialData
             new ReportStatus(RecordStatusIds.ActionNeeded, "Action needed", 3, "Action is needed on this record and needs to be reviewed"),
             new ReportStatus(RecordStatusIds.ActionCompleted, "Action completed", 4, "Action has been completed on this record"),
             new ReportStatus(RecordStatusIds.DuplicateDetected, "Duplicate Detected", 5, "A potential duplicate has been found for this record. This needs to be reviewed."),
-            new ReportStatus(RecordStatusIds.Error, "Error", 5, "This record has an error and needs to be reviewed")
+            new ReportStatus(RecordStatusIds.Error, "Error", 6, "This record has an error and needs to be reviewed")
         ];
     }
 
