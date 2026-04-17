@@ -35,7 +35,7 @@ internal static class SearchMappingExtensions
     internal static IEnumerable<FloodResultItem> ToFloodResultItems(this SearchResultFloodReport source, IList<ReportStatus> reportStatuses)
     {
         var statusName = reportStatuses
-            .FirstOrDefault(s => s.Id == source.RecordStatus)?.Text ?? string.Empty;
+            .FirstOrDefault(s => s.Id == source.RecordStatusId)?.Text ?? string.Empty;
 
         return source.SourceRecords.Select(sr => new FloodResultItem
         {
