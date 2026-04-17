@@ -52,7 +52,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .CorrectDaysInMonth()
                 .IsRealDate()
                 .WithMessage("Enter a valid date")
-                .When(o => o.FromDate.DateUtc != null);
+                .When(o => IsDateSet(o.ToDate));
 
             RuleFor(o => o.ToDate)
                 .Cascade(CascadeMode.Stop)
@@ -66,7 +66,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                 .CorrectDaysInMonth()
                 .IsRealDate()
                 .WithMessage("Enter a valid date")
-                .When(o => o.ToDate.DateUtc != null);
+                .When(o => IsDateSet(o.ToDate));
 
             RuleFor(o => o.FromDate.DateUtc)
                 .LessThanOrEqualTo(now)
