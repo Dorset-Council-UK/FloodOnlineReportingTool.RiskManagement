@@ -47,9 +47,6 @@ public partial class Options(
 
     protected override async Task OnParametersSetAsync()
     {
-        
-        
-
         // Configure option lists once on page load - No selections these are fixed option lists
         _floodSourceOptions = _floodSourceOptions.Count == 0 ? await CreateFloodSourceOptions() : _floodSourceOptions;
 
@@ -93,10 +90,16 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        if (EditContext.Validate())
+        {
+            await OnValidSubmit();
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
         // Update flood cause selection from checkboxes
         Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
-        
-        // Persist in state for page navigation
         
         // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
@@ -116,7 +119,6 @@ public partial class Options(
                 await commonRepository.UpdateSavedSearch(Model.SearchReference, savedSearchEntity, _cts.Token);
             }
             
-
             // Navigate to results
             navigationManager.NavigateTo($"{SearchPages.Results.Url}/{Model.SearchReference}");
         }
