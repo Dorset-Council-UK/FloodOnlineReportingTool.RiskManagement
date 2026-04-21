@@ -315,7 +315,7 @@ public partial class Results(ILogger<Results> logger,
             sb.Append($"<strong>Updated:</strong> {report.UpdatedUtc.Value:d MMMM yyyy}<br/>");
         }
 
-        sb.Append($"<a href=\"{report.ViewUri}\" target=\"_blank\" class=\"govuk-link\">View details</a>");
+        sb.Append($"<a href=\"{report.ViewUri}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"govuk-link\">View details</a>");
         sb.Append("</div>");
 
         return sb.ToString();

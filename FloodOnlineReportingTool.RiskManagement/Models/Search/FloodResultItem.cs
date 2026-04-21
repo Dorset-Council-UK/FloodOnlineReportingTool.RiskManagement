@@ -6,7 +6,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
 public class FloodResultItem : ISearchResultFloodReportSource
 {
     public Guid Id { get; init; }
-    public string RecordStatus { get; init; }
+    public required string RecordStatus { get; init; }
     public Guid SourceId { get; init; }
     public required string Reference { get; init; }
     public required Uri ViewUri { get; init; }
@@ -18,6 +18,6 @@ public class FloodResultItem : ISearchResultFloodReportSource
     public decimal Latitude { get; init; }
     public decimal Longitude { get; init; }
     public DateTimeOffset? ImpactStartUtc { get; init; }
-    public IReadOnlyCollection<SearchResultFloodReportCause> Causes { get; init; }
-    public IReadOnlyCollection<SearchResultFloodReportOrganisation> Organisations { get; init; }
+    public IReadOnlyCollection<SearchResultFloodReportCause> Causes { get; init; } = [];
+    public IReadOnlyCollection<SearchResultFloodReportOrganisation> Organisations { get; init; } = [];
 }
