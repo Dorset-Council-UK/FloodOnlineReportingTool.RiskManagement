@@ -724,6 +724,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         },
                         new
                         {
+                            Id = new Guid("018feb13-0b00-7c8e-9a1c-1d9b2f8c3c44"),
+                            Description = "A potential duplicate has been found for this record. This needs to be reviewed.",
+                            Order = 5,
+                            Text = "Duplicate Detected"
+                        },
+                        new
+                        {
                             Id = new Guid("018feb13-e260-7c11-9106-c179ba7c8ce4"),
                             Description = "This record has an error and needs to be reviewed",
                             Order = 5,

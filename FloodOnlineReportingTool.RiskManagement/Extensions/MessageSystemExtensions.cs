@@ -1,4 +1,7 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Options;
+﻿using FloodOnlineReportingTool.Contracts;
+using FloodOnlineReportingTool.Contracts.Topics;
+using FloodOnlineReportingTool.RiskManagement.Consumers;
+using FloodOnlineReportingTool.RiskManagement.Options;
 using MassTransit;
 
 namespace Microsoft.AspNetCore.Builder;
@@ -34,7 +37,16 @@ internal static class MessageSystemExtensions
                         config.Host(new Uri(messagingOptions.ConnectionString));
                     }
 
-                    config.ConfigureEndpoints(context);
+                    config.Message<FloodReportSourceCreated>(m =>
+                    {
+                        m.SetEntityName(TopicNames.FloodSourceCreated);
+                    });
+
+                    // Subscriptions https://masstransit.io/documentation/transports/azure-service-bus#subscriptions
+                    config.SubscriptionEndpoint<FloodReportSourceCreated>("floodreport-riskmanagement", o =>
+                    {
+                        o.ConfigureConsumer<FloodReportSourceCreatedConsumer>(context);
+                    });
                 });
             });
 

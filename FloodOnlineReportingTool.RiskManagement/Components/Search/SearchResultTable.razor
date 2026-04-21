@@ -4,7 +4,10 @@
 <div class="grid">
     <QuickGrid @ref="_grid" ItemsProvider="ItemsProvider" Pagination="_pagination" class="govuk-table quickgrid-hide-empty-rows">
         <TemplateColumn Title="Reference">
-            <a href="flood-report/details/@context.Id" class="govuk-link">@context.Id</a>
+            <a href="@context.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">@context.Reference</a>
+        </TemplateColumn>
+        <TemplateColumn Title="Status">
+            @context.RecordStatus
         </TemplateColumn>
         <TemplateColumn Title="Impact Start">
             @context.ImpactStartUtc.GdsReadable()
@@ -12,8 +15,8 @@
         <TemplateColumn Title="Reported">
             @context.CreatedUtc.GdsReadable()
         </TemplateColumn>
-        <TemplateColumn Title="Sources">
-            @(context.Sources.Count > 0 ? string.Join(", ", context.Sources.Select(s => s.Name)) : "No flood sources identified")
+        <TemplateColumn Title="Causes">
+            @(context.Causes.Count > 0 ? string.Join(", ", context.Causes.Select(s => s.Name)) : "No flooding sources identified")
         </TemplateColumn>
     </QuickGrid>
     <Paginator State="_pagination"  />
