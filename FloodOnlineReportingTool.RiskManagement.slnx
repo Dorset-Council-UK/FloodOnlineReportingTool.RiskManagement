@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="CONTRIBUTING.md" />
+    <File Path="DEVELOPING.md" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="docs/docs.csproj">
+     <Build Project="false" />
+  </Project>
+  <Project Path="FloodOnlineReportingTool.RiskManagement.Data/FloodOnlineReportingTool.RiskManagement.Data.csproj" />
+  <Project Path="FloodOnlineReportingTool.RiskManagement/FloodOnlineReportingTool.RiskManagement.csproj" />
+</Solution>
