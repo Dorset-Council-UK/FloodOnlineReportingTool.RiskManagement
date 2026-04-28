@@ -733,7 +733,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         {
                             Id = new Guid("018feb13-e260-7c11-9106-c179ba7c8ce4"),
                             Description = "This record has an error and needs to be reviewed",
-                            Order = 5,
+                            Order = 6,
                             Text = "Error"
                         });
                 });
