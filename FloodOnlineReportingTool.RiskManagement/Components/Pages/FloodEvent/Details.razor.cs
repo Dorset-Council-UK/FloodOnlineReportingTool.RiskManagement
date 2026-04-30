@@ -1,7 +1,3 @@
-using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -95,6 +91,9 @@ public partial class Details(
                 // Clear the existing state if the search reference does not match, to avoid displaying stale data
                 Model.SearchReference = SearchReference ?? "";
                 floodEventState.SetEventDetails(Model);
+
+                // Pre-populate the search title if it's empty
+                await PopulateSearchTitle();
             }
         }
 
@@ -144,6 +143,86 @@ public partial class Details(
         _isLoading = false;
         StateHasChanged();
         return;
+    }
+
+    private async Task PopulateSearchTitle()
+    {
+        if (string.IsNullOrWhiteSpace(Model.SearchTitle))
+        {
+            // Try to get search criteria from state first, then fall back to database
+            SearchResultsViewModel? searchCriteria = SearchResults;
+
+            if (searchCriteria == null && !string.IsNullOrEmpty(SearchReference))
+            {
+                // Retrieve from database if not in state
+                var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+                if (savedSearch != null)
+                {
+                    searchCriteria = new SearchResultsViewModel
+                    {
+                        FromDate = savedSearch.ResultsFrom.HasValue
+                            ? new GdsDate(savedSearch.ResultsFrom.Value)
+                            : new GdsDate(),
+                        ToDate = savedSearch.ResultsTo.HasValue
+                            ? new GdsDate(savedSearch.ResultsTo.Value)
+                            : new GdsDate(),
+                        ByPostcode = savedSearch.Postcode,
+                        ByFloodSource = savedSearch.FloodSources.ToList(),
+                        ByPolygon = savedSearch.Geom
+                    };
+                }
+            }
+
+            if (searchCriteria != null)
+            {
+                var titleParts = new List<string>();
+
+                // Get year and month from search dates
+                DateTimeOffset? floodDate = searchCriteria.FromDate.DateUtc ?? searchCriteria.ToDate.DateUtc;
+                if (floodDate.HasValue)
+                {
+                    titleParts.Add(floodDate.Value.Year.ToString());
+                    titleParts.Add(floodDate.Value.ToString("MMMM", CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    titleParts.Add("[Add the date]");
+                }
+
+                // Add placeholder text for user to add a location
+                titleParts.Add("[Add the location]");
+
+                // Get flood type(s) from flood sources
+                if (searchCriteria.ByFloodSource?.Count > 0)
+                {
+                    var selectedFloodSourceIds = searchCriteria.ByFloodSource.ToHashSet();
+                    var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
+                    var selectedSources = floodProblems
+                        .Where(fp => selectedFloodSourceIds.Contains(fp.Id))
+                        .Select(fp => fp.TypeName)
+                        .Where(name => !string.IsNullOrEmpty(name))
+                        .ToList();
+
+                    if (selectedSources.Count > 0)
+                    {
+                        titleParts.Add($"({string.Join(", ", selectedSources)})");
+                    }
+                }
+                else 
+                {
+                    titleParts.Add("(Flood type unknown)");
+                }
+
+                if (titleParts.Count > 0)
+                {
+                    Model.SearchTitle = string.Join(" ", titleParts);
+                }
+            }
+            else
+            {
+                Model.SearchTitle = "[Add the date] [Add the location] (Add the flood type)";
+            }
+        }
     }
 
     private async Task GoToEstimates()
