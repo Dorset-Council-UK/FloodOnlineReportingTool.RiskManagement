@@ -3,12 +3,14 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
@@ -61,6 +63,10 @@ public partial class Details(
                     Model = await GetModel();
                     EditContext = new(Model);
                     EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+
+                    // Pre-populate the search title if it's empty
+                    await PopulateSearchTitle();
+
                     floodEventState.SetEventDetails(Model);
 
                     // Load the options
@@ -170,7 +176,7 @@ public partial class Details(
                             : new GdsDate(),
                         ByPostcode = savedSearch.Postcode,
                         ByFloodSource = savedSearch.FloodSources.ToList(),
-                        ByPolygon = savedSearch.Geom
+                        ByPolygon = savedSearch.Geom,
                     };
                 }
             }
@@ -183,7 +189,7 @@ public partial class Details(
                 DateTimeOffset? floodDate = searchCriteria.FromDate.DateUtc ?? searchCriteria.ToDate.DateUtc;
                 if (floodDate.HasValue)
                 {
-                    titleParts.Add(floodDate.Value.Year.ToString());
+                    titleParts.Add(floodDate.Value.Year.ToString(CultureInfo.InvariantCulture));
                     titleParts.Add(floodDate.Value.ToString("MMMM", CultureInfo.InvariantCulture));
                 }
                 else
@@ -217,7 +223,7 @@ public partial class Details(
 
                 if (titleParts.Count > 0)
                 {
-                    Model.SearchTitle = string.Join(" ", titleParts);
+                    Model.SearchTitle = string.Join(' ', titleParts);
                 }
             }
             else
