@@ -36,6 +36,7 @@ public partial class Details(
     private readonly CancellationTokenSource _cts = new();
     private EditContext? EditContext;
     private EventDetailsViewModel Model = default!;
+    private ValidationMessageStore MessageStore = default!;
     private bool _redirectingToSearchOptions;
 
     protected override async Task OnInitializedAsync()
@@ -63,6 +64,7 @@ public partial class Details(
                     Model = await GetModel();
                     EditContext = new(Model);
                     EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                    MessageStore = new ValidationMessageStore(EditContext);
 
                     // Pre-populate the search title if it's empty
                     await PopulateSearchTitle();
@@ -137,8 +139,7 @@ public partial class Details(
         var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
         if (savedSearch == null)
         {
-            var messages = new ValidationMessageStore(EditContext);
-            messages.Add(EditContext.Field(nameof(Model.SearchReference)), "The saved search could not be found. Please go back and try again.");
+            MessageStore.Add(EditContext.Field(nameof(Model.SearchReference)), "The saved search could not be found. Please go back and try again.");
             EditContext.NotifyValidationStateChanged();
             return;
         }
@@ -240,7 +241,7 @@ public partial class Details(
             return;
         }
 
-        if (floodEventState.HasEstimates && string.Equals(floodEventState.Estimates?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        if (floodEventState.HasEstimates && string.Equals(floodEventState.Estimates?.SearchReference, SearchReference, StringComparison.Ordinal))
         {
             var estimates = floodEventState.Estimates;
             estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
