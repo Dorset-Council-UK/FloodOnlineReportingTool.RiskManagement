@@ -199,9 +199,10 @@ public partial class Details(
                 // Get flood type(s) from flood sources
                 if (searchCriteria.ByFloodSource?.Count > 0)
                 {
+                    var selectedFloodSourceIds = searchCriteria.ByFloodSource.ToHashSet();
                     var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
                     var selectedSources = floodProblems
-                        .Where(fp => searchCriteria.ByFloodSource.Contains(fp.Id))
+                        .Where(fp => selectedFloodSourceIds.Contains(fp.Id))
                         .Select(fp => fp.TypeName)
                         .Where(name => !string.IsNullOrEmpty(name))
                         .ToList();
