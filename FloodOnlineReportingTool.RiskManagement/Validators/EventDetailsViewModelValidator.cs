@@ -77,7 +77,9 @@ public partial class EventDetailsViewModelValidator : AbstractValidator<EventDet
             .MinimumLength(25)
             .WithMessage("The title must be at least 25 characters")
             .MaximumLength(100)
-            .WithMessage("The title must be less than 100 characters");
+            .WithMessage("The title must be less than 100 characters")
+            .Must(o => !(o.Contains("Add the location")))
+            .WithMessage("The title must contain a location");
 
         RuleFor(o => o.StatusNote)
             .MaximumLength(500)
