@@ -151,7 +151,7 @@ public partial class Details(
 
     private async Task PopulateSearchTitle()
     {
-        if (string.IsNullOrEmpty(Model.SearchTitle))
+        if (string.IsNullOrWhiteSpace(Model.SearchTitle))
         {
             // Try to get search criteria from state first, then fall back to database
             SearchResultsViewModel? searchCriteria = SearchResults;
