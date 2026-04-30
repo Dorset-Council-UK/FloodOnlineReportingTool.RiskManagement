@@ -12,27 +12,27 @@ public class EventDetailsViewModel : EventBaseModel
     public string EstimatedDisruptedUtilitiesString { get; set; } = "0";
     public string? StatusNote { get; set; }
 
-    public EventDetailsViewModel ToModel(SavedSearch model)
+    public EventDetailsViewModel()
     {
-        EventDetailsViewModel viewModel = new()
-        {
-            SearchTitle = model.SearchTitle,
-            RecordStatus = model.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase,
-            FloodStatus = model.FloodEvent?.FloodStatus ?? EventStatusIds.PropertiesAffected,
-            InvestigationStatus = model.FloodEvent?.InvestigationStatus ?? Section19StatusIds.NoSection19,
-            EstimatedTotalInternallyFlooded = model.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0,
-            EstimatedTotalInternallyFloodedString = (model.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0).ToString(CultureInfo.InvariantCulture),
-            EstimatedTotalExternalOnly = model.FloodEvent?.EstimatedTotalExternalOnly ?? 0,
-            EstimatedTotalExternalOnlyString = (model.FloodEvent?.EstimatedTotalExternalOnly ?? 0).ToString(CultureInfo.InvariantCulture),
-            EstimatedDisruptedUtilities = model.FloodEvent?.EstimatedDisruptedUtilities ?? 0,
-            EstimatedDisruptedUtilitiesString = (model.FloodEvent?.EstimatedDisruptedUtilities ?? 0).ToString(CultureInfo.InvariantCulture),
-            EstimatedVulnerable = model.FloodEvent?.EstimatedVulnerable ?? 0,
-            EstimatedVulnerableString = (model.FloodEvent?.EstimatedVulnerable ?? 0).ToString(CultureInfo.InvariantCulture),
-            EstimatedUninhabitable = model.FloodEvent?.EstimatedUninhabitable ?? 0,
-            EstimatedUninhabitableString = (model.FloodEvent?.EstimatedUninhabitable ?? 0).ToString(CultureInfo.InvariantCulture),
-            StatusNote = model.FloodEvent?.StatusNote ?? ""
-        };
+    }
 
-        return viewModel;
+    public EventDetailsViewModel(SavedSearch savedSearch)
+    {
+        SearchReference = savedSearch.Reference;
+        SearchTitle = savedSearch.SearchTitle;
+        RecordStatus = savedSearch.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase;
+        FloodStatus = savedSearch.FloodEvent?.FloodStatus ?? EventStatusIds.PropertiesAffected;
+        InvestigationStatus = savedSearch.FloodEvent?.InvestigationStatus ?? Section19StatusIds.NoSection19;
+        EstimatedTotalInternallyFlooded = savedSearch.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0;
+        EstimatedTotalInternallyFloodedString = (savedSearch.FloodEvent?.EstimatedTotalInternallyFlooded ?? 0).ToString(CultureInfo.InvariantCulture);
+        EstimatedTotalExternalOnly = savedSearch.FloodEvent?.EstimatedTotalExternalOnly ?? 0;
+        EstimatedTotalExternalOnlyString = (savedSearch.FloodEvent?.EstimatedTotalExternalOnly ?? 0).ToString(CultureInfo.InvariantCulture);
+        EstimatedDisruptedUtilities = savedSearch.FloodEvent?.EstimatedDisruptedUtilities ?? 0;
+        EstimatedDisruptedUtilitiesString = (savedSearch.FloodEvent?.EstimatedDisruptedUtilities ?? 0).ToString(CultureInfo.InvariantCulture);
+        EstimatedVulnerable = savedSearch.FloodEvent?.EstimatedVulnerable ?? 0;
+        EstimatedVulnerableString = (savedSearch.FloodEvent?.EstimatedVulnerable ?? 0).ToString(CultureInfo.InvariantCulture);
+        EstimatedUninhabitable = savedSearch.FloodEvent?.EstimatedUninhabitable ?? 0;
+        EstimatedUninhabitableString = (savedSearch.FloodEvent?.EstimatedUninhabitable ?? 0).ToString(CultureInfo.InvariantCulture);
+        StatusNote = savedSearch.FloodEvent?.StatusNote ?? "";
     }
 }
