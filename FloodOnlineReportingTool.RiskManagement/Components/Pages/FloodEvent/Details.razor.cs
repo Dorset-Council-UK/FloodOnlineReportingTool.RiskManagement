@@ -10,7 +10,11 @@ using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.Azure.Amqp.Framing;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.Mathematics;
 using System.Globalization;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -221,6 +225,10 @@ public partial class Details(
                 {
                     Model.SearchTitle = string.Join(" ", titleParts);
                 }
+            }
+            else
+            {
+                Model.SearchTitle = "[Add the date] [Add the location] (Add the flood type)";
             }
         }
     }
