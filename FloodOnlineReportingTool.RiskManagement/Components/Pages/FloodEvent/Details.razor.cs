@@ -1,7 +1,3 @@
-using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -10,11 +6,7 @@ using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.Azure.Amqp.Framing;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.Mathematics;
 using System.Globalization;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
