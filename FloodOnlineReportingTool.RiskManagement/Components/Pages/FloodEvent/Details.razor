@@ -9,159 +9,156 @@
 
 <h1 class="govuk-heading-l">Flood Event Details</h1>
 
-<GdsBackLink Href="@($"{SearchPages.Results.Url}/{SearchReference}")"></GdsBackLink>
+<GdsBackLink Href="@($"{SearchPages.Results.Url}/{SearchReference}")" />
 
 <p class="govuk-body-l">
     This form will upgrade a search to a flood event. 
 </p>
 
-<!--<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">-->
-<AuthorizeView Context="authContext">
+<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">
     <Authorized>
-        <EditForm EditContext="EditContext" OnValidSubmit="OnValidSubmit" FormName="CreateEventForm">
-            <FluentValidationValidator />
-            <GdsErrorSummary />
-            <GdsSpinner Show="_isLoading" ShowMessage="true" />
+        @if (_redirectingToSearchOptions)
+        {
+            <GdsSpinner Show ShowMessage Message="Redirecting to search options..." />
+        }
+        else if (EditContext is not null)
+        {
+            <EditForm EditContext="EditContext" OnValidSubmit="OnValidSubmit" FormName="CreateEventForm">
+                <FluentValidationValidator />
+                <GdsErrorSummary />
             
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Flood Event Details</h2>
-                    </legend>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                            <h2 class="govuk-fieldset__heading">Flood Event Details</h2>
+                        </legend>
 
-                    <GdsFormGroup For="() => Model.SearchTitle">
-                        <GdsLabel Text="Flood event name" />
-                        <GdsHint>This should be descriptive i.e. 2026 From-Until PlaceName Flooding Type.</GdsHint>
-                        <GdsErrorMessage />
-                        <GdsInputText @bind-Value=Model.SearchTitle class="govuk-input" />
-                    </GdsFormGroup>  
-                </fieldset>
-            </div>
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.RecordStatus">
-                                <GdsLabel Text="Record status:" />
-                                <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
-                                    @foreach (var option in _eventStatuses)
-                                    {
-                                        <option value="@option.Key">@option.Value</option>
-                                    }
-                                </GdsSelect>
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
+                        <GdsFormGroup For="() => Model.SearchTitle">
+                            <GdsLabel Text="Flood event name" />
+                            <GdsHint>This should be descriptive i.e. 2026 From-Until PlaceName Flooding Type.</GdsHint>
+                            <GdsErrorMessage />
+                            <GdsInputText @bind-Value=Model.SearchTitle class="govuk-input" />
+                        </GdsFormGroup>  
+                    </fieldset>
+                </div>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <div class="govuk-grid-row">
+                            <div class="govuk-grid-column-one-third">
+                                <GdsFormGroup For="() => Model.RecordStatus">
+                                    <GdsLabel Text="Record status:" />
+                                    <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
+                                        @foreach (var option in _eventStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
+                            <div class="govuk-grid-column-one-third">
+                                <GdsFormGroup For="() => Model.FloodStatus">
+                                    <GdsLabel Text="Flood status:" />
+                                    <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
+                                        @foreach(var option in _floodStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
+                            <div class="govuk-grid-column-one-third">
+                                <GdsFormGroup For="() => Model.InvestigationStatus">
+                                    <GdsLabel Text="Investigation status:" />
+                                    <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
+                                        @foreach (var option in _investigationStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
                         </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.FloodStatus">
-                                <GdsLabel Text="Flood status:" />
-                                <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
-                                    @foreach(var option in _floodStatuses)
-                                    {
-                                        <option value="@option.Key">@option.Value</option>
-                                    }
-                                </GdsSelect>
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
+                    </fieldset>
+                </div>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
+                            <h2 class="govuk-fieldset__heading">Estimated Totals</h2>
+                        </legend>
+                        <div class="govuk-grid-row">
+                            <div class="govuk-grid-column-one-third">
+                                <GdsFormGroup For="() => Model.EstimatedTotalInternallyFloodedString">
+                                    <GdsLabel Text="Internally flooded:" />
+                                    <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
+                            <div class="govuk-grid-column-one-third">
+                                <GdsFormGroup For="() => Model.EstimatedTotalExternalOnlyString">
+                                    <GdsLabel Text="External only (Affected):" />
+                                    <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
+                            <div class="govuk-grid-column-one-third">
+                                <GdsFormGroup For="() => Model.EstimatedDisruptedUtilitiesString">
+                                    <GdsLabel Text="Without utilities:" />
+                                    <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
                         </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.InvestigationStatus">
-                                <GdsLabel Text="Investigation status:" />
-                                <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
-                                    @foreach (var option in _investigationStatuses)
-                                    {
-                                        <option value="@option.Key">@option.Value</option>
-                                    }
-                                </GdsSelect>
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
+                    </fieldset>
+                </div>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <div class="govuk-grid-row">
+                            <div class="govuk-grid-column-one-half">
+                                <GdsFormGroup For="() => Model.EstimatedVulnerableString">
+                                    <GdsLabel Text="Vulnerable persons:" />
+                                    <GdsInputNumber @bind-Value=Model.EstimatedVulnerableString @bind-NumberValue=Model.EstimatedVulnerable class="govuk-input govuk-input-width--10" />
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
+                            <div class="govuk-grid-column-one-half">
+                                <GdsFormGroup For="() => Model.EstimatedUninhabitableString">
+                                    <GdsLabel Text="Uninhabitable properties:" />
+                                    <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
+                                    <GdsErrorMessage />
+                                </GdsFormGroup>
+                            </div>
                         </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Estimated Totals</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedTotalInternallyFloodedString">
-                                <GdsLabel Text="Internally flooded:" />
-                                <GdsInputNumber @bind-Value=Model.EstimatedTotalInternallyFloodedString @bind-NumberValue=Model.EstimatedTotalInternallyFlooded class="govuk-input govuk-input-width--10" />
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedTotalExternalOnlyString">
-                                <GdsLabel Text="External only (Affected):" />
-                                <GdsInputNumber @bind-Value=Model.EstimatedTotalExternalOnlyString @bind-NumberValue=Model.EstimatedTotalExternalOnly class="govuk-input govuk-input-width--10" />
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedDisruptedUtilitiesString">
-                                <GdsLabel Text="Without utilities:" />
-                                <GdsInputNumber @bind-Value=Model.EstimatedDisruptedUtilitiesString @bind-NumberValue=Model.EstimatedDisruptedUtilities class="govuk-input govuk-input-width--10" />
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedVulnerableString">
-                                <GdsLabel Text="Vulnerable persons:" />
-                                <GdsInputNumber @bind-Value=Model.EstimatedVulnerableString @bind-NumberValue=Model.EstimatedVulnerable class="govuk-input govuk-input-width--10" />
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedUninhabitableString">
-                                <GdsLabel Text="Uninhabitable properties:" />
-                                <GdsInputNumber @bind-Value=Model.EstimatedUninhabitableString @bind-NumberValue=Model.EstimatedUninhabitable class="govuk-input govuk-input-width--10" />
-                                <GdsErrorMessage />
-                            </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <GdsFormGroup For="() => Model.StatusNote">
-                        <GdsLabel Text="Status notes (optional):" />
-                        <GdsHint>This is a general comment about the flooding status and where the information about the event has come from.</GdsHint>
-                        <GdsErrorMessage />
-                        <textarea class="govuk-textarea" @bind=Model.StatusNote rows="5" aria-describedby="more-detail-hint"></textarea>
-                    </GdsFormGroup>
-                </fieldset>
-            </div>
+                    </fieldset>
+                </div>
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <GdsFormGroup For="() => Model.StatusNote">
+                            <GdsLabel Text="Status notes (optional):" />
+                            <GdsHint>This is a general comment about the flooding status and where the information about the event has come from.</GdsHint>
+                            <GdsErrorMessage />
+                            <textarea class="govuk-textarea" @bind=Model.StatusNote rows="5" aria-describedby="more-detail-hint"></textarea>
+                        </GdsFormGroup>
+                    </fieldset>
+                </div>
 
-            @if (Model.InvestigationStatus == Section19StatusIds.Section19Included)
-            {
-                <GdsWarning Icon="!" Text="Report completed! This will lock associated reports if not already done." />
-            }
-            else if (Model.InvestigationStatus != Section19StatusIds.NoSection19)
-            {
-                <GdsWarning Icon="!" Text="This will trigger a request for residents to complete the investigation form." />
-            } 
+                @if (Model.InvestigationStatus == Section19StatusIds.Section19Included)
+                {
+                    <GdsWarning Icon="!" Text="Report completed! This will lock associated reports if not already done." />
+                }
+                else if (Model.InvestigationStatus != Section19StatusIds.NoSection19)
+                {
+                    <GdsWarning Icon="!" Text="This will trigger a request for residents to complete the investigation form." />
+                } 
 
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    @if (!_isLoading)
-                    {
-                        <div class="govuk-button-group">
-                            <GdsButton IsSubmit="true" Text="Save flood event" />
-                            <GdsButton IsSubmit="false" OnClick="@GoToEstimates" AdditionalCssClasses="govuk-button--secondary" Text="Add detailed estimates" />
-                        </div>
-                    }
-                </fieldset>
-            </div>
-
-        </EditForm>
+                <div class="govuk-button-group">
+                    <GdsButton IsSubmit="true" Text="Save flood event" />
+                    <GdsButton IsSubmit="false" OnClick="@GoToEstimates" AdditionalCssClasses="govuk-button--secondary" Text="Add detailed estimates" />
+                </div>
+            </EditForm>
+        }
     </Authorized>
     <NotAuthorized>
         <GdsWarning Text="You do not have permission to create flood events. Contact your administrator to request permission." />
