@@ -4,6 +4,7 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
@@ -230,15 +231,10 @@ public partial class Details(
     /// </summary>
     private async Task<(DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
     {
-        if (!searchResultsState.HasOptions)
-        {
-            return (null, null, []);
-        }
-
-        var searchResults = searchResultsState.Options;
-        if (searchResults is not null)
+        if (searchResultsState.HasOptions && searchResultsState.Options is not null)
         {
             // Parts from the search results state
+            SearchResultsViewModel searchResults = searchResultsState.Options;
             return (searchResults.FromDate.DateUtc, searchResults.ToDate.DateUtc, searchResults.ByFloodSource);
         }
 
