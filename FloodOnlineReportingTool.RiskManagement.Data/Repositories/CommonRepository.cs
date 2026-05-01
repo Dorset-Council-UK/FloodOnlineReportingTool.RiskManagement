@@ -30,12 +30,24 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
             .FirstOrDefaultAsync(o => o.Id == apiSourceRecord, ct);
     }
 
-    public async Task<SavedSearch?> GetSavedSearchByReference(string reference, CancellationToken ct)
+    public async Task<SavedSearch?> GetSavedSearch(string reference, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
-        return await context.SavedSearches.AsNoTracking()
-                .Where(s => s.Reference == reference)
-                .FirstOrDefaultAsync(ct);
+        return await context.SavedSearches
+            .AsNoTracking()
+            .Where(s => s.Reference == reference)
+            .Include(s => s.FloodEvent)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<SavedSearch?> GetSavedSearch(Guid savedSearchId, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        return await context.SavedSearches
+            .AsNoTracking()
+            .Where(s => s.Id == savedSearchId)
+            .Include(s => s.FloodEvent)
+            .FirstOrDefaultAsync(ct);
     }
 
     public async Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct)
@@ -156,36 +168,6 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         existingSearch.SearchTitle = Title;
         await context.SaveChangesAsync(ct);
         return true;
-    }
-
-    public async Task<SavedSearch?> GetFloodEvent(Guid? SavedSearchId, string? reference, CancellationToken ct)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(ct);
-        reference = reference?.ToUpperInvariant();
-        SavedSearch? existingSearch;
-
-        // Test the ID based fields first
-        if (SavedSearchId.HasValue && SavedSearchId.Value != Guid.Empty)
-        {
-            existingSearch = await context.SavedSearches.AsNoTracking()
-                .Where(s => s.Id == SavedSearchId.Value)
-                .Include(s => s.FloodEvent)
-                .FirstOrDefaultAsync(ct);
-        } else
-        {
-            // Use the reference
-            existingSearch = await context.SavedSearches.AsNoTracking()
-                .Where(s => s.Reference == reference)
-                .Include(s => s.FloodEvent)
-                .FirstOrDefaultAsync(ct);
-        }
-
-        if (existingSearch == null)
-        {
-            return null;
-        }
-
-        return existingSearch;
     }
 
     public async Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid SavedSearchId, FloodEvent floodEvent, CancellationToken ct)
