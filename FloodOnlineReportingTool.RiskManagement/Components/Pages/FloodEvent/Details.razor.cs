@@ -1,9 +1,9 @@
 using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +20,7 @@ public partial class Details(
     NavigationManager navigationManager,
     ICommonRepository commonRepository,
     IFloodEventState floodEventState,
+    ISearchResultsState searchResultsState,
     IAuthorizationService authorizationService
 ) : IAsyncDisposable
 {
@@ -100,7 +101,7 @@ public partial class Details(
         }
 
         // Next try to get the saved search from the database
-        var savedSearch = await commonRepository.GetFloodEvent(SavedSearchId: null, SearchReference, _cts.Token);
+        var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
         if (savedSearch is not null)
         {
             return new EventDetailsViewModel(savedSearch);
@@ -140,7 +141,7 @@ public partial class Details(
             return;
         }
 
-        var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+        var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
         if (savedSearch == null)
         {
             MessageStore.Add(EditContext.Field(nameof(Model.SearchReference)), "The saved search could not be found. Please go back and try again.");
@@ -160,82 +161,99 @@ public partial class Details(
 
     private async Task PopulateSearchTitle()
     {
-        if (string.IsNullOrWhiteSpace(Model.SearchTitle))
+        // don't populate the title if it already has one
+        if (!string.IsNullOrWhiteSpace(Model.SearchTitle))
         {
-            // Try to get search criteria from state first, then fall back to database
-            SearchResultsViewModel? searchCriteria = SearchResults;
+            return;
+        }
 
-            if (searchCriteria == null && !string.IsNullOrEmpty(SearchReference))
+        var (fromDate, toDate, floodSources) = await GetTitleParts();
+
+        if (fromDate is null || toDate is null || floodSources.Count == 0)
+        {
+            Model.SearchTitle = "[Add the date] [Add the location] (Add the flood type)";
+            return;
+        }
+
+        // Now build the title using from date, to date and flood sources
+        var titleParts = new List<string>();
+
+        // Get year and month from search dates
+        DateTimeOffset? floodDate = fromDate ?? toDate;
+        // TODO: CHECK THIS DATE FORMAT
+        string? TESTDATE = floodDate.GdsReadable();
+        if (floodDate.HasValue)
+        {
+            titleParts.Add(floodDate.Value.Year.ToString(CultureInfo.InvariantCulture));
+            titleParts.Add(floodDate.Value.ToString("MMMM", CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            titleParts.Add("[Add the date]");
+        }
+
+        // Add placeholder text for user to add a location
+        titleParts.Add("[Add the location]");
+
+        // Get flood type(s) from flood sources
+        if (floodSources.Count > 0)
+        {
+            var selectedFloodSourceIds = floodSources.ToHashSet();
+            var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
+            var selectedSources = floodProblems
+                .Where(fp => selectedFloodSourceIds.Contains(fp.Id))
+                .Select(fp => fp.TypeName)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .ToList();
+
+            if (selectedSources.Count > 0)
             {
-                // Retrieve from database if not in state
-                var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
-                if (savedSearch != null)
-                {
-                    searchCriteria = new SearchResultsViewModel
-                    {
-                        FromDate = savedSearch.ResultsFrom.HasValue
-                            ? new GdsDate(savedSearch.ResultsFrom.Value)
-                            : new GdsDate(),
-                        ToDate = savedSearch.ResultsTo.HasValue
-                            ? new GdsDate(savedSearch.ResultsTo.Value)
-                            : new GdsDate(),
-                        ByPostcode = savedSearch.Postcode,
-                        ByFloodSource = savedSearch.FloodSources.ToList(),
-                        ByPolygon = savedSearch.Geom,
-                    };
-                }
-            }
-
-            if (searchCriteria != null)
-            {
-                var titleParts = new List<string>();
-
-                // Get year and month from search dates
-                DateTimeOffset? floodDate = searchCriteria.FromDate.DateUtc ?? searchCriteria.ToDate.DateUtc;
-                if (floodDate.HasValue)
-                {
-                    titleParts.Add(floodDate.Value.Year.ToString(CultureInfo.InvariantCulture));
-                    titleParts.Add(floodDate.Value.ToString("MMMM", CultureInfo.InvariantCulture));
-                }
-                else
-                {
-                    titleParts.Add("[Add the date]");
-                }
-
-                // Add placeholder text for user to add a location
-                titleParts.Add("[Add the location]");
-
-                // Get flood type(s) from flood sources
-                if (searchCriteria.ByFloodSource?.Count > 0)
-                {
-                    var selectedFloodSourceIds = searchCriteria.ByFloodSource.ToHashSet();
-                    var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-                    var selectedSources = floodProblems
-                        .Where(fp => selectedFloodSourceIds.Contains(fp.Id))
-                        .Select(fp => fp.TypeName)
-                        .Where(name => !string.IsNullOrEmpty(name))
-                        .ToList();
-
-                    if (selectedSources.Count > 0)
-                    {
-                        titleParts.Add($"({string.Join(", ", selectedSources)})");
-                    }
-                }
-                else 
-                {
-                    titleParts.Add("(Flood type unknown)");
-                }
-
-                if (titleParts.Count > 0)
-                {
-                    Model.SearchTitle = string.Join(' ', titleParts);
-                }
-            }
-            else
-            {
-                Model.SearchTitle = "[Add the date] [Add the location] (Add the flood type)";
+                titleParts.Add($"({string.Join(", ", selectedSources)})");
             }
         }
+        else
+        {
+            titleParts.Add("(Flood type unknown)");
+        }
+
+        if (titleParts.Count > 0)
+        {
+            Model.SearchTitle = string.Join(' ', titleParts);
+        }
+    }
+
+    /// <summary>
+    ///     <para>Try to get the parts needed for the title from the search results state</para>
+    ///     <para>The parts needed are from date, to date and flood sources</para>
+    ///     <para>If not available then try to get them from the saved search in the database</para>
+    ///     <para>If neither are available return nulls and an empty collection</para>
+    /// </summary>
+    private async Task<(DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
+    {
+        if (!searchResultsState.HasOptions)
+        {
+            return (null, null, []);
+        }
+
+        var searchResults = searchResultsState.Options;
+        if (searchResults is not null)
+        {
+            // Parts from the search results state
+            return (searchResults.FromDate.DateUtc, searchResults.ToDate.DateUtc, searchResults.ByFloodSource);
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchReference))
+        {
+            // Get the saved search from database
+            SavedSearch? savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+            if (savedSearch != null)
+            {
+                // Parts from the saved search
+                return (savedSearch.ResultsFrom, savedSearch.ResultsTo, savedSearch.FloodSources);
+            }
+        }
+
+        return (null, null, []);
     }
 
     private async Task GoToEstimates()
@@ -255,7 +273,7 @@ public partial class Details(
         }
         else
         {
-            var databaseModel = await commonRepository.GetFloodEvent(SavedSearchId: null, SearchReference, _cts.Token);
+            var databaseModel = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
             EventEstimatesViewModel estimates;
             if (databaseModel != null)
             {
