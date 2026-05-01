@@ -86,7 +86,7 @@ public partial class Results(ILogger<Results> logger,
         var options = searchResultsState.Options;
         if (options is null || !string.Equals(options.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
         {
-            var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+            var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
 
             if (savedSearch == null)
             {
