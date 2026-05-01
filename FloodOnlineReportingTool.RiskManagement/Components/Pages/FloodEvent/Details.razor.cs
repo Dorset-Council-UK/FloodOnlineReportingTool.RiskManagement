@@ -82,30 +82,36 @@ public partial class Details(
 
     private async Task<EventDetailsViewModel> GetModel()
     {
+        // SearchReference is needed for model state and saved search
+        if (string.IsNullOrWhiteSpace(SearchReference))
+        {
+            return new EventDetailsViewModel
+            {
+                SearchReference = "",
+            };
+        }
+
         // First try to get the model from the state
         var modelState = floodEventState.Details;
         if (modelState is not null)
         {
-            if (!string.IsNullOrWhiteSpace(SearchReference) && modelState.SearchReference.Equals(SearchReference, StringComparison.Ordinal))
+            if (modelState.SearchReference.Equals(SearchReference, StringComparison.Ordinal))
             {
                 return modelState;
             }
         }
 
         // Next try to get the saved search from the database
-        if (!string.IsNullOrWhiteSpace(SearchReference))
+        var savedSearch = await commonRepository.GetFloodEvent(SavedSearchId: null, SearchReference, _cts.Token);
+        if (savedSearch is not null)
         {
-            var savedSearch = await commonRepository.GetFloodEvent(SavedSearchId: null, SearchReference, _cts.Token);
-            if (savedSearch is not null)
-            {
-                return new EventDetailsViewModel(savedSearch);
-            }
+            return new EventDetailsViewModel(savedSearch);
         }
 
         // When no model state, and no saved search in the database
         return new EventDetailsViewModel
         {
-            SearchReference = SearchReference ?? "",
+            SearchReference = SearchReference,
         };
     }
 
