@@ -85,10 +85,8 @@ public partial class Details(
         // SearchReference is needed for model state and saved search
         if (string.IsNullOrWhiteSpace(SearchReference))
         {
-            return new EventDetailsViewModel
-            {
-                SearchReference = "",
-            };
+            // default view model with default values
+            return new EventDetailsViewModel();
         }
 
         // First try to get the model from the state
