@@ -168,9 +168,9 @@ public partial class Details(
             return;
         }
 
-        var (fromDate, toDate, floodSources) = await GetTitleParts();
+        var (found, fromDate, toDate, floodSources) = await GetTitleParts();
 
-        if (fromDate is null || toDate is null || floodSources.Count == 0)
+        if (!found)
         {
             Model.SearchTitle = "[Add the date] [Add the location] (Add the flood type)";
             return;
@@ -181,8 +181,6 @@ public partial class Details(
 
         // Get year and month from search dates
         DateTimeOffset? floodDate = fromDate ?? toDate;
-        // TODO: CHECK THIS DATE FORMAT
-        string? TESTDATE = floodDate.GdsReadable();
         if (floodDate.HasValue)
         {
             titleParts.Add(floodDate.Value.Year.ToString(CultureInfo.InvariantCulture));
@@ -229,13 +227,13 @@ public partial class Details(
     ///     <para>If not available then try to get them from the saved search in the database</para>
     ///     <para>If neither are available return nulls and an empty collection</para>
     /// </summary>
-    private async Task<(DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
+    private async Task<(bool found, DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
     {
         if (searchResultsState.HasOptions && searchResultsState.Options is not null)
         {
             // Parts from the search results state
             SearchResultsViewModel searchResults = searchResultsState.Options;
-            return (searchResults.FromDate.DateUtc, searchResults.ToDate.DateUtc, searchResults.ByFloodSource);
+            return (true, searchResults.FromDate.DateUtc, searchResults.ToDate.DateUtc, searchResults.ByFloodSource);
         }
 
         if (!string.IsNullOrWhiteSpace(SearchReference))
@@ -245,11 +243,11 @@ public partial class Details(
             if (savedSearch != null)
             {
                 // Parts from the saved search
-                return (savedSearch.ResultsFrom, savedSearch.ResultsTo, savedSearch.FloodSources);
+                return (true, savedSearch.ResultsFrom, savedSearch.ResultsTo, savedSearch.FloodSources);
             }
         }
 
-        return (null, null, []);
+        return (false, null, null, []);
     }
 
     private async Task GoToEstimates()
