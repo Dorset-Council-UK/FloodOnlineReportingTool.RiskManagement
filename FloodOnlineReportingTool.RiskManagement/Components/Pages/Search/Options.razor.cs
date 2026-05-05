@@ -56,7 +56,7 @@ public partial class Options(
         if (SearchReference is not null && !string.Equals(options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
         {
             // Replace the stored model with the details from the saved search by reference
-            var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+            var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
             options = savedSearch?.SavedSearchToOptionsView();
         }
         if (options is not null)

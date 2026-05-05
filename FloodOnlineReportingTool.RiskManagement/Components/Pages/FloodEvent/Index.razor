@@ -1,10 +1,33 @@
 ﻿@page "/event/{SearchReference}"
 @page "/event"
 
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
 <PageTitle>Flood Event Details</PageTitle>
 
 <h1 class="govuk-heading-l">Flood Event Details</h1>
 
-<GdsInsetText Text="Add a map and summary component to this page" />
+<AuthorizeView Policy="@PolicyNames.Reader">
+    <Authorized>
+        @if(_redirectingToSearchOptions)
+        {
+            <GdsSpinner Show ShowMessage Message="Redirecting to search options..." />
+        }
+        else
+        {
+            @if (!string.IsNullOrWhiteSpace(SearchReference))
+            {
+                <p>Event reference: @SearchReference</p>
+            }
 
-<GdsInsetText Text="We will also need some button controls to trigger actions and access comment / media functionality" />
+            <GdsInsetText Text="TODO: Add a map and summary component to this page" />
+
+            <GdsInsetText Text="TODO: We will also need some button controls to trigger actions and access comment / media functionality" />
+        }
+    </Authorized>
+
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to view events. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>

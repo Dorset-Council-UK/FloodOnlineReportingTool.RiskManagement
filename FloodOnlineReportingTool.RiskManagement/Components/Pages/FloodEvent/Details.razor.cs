@@ -1,12 +1,18 @@
+using FloodOnlineReportingTool.RiskManagement.Authorization;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
+using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -15,89 +21,98 @@ public partial class Details(
     NavigationManager navigationManager,
     ICommonRepository commonRepository,
     IFloodEventState floodEventState,
-    ISearchResultsState searchResultsState) : IAsyncDisposable
+    ISearchResultsState searchResultsState,
+    IAuthorizationService authorizationService
+) : IAsyncDisposable
 {
-    private EditContext EditContext = default!;
-    private readonly CancellationTokenSource _cts = new();
-    private EventDetailsViewModel Model { get; set; } = default!;
-    private EventDetailsViewModel? _modelFromState = null;
-    private SearchResultsViewModel? SearchResults;
-
     [Parameter]
     public string? SearchReference { get; set; }
 
-    private Dictionary<Guid, string> _floodStatuses = new();
-    private Dictionary<Guid, string> _eventStatuses = new();
-    private Dictionary<Guid, string> _investigationStatuses = new();
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
 
-    private bool _isLoading = true;
+    private ICollection<FloodStatus> _floodStatuses = [];
+    private ICollection<EventStatus> _eventStatuses = [];
+    private ICollection<InvestigationStatus> _investigationStatuses = [];
 
-    protected override void OnInitialized()
+    private readonly CancellationTokenSource _cts = new();
+    private EditContext? EditContext;
+    private EventDetailsViewModel Model = default!;
+    private ValidationMessageStore MessageStore = default!;
+    private bool _redirectingToSearchOptions;
+
+    protected override async Task OnInitializedAsync()
     {
-        if (string.IsNullOrEmpty(SearchReference))
+        if (string.IsNullOrWhiteSpace(SearchReference))
         {
             logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
             navigationManager.NavigateTo(SearchPages.Options.Url);
-
-            _isLoading = false;
-            StateHasChanged();
+            _redirectingToSearchOptions = true;
             return;
         }
 
-        // Setup model and edit context
-        Model ??= new();
-        EditContext = new(Model);
-        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        Model.SearchReference = SearchReference;
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if (searchResultsState.HasOptions)
+        // Don't get any data if you don't have permission
+        if (AuthenticationState is not null)
         {
-            SearchResults = searchResultsState.Options;
-        }
-
-        // Configure option lists once on page load - No selections these are fixed option lists
-        _floodStatuses = _floodStatuses.Count == 0
-            ? (await commonRepository.GetFloodStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty)
-            : _floodStatuses;
-        _eventStatuses = _eventStatuses.Count == 0
-            ? (await commonRepository.GetEventStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty)
-            : _eventStatuses;
-        _investigationStatuses = _investigationStatuses.Count == 0
-            ? (await commonRepository.GetInvestigationStatuses(_cts.Token)).ToDictionary(x => x.Id, x => x.Text ?? string.Empty)
-            : _investigationStatuses;
-
-        if (_modelFromState == null)
-        {
-            _modelFromState = floodEventState.Details;
-            if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+            var authState = await AuthenticationState;
+            if (authState.User.IsAuthenticated)
             {
-                Model = _modelFromState;
-                EditContext = new(Model);
-                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-            }
-            else
-            {
-                var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
-                if (databaseModel != null)
+                var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
+                var hasWriterPolicy = writerPolicyCheck.Succeeded;
+
+                if (hasWriterPolicy)
                 {
-                    Model = Model.ToModel(databaseModel);
+                    // Setup model and edit context
+                    Model = await GetModel();
                     EditContext = new(Model);
                     EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                    MessageStore = new ValidationMessageStore(EditContext);
+
+                    // Pre-populate the search title if it's empty
+                    await PopulateSearchTitle();
+
+                    floodEventState.SetEventDetails(Model);
+
+                    // Load the options
+                    _floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
+                    _eventStatuses = await commonRepository.GetEventStatuses(_cts.Token);
+                    _investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
                 }
+            }
+        }
+    }
 
-                // Clear the existing state if the search reference does not match, to avoid displaying stale data
-                Model.SearchReference = SearchReference ?? "";
-                floodEventState.SetEventDetails(Model);
+    private async Task<EventDetailsViewModel> GetModel()
+    {
+        // SearchReference is needed for model state and saved search
+        if (string.IsNullOrWhiteSpace(SearchReference))
+        {
+            // default view model with default values
+            return new EventDetailsViewModel();
+        }
 
-                // Pre-populate the search title if it's empty
-                await PopulateSearchTitle();
+        // First try to get the model from the state
+        var modelState = floodEventState.Details;
+        if (modelState is not null)
+        {
+            if (modelState.SearchReference.Equals(SearchReference, StringComparison.Ordinal))
+            {
+                return modelState;
             }
         }
 
-        _isLoading = false;
+        // Next try to get the saved search from the database
+        var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+        if (savedSearch is not null)
+        {
+            return new EventDetailsViewModel(savedSearch);
+        }
+
+        // When no model state, and no saved search in the database
+        return new EventDetailsViewModel
+        {
+            SearchReference = SearchReference,
+        };
     }
 
     public async ValueTask DisposeAsync()
@@ -115,159 +130,162 @@ public partial class Details(
         {
             logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Details));
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private async Task OnValidSubmit()
     {
         // Save the record
-        if (SearchReference == null)
+        if (EditContext is null || string.IsNullOrWhiteSpace(SearchReference))
         {
             return;
         }
 
-        var currentSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
-        if (currentSearch == null)
+        var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+        if (savedSearch == null)
         {
+            MessageStore.Add(EditContext.Field(nameof(Model.SearchReference)), "The saved search could not be found. Please go back and try again.");
+            EditContext.NotifyValidationStateChanged();
             return;
         }
 
         var floodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
-        await commonRepository.SetSavedSearchTitle(currentSearch.Id, Model.SearchTitle, _cts.Token);
-        await commonRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
+        await commonRepository.SetSavedSearchTitle(savedSearch.Id, Model.SearchTitle, _cts.Token);
+        await commonRepository.CreateOrUpdateFloodEvent(savedSearch.Id, floodEvent, _cts.Token);
 
         // Clear the model
         floodEventState.SetEventDetails(null);
         floodEventState.SetEventEstimates(null);
         navigationManager.NavigateTo($"{EventPages.View.Url}/{SearchReference}");
-
-        _isLoading = false;
-        StateHasChanged();
-        return;
     }
 
     private async Task PopulateSearchTitle()
     {
-        if (string.IsNullOrWhiteSpace(Model.SearchTitle))
+        // don't populate the title if it already has one
+        if (!string.IsNullOrWhiteSpace(Model.SearchTitle))
         {
-            // Try to get search criteria from state first, then fall back to database
-            SearchResultsViewModel? searchCriteria = SearchResults;
+            return;
+        }
 
-            if (searchCriteria == null && !string.IsNullOrEmpty(SearchReference))
+        var (fromDate, toDate, floodSources) = await GetTitleParts();
+
+        // Now build the title using from date, to date and flood sources
+        var titleParts = new List<string>();
+
+        // Get year and month from search dates
+        DateTimeOffset? floodDate = fromDate ?? toDate;
+        if (floodDate.HasValue)
+        {
+            titleParts.Add(floodDate.Value.Year.ToString(CultureInfo.InvariantCulture));
+            titleParts.Add(floodDate.Value.ToString("MMMM", CultureInfo.InvariantCulture));
+        }
+        else
+        {
+            titleParts.Add("[Add the date]");
+        }
+
+        // Add placeholder text for user to add a location
+        titleParts.Add("[Add the location]");
+
+        // Get flood type(s) from flood sources
+        if (floodSources.Count > 0)
+        {
+            var selectedFloodSourceIds = floodSources.ToHashSet();
+            var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
+            var selectedSources = floodProblems
+                .Where(fp => selectedFloodSourceIds.Contains(fp.Id))
+                .Select(fp => fp.TypeName)
+                .Where(name => !string.IsNullOrEmpty(name))
+                .ToList();
+
+            if (selectedSources.Count > 0)
             {
-                // Retrieve from database if not in state
-                var savedSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
-                if (savedSearch != null)
-                {
-                    searchCriteria = new SearchResultsViewModel
-                    {
-                        FromDate = savedSearch.ResultsFrom.HasValue
-                            ? new GdsDate(savedSearch.ResultsFrom.Value)
-                            : new GdsDate(),
-                        ToDate = savedSearch.ResultsTo.HasValue
-                            ? new GdsDate(savedSearch.ResultsTo.Value)
-                            : new GdsDate(),
-                        ByPostcode = savedSearch.Postcode,
-                        ByFloodSource = savedSearch.FloodSources.ToList(),
-                        ByPolygon = savedSearch.Geom
-                    };
-                }
-            }
-
-            if (searchCriteria != null)
-            {
-                var titleParts = new List<string>();
-
-                // Get year and month from search dates
-                DateTimeOffset? floodDate = searchCriteria.FromDate.DateUtc ?? searchCriteria.ToDate.DateUtc;
-                if (floodDate.HasValue)
-                {
-                    titleParts.Add(floodDate.Value.Year.ToString());
-                    titleParts.Add(floodDate.Value.ToString("MMMM", CultureInfo.InvariantCulture));
-                }
-                else
-                {
-                    titleParts.Add("[Add the date]");
-                }
-
-                // Add placeholder text for user to add a location
-                titleParts.Add("[Add the location]");
-
-                // Get flood type(s) from flood sources
-                if (searchCriteria.ByFloodSource?.Count > 0)
-                {
-                    var selectedFloodSourceIds = searchCriteria.ByFloodSource.ToHashSet();
-                    var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-                    var selectedSources = floodProblems
-                        .Where(fp => selectedFloodSourceIds.Contains(fp.Id))
-                        .Select(fp => fp.TypeName)
-                        .Where(name => !string.IsNullOrEmpty(name))
-                        .ToList();
-
-                    if (selectedSources.Count > 0)
-                    {
-                        titleParts.Add($"({string.Join(", ", selectedSources)})");
-                    }
-                }
-                else 
-                {
-                    titleParts.Add("(Flood type unknown)");
-                }
-
-                if (titleParts.Count > 0)
-                {
-                    Model.SearchTitle = string.Join(" ", titleParts);
-                }
-            }
-            else
-            {
-                Model.SearchTitle = "[Add the date] [Add the location] (Add the flood type)";
+                titleParts.Add($"({string.Join(", ", selectedSources)})");
             }
         }
+        else
+        {
+            titleParts.Add("(Flood type unknown)");
+        }
+
+        if (titleParts.Count > 0)
+        {
+            Model.SearchTitle = string.Join(' ', titleParts);
+        }
+    }
+
+    /// <summary>
+    ///     <para>Try to get the parts needed for the title from the search results state</para>
+    ///     <para>The parts needed are from date, to date and flood sources</para>
+    ///     <para>If not available then try to get them from the saved search in the database</para>
+    ///     <para>If neither are available return nulls and an empty collection</para>
+    /// </summary>
+    private async Task<(DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
+    {
+        if (searchResultsState.HasOptions && searchResultsState.Options is not null)
+        {
+            // Parts from the search results state
+            SearchResultsViewModel searchResults = searchResultsState.Options;
+            return (searchResults.FromDate.DateUtc, searchResults.ToDate.DateUtc, searchResults.ByFloodSource);
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchReference))
+        {
+            // Get the saved search from database
+            SavedSearch? savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+            if (savedSearch != null)
+            {
+                // Parts from the saved search
+                return (savedSearch.ResultsFrom, savedSearch.ResultsTo, savedSearch.FloodSources);
+            }
+        }
+
+        return (null, null, []);
     }
 
     private async Task GoToEstimates()
     {
-        if (EditContext.Validate())
+        if (EditContext is null || !EditContext.Validate() || string.IsNullOrWhiteSpace(SearchReference))
         {
-            var existingDetails = floodEventState.Details;
-            if (floodEventState.HasEstimates && string.Equals(floodEventState.Estimates?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
-            {
-                var estimates = floodEventState.Estimates;
-                estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
-                estimates?.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
-                estimates?.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
-                floodEventState.SetEventEstimates(estimates);
-            }
-            else
-            {
-                var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
-                EventEstimatesViewModel estimates;
-                if (databaseModel != null)
-                {
-                    estimates = new();
-
-                    estimates = estimates.ToModel(databaseModel);
-                    estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
-                    estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
-                    estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
-                    estimates.SearchReference = SearchReference;
-                } else
-                {
-                    estimates = new EventEstimatesViewModel
-                    {
-                        EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
-                        EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
-                        EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
-                        SearchReference = SearchReference
-                    };
-                }
-
-                floodEventState.SetEventEstimates(estimates);
-            }
-
-            navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
+            return;
         }
-        StateHasChanged();
-        return;
+
+        if (floodEventState.HasEstimates && string.Equals(floodEventState.Estimates?.SearchReference, SearchReference, StringComparison.Ordinal))
+        {
+            var estimates = floodEventState.Estimates;
+            estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
+            estimates?.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
+            estimates?.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+            floodEventState.SetEventEstimates(estimates);
+        }
+        else
+        {
+            var databaseModel = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+            EventEstimatesViewModel estimates;
+            if (databaseModel != null)
+            {
+                estimates = new();
+
+                estimates = estimates.ToModel(databaseModel);
+                estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
+                estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
+                estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+                estimates.SearchReference = SearchReference;
+            } else
+            {
+                estimates = new EventEstimatesViewModel
+                {
+                    EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
+                    EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
+                    EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
+                    SearchReference = SearchReference,
+                };
+            }
+
+            floodEventState.SetEventEstimates(estimates);
+        }
+
+        navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
     }
 }

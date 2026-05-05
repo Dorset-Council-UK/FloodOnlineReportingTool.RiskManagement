@@ -58,7 +58,7 @@ public partial class Estimates(
             }
             else
             {
-                var databaseModel = await commonRepository.GetFloodEvent(null, SearchReference, _cts.Token);
+                var databaseModel = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
                 if (databaseModel != null)
                 {
                     Model = Model.ToModel(databaseModel);
@@ -100,7 +100,7 @@ public partial class Estimates(
             return;
         }
 
-        var currentSearch = await commonRepository.GetSavedSearchByReference(SearchReference, _cts.Token);
+        var currentSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
         if (currentSearch == null)
         {
             return;
