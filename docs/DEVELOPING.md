@@ -9,7 +9,7 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
 
 - **.NET**: Ensure you have the .NET 10 SDK installed.
 - **PostgreSQL 13+**: This is the default database provider. The project uses Entity Framework, making it adaptable to other providers with minimal effort.
-- **PostGIS**: Database extension equired for spatial data support in PostgreSQL.
+- **PostGIS**: Database extension required for spatial data support in PostgreSQL.
 - **Message system (optional)**: The project includes a messaging system using Azure Service Bus. You can enable or disable this system through the `Messaging:Enabled` setting in your configuration.
 
 ## Getting Started
