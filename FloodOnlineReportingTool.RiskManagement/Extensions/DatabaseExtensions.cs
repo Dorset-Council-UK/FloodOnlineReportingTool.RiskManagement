@@ -38,7 +38,10 @@ internal static class DatabaseExtensions
     {
         internal string GetRiskManagementConnectionString(bool logSensitiveData)
         {
-            var connectionString = configuration.GetConnectionString("FloodReportingRiskManagement");
+            const string connectionStringName = "FloodReportingRiskManagement";
+            const string searchPathErrorTemplate = "Invalid connection string '{0}': Search Path must include the '{1}' schema. Example: SearchPath={1},{2}";
+
+            var connectionString = configuration.GetConnectionString(connectionStringName);
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ConfigurationMissingException("Missing configuration setting: The connection string for the database is missing.");
@@ -54,9 +57,14 @@ internal static class DatabaseExtensions
             {
                 throw new ConfigurationMissingException("Missing configuration setting: The connection string for the database needs a schema set in the Search Path parameter.");
             }
-            if (!connectionStringBuilder.SearchPath.Contains(SchemaNames.RiskManagement, StringComparison.Ordinal))
+            string[] searchPaths = connectionStringBuilder.SearchPath.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (!searchPaths.Contains(SchemaNames.RiskManagement, StringComparer.OrdinalIgnoreCase))
             {
-                throw new ConfigurationMissingException($"Invalid configuration setting: The connection string for the database has an invalid schema set in the Search Path parameter. Expected '{SchemaNames.RiskManagement}', but found '{connectionStringBuilder.SearchPath}'.");
+                throw new ConfigurationMissingException(string.Format(searchPathErrorTemplate, connectionStringName, SchemaNames.RiskManagement, SchemaNames.Public));
+            }
+            if (!searchPaths.Contains(SchemaNames.Public, StringComparer.OrdinalIgnoreCase))
+            {
+                throw new ConfigurationMissingException(string.Format(searchPathErrorTemplate, connectionStringName, SchemaNames.Public, SchemaNames.RiskManagement));
             }
 
             return connectionStringBuilder.ToString();

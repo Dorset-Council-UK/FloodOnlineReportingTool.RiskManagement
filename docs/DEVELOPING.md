@@ -7,8 +7,9 @@ Thank you for your interest in contributing to the Flood Online Reporting Tool -
 
 To run Flood Online Reporting Tool - Risk Management with minimal modification, you will need the following:
 
-- **.NET 9**: Ensure you have the .NET 9 SDK installed.
+- **.NET**: Ensure you have the .NET 10 SDK installed.
 - **PostgreSQL 13+**: This is the default database provider. The project uses Entity Framework, making it adaptable to other providers with minimal effort.
+- **PostGIS**: Database extension required for spatial data support in PostgreSQL. Using the public schema.
 - **Message system (optional)**: The project includes a messaging system using Azure Service Bus. You can enable or disable this system through the `Messaging:Enabled` setting in your configuration.
 
 ## Getting Started
@@ -80,14 +81,11 @@ Example secrets file:
     // Configure Azure AD settings here if using Azure AD authentication
   },
   "ConnectionStrings": {
-    "RiskManagement": "Host=localhost;Port=5432;Database=YourDatabaseName;Username=YourUserName;Password=YourPassword;SearchPath=riskmanagement"
+    "FloodReportingRiskManagement": "Host=localhost;Port=5432;Database=YourDatabaseName;Username=YourUserName;Password=YourPassword;SearchPath=fortriskmanagement,public"
   },
   "Messaging": {
     "Enabled": "true",
-    "ConnectionString": "sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your-key-here",
-    "QueueName": "fortmessaging-queue",
-    "TopicName": "fortmessaging-topic",
-    "SubscriptionName": "fortmessaging-subscription"
+    "ConnectionString": "sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your-key-here"
   }
 }
 ```
