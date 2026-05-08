@@ -37,15 +37,15 @@ internal static class MessageSystemExtensions
                         config.Host(new Uri(messagingOptions.ConnectionString));
                     }
 
-                    config.Message<FloodReportSourceCreated>(m =>
+                    config.Message<FloodReportCreated>(m =>
                     {
-                        m.SetEntityName(TopicNames.FloodSourceCreated);
+                        m.SetEntityName(TopicNames.FloodReportCreated);
                     });
 
                     // Subscriptions https://masstransit.io/documentation/transports/azure-service-bus#subscriptions
-                    config.SubscriptionEndpoint<FloodReportSourceCreated>("floodreport-riskmanagement", o =>
+                    config.SubscriptionEndpoint<FloodReportCreated>("floodreport-riskmanagement", o =>
                     {
-                        o.ConfigureConsumer<FloodReportSourceCreatedConsumer>(context);
+                        o.ConfigureConsumer<FloodReportConsumers>(context);
                     });
                 });
             });
