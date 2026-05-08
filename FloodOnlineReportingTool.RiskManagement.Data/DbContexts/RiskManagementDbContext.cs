@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using MassTransit;
@@ -11,6 +12,7 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<SavedSearch> SavedSearches { get; set; }
     public DbSet<FloodEvent> FloodEvents { get; set; }
     public DbSet<FloodEventComment> FloodEventComments { get; set; }
+    public DbSet<ActionLog> ActionLogs { get; set; }
 
     public DbSet<CommentType> CommentTypes { get; set; }
     public DbSet<EventStatus> EventStatuses { get; set; }
