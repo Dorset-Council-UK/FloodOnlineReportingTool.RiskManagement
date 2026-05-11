@@ -48,7 +48,7 @@ internal static class MessageSystemExtensions
             // Azure Service Bus Transport https://masstransit.io/documentation/transports/azure-service-bus
             o.UsingAzureServiceBus((context, config) =>
             {
-                if (messagingOptions.ConnectionString.Contains("Endpoint=", StringComparison.OrdinalIgnoreCase))
+                if (messagingOptions.ConnectionString!.Contains("Endpoint=", StringComparison.OrdinalIgnoreCase))
                 {
                     config.Host(messagingOptions.ConnectionString);
                 }
@@ -64,7 +64,7 @@ internal static class MessageSystemExtensions
                 });
 
                 // Subscriptions https://masstransit.io/documentation/transports/azure-service-bus#subscriptions
-                config.SubscriptionEndpoint<FloodReportCreated>("floodreport-riskmanagement", e =>
+                config.SubscriptionEndpoint<FloodReportCreated>("floodreport-riskmanagementPW", e =>
                 {
                     e.ConfigureConsumer<FloodReportConsumers>(context);
                 });
