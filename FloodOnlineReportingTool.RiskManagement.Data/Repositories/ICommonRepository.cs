@@ -1,5 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
@@ -13,9 +12,7 @@ public interface ICommonRepository
     Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct);
     Task<SavedSearch> UpdateSavedSearch(string reference, SavedSearch searchCriteria, CancellationToken ct);
     Task<bool> SetSavedSearchTitle(Guid id, string Title, CancellationToken ct);
-    Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid SavedSearchId, FloodEvent floodEvent, CancellationToken ct);
     Task<IList<ReportStatus>> GetReportStatuses(CancellationToken ct);
-    Task<IList<EventStatus>> GetEventStatuses(CancellationToken ct);
     Task<IList<FloodStatus>> GetFloodStatuses(CancellationToken ct);
     Task<IList<InvestigationStatus>> GetInvestigationStatuses(CancellationToken ct);
 }

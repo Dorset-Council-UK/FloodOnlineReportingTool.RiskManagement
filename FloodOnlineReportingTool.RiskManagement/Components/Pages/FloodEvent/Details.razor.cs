@@ -20,6 +20,7 @@ public partial class Details(
     ILogger<Details> logger,
     NavigationManager navigationManager,
     ICommonRepository commonRepository,
+    IFloodEventRepository floodEventRepository,
     IFloodEventState floodEventState,
     ISearchResultsState searchResultsState,
     IAuthorizationService authorizationService
@@ -75,7 +76,7 @@ public partial class Details(
 
                     // Load the options
                     _floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
-                    _eventStatuses = await commonRepository.GetEventStatuses(_cts.Token);
+                    _eventStatuses = await floodEventRepository.GetEventStatuses(_cts.Token);
                     _investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
                 }
             }
@@ -152,7 +153,7 @@ public partial class Details(
 
         var floodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
         await commonRepository.SetSavedSearchTitle(savedSearch.Id, Model.SearchTitle, _cts.Token);
-        await commonRepository.CreateOrUpdateFloodEvent(savedSearch.Id, floodEvent, _cts.Token);
+        await floodEventRepository.CreateOrUpdateFloodEvent(savedSearch.Id, floodEvent, _cts.Token);
 
         // Clear the model
         floodEventState.SetEventDetails(null);

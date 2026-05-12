@@ -22,18 +22,18 @@
 }
 
 .info-panel-info {
-    background-color: var(--govuk-color-blue);
+    background-color: var(--govuk-frontend-color-blue);
 }
 
 .info-panel-success {
-    background-color: var(--govuk-color-green);
+    background-color: var(--govuk-frontend-color-green);
 }
 
 .info-panel-warning {
-    background-color: var(--govuk-color-orange);
+    background-color: var(--govuk-frontend-color-orange);
 }
 
 .info-panel-danger {
-    background-color: var(--govuk-color-red);
+    background-color: var(--govuk-frontend-color-red);
 }
 

@@ -74,6 +74,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int?>("EstimatedCommercialAffected")
                         .HasColumnType("integer");
 
