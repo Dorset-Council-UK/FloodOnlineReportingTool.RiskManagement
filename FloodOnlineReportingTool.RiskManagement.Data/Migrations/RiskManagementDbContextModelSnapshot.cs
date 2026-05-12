@@ -51,10 +51,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<Point>("PointGeom")
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(point, 27700)");
 
                     b.Property<MultiPolygon>("PolygonGeom")
-                        .HasColumnType("geometry");
+                        .HasColumnType("geometry(multipolygon, 27700)");
 
                     b.Property<Guid>("ReportId")
                         .HasColumnType("uuid");

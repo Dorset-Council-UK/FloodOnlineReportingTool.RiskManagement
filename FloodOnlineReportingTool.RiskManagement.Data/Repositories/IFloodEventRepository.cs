@@ -6,7 +6,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public interface IFloodEventRepository
 {
-    Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid SavedSearchId, FloodEvent floodEvent, CancellationToken ct);
+    Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid savedSearchId, FloodEvent floodEvent, CancellationToken ct);
     Task<IList<EventStatus>> GetEventStatuses(CancellationToken ct);
     Task<int> GetEventCountForUser(CancellationToken ct);
 }

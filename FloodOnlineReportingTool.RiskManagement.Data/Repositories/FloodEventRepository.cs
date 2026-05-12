@@ -8,19 +8,19 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : IFloodEventRepository
 {
-    public async Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid SavedSearchId, FloodEvent floodEvent, CancellationToken ct)
+    public async Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid savedSearchId, FloodEvent floodEvent, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
         SavedSearch? existingSearch;
 
         // Get the saved search
-        if (SavedSearchId == Guid.Empty)
+        if (savedSearchId == Guid.Empty)
         {
             return null;
         }
 
         existingSearch = await context.SavedSearches
-                .Where(s => s.Id == SavedSearchId)
+                .Where(s => s.Id == savedSearchId)
                 .Include (s => s.FloodEvent)
                 .FirstOrDefaultAsync(ct);
 
