@@ -7,7 +7,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages;
 
 public partial class Index(ILogger<Index> logger,
                            IActionLogRepository actionLogRepository,
-                           IFloodEventRepository floodEventRepository) 
+                           IFloodEventRepository floodEventRepository) : System.IDisposable
 {
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
