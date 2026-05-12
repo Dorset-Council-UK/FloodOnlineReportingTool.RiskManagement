@@ -40,7 +40,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
 
         // TODO insert user filter
 
-        return await context.ActionLogs.CountAsync();
+        return await context.ActionLogs.CountAsync(ct);
     }
 
     public async Task<int> GetPropertyCountForUser(CancellationToken ct)
@@ -52,7 +52,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         return await context.ActionLogs
             .Where(a => a.Action == "New Report Logged")
             .Where(a => a.LoggedAt >= thirtyDaysAgo && a.LoggedAt <= DateTimeOffset.UtcNow)
-            .CountAsync();
+            .CountAsync(ct);
 
     }
 
