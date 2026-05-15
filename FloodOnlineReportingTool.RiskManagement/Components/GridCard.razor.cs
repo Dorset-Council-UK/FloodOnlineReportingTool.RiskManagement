@@ -21,6 +21,7 @@ public partial class GridCard
 
     private string? SizeOption { get; set; }
     private string? SelectedStyle { get; set; }
+    private string? CardTag { get; set; }
 
     public enum CardSizes
     {
@@ -51,9 +52,21 @@ public partial class GridCard
         };
     }
 
+    internal virtual string CardTags(string _inputStyle)
+    {
+        return _inputStyle switch
+        {
+            "success" => "Low",
+            "warning" => "Medium",
+            "danger" => "High",
+            _ => string.Empty,
+        };
+    }
+
     protected override void OnParametersSet()
     {
         SizeOption = CssClass(CardSize);
         SelectedStyle = CardOptions(CardStyle);
+        CardTag = CardTags(CardStyle);
     }
 }

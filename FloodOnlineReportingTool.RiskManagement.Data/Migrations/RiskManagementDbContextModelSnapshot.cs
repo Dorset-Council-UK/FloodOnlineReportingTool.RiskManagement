@@ -25,11 +25,57 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Actions.ActionLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ActionedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ActionedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("LoggedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
+                    b.Property<Point>("PointGeom")
+                        .HasColumnType("geometry(point, 27700)");
+
+                    b.Property<MultiPolygon>("PolygonGeom")
+                        .HasColumnType("geometry(multipolygon, 27700)");
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReportReference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ActionLogs", "fortriskmanagement");
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int?>("EstimatedCommercialAffected")
                         .HasColumnType("integer");

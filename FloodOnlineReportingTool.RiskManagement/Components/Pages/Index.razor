@@ -11,12 +11,12 @@
     <Authorized>
         <div class="govuk-width-container">
             <div class="govuk-grid-row">
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood searches saved in the last 30 days" HeaderText="4" CardStyle="success" />
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="2" CardStyle="success" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="@_userEventCount.ToString()" CardStyle="@_userEventStyle" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flooded properties recorded in the last 30 days" HeaderText="@_userPropertyCount.ToString()" CardStyle="@_userPropertyStyle" />
             </div>
             <div class="govuk-grid-row">
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="1" CardStyle="warning" />
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new search" HeaderText="Search for records" CardStyle="success" LinkURL="search" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="@_userActionCount.ToString()" CardStyle="@_userActionStyle" />
+                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new search" HeaderText="Search for records" CardStyle="info" LinkURL="search" />
             </div>
 
             <div class="govuk-grid-row">
@@ -51,3 +51,5 @@
             <GdsWarning Text="Please sign in to view your dashboard" />
     </NotAuthorized>
 </AuthorizeView>
+
+                        

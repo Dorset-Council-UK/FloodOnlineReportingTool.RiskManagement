@@ -6,6 +6,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 public record FloodEvent
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     public ConditionalOptions MitigationTaken { get; init; } = ConditionalOptions.No;
     // Values from Contracts.Shared.EventStatusIds
