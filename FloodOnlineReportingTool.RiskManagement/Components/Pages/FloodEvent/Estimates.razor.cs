@@ -15,7 +15,8 @@ public partial class Estimates(
     ILogger<Estimates> logger,
     NavigationManager navigationManager,
     IFloodEventState floodEventState,
-    ICommonRepository commonRepository) : IAsyncDisposable
+    ICommonRepository commonRepository,
+    IFloodEventRepository floodEventRepository) : IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     private EventEstimatesViewModel Model { get; set; } = default!;
@@ -112,7 +113,7 @@ public partial class Estimates(
             return;
         }
         var floodEvent = Model.ToFloodEvent(eventDetails, Model);
-        await commonRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
+        await floodEventRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
 
         // Clear the model
         floodEventState.SetEventDetails(null);
