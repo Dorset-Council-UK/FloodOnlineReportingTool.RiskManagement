@@ -1,0 +1,19 @@
+﻿@page "/action/{ActionID}"
+@page "/action"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Actions</PageTitle>
+
+<h1 class="govuk-heading-l">Manage Action Requests</h1>
+
+<AuthorizeView Policy="@PolicyNames.Reader">
+    <Authorized>
+
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>
+
+

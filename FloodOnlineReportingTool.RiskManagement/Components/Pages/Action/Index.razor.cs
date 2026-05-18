@@ -1,0 +1,30 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
+
+namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Action;
+
+public partial class Index(
+    ILogger<Index> logger,
+    NavigationManager navigationManager)
+{
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
+
+    [Parameter]
+    public Guid? ActionID { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Don't get any data if you don't have permission
+        if (AuthenticationState is not null)
+        {
+            var authState = await AuthenticationState;
+            if (authState.User.IsAuthenticated)
+            {
+
+            }
+        }
+    }
+
+}
