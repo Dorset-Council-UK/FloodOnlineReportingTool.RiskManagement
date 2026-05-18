@@ -9,7 +9,15 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader">
     <Authorized>
-
+        @if (_notPermitted) {
+            <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />
+        } else if (ActionID is not null)
+        {
+            <ActionDetail ActionID="ActionID.Value" />
+        } else
+        {
+            <ActionListDetail />
+        }
     </Authorized>
     <NotAuthorized>
         <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />

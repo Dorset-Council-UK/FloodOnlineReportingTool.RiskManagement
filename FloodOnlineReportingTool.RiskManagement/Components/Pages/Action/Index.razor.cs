@@ -1,3 +1,5 @@
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
@@ -14,17 +16,15 @@ public partial class Index(
     [Parameter]
     public Guid? ActionID { get; set; }
 
+    private bool _notPermitted = false;
+
     protected override async Task OnInitializedAsync()
     {
         // Don't get any data if you don't have permission
-        if (AuthenticationState is not null)
+        if (AuthenticationState is null)
         {
-            var authState = await AuthenticationState;
-            if (authState.User.IsAuthenticated)
-            {
-
-            }
+            _notPermitted = true;
+            logger.LogWarning("Attempt to access action logs without authentication");
         }
     }
-
 }

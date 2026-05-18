@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 
@@ -8,7 +9,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : IActionLogRepository
 {
-    public async Task<ActionLog> CreateActionLog(FloodReportCreated incomingAction, CancellationToken ct)
+    public async Task<CreateOrUpdateResult<ActionLog>> CreateActionLog(FloodReportCreated incomingAction, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
@@ -26,7 +27,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         context.ActionLogs.Add(newAction);
         await context.SaveChangesAsync(ct);
 
-        return newAction;
+        return CreateOrUpdateResult<ActionLog>.Success(newAction);
     }
 
     // TODO: Add filter by user functions. This should include filtering by:
@@ -66,5 +67,16 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             .OrderByDescending(a => a.Action)
             .ToListAsync(ct);
         return actionLogs;
+    }
+
+    public async Task<GetResult<ActionLog>> GetActionLogsByID(Guid actionID, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        // TODO insert user filter
+        var actionLog = await context.ActionLogs
+            .Where(a => a.Id == actionID)
+            .FirstOrDefaultAsync(ct);
+
+        return actionLog is not null ? GetResult<ActionLog>.Success(actionLog) : GetResult<ActionLog>.Failure(new[] { "Action log not found" });
     }
 }
