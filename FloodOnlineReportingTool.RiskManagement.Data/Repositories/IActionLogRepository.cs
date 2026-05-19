@@ -1,5 +1,5 @@
-﻿
-using FloodOnlineReportingTool.Contracts;
+﻿using FloodOnlineReportingTool.Contracts;
+using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 
@@ -13,6 +13,8 @@ public interface IActionLogRepository
     Task<int> GetPropertyCountForUser(CancellationToken ct);
 
     Task<IReadOnlyCollection<ActionLog>> GetActionLogsForUser(CancellationToken ct);
+
+    Task<PagedResult<ActionLog>> GetPagedActionLogsForUser(int pageNumber = 1, int pageSize = 10, string? sortColumn = null, bool ascending = true, CancellationToken ct = default);
 
     Task<GetResult<ActionLog>> GetActionLogsByID(Guid actionID, CancellationToken ct);
 }

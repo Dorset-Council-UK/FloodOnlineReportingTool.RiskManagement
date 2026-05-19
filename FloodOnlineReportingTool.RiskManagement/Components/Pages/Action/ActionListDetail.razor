@@ -1,3 +1,25 @@
-﻿<h3>ActionListDetail</h3>
+﻿@using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions
+@using Microsoft.AspNetCore.Components.QuickGrid
 
+<p>Please use the table below to manage the actions for you or your team to perform.</p>
 
+<div class="grid">
+    <QuickGrid @ref="_grid" ItemsProvider="ItemsProvider" Pagination="_pagination" class="govuk-table quickgrid-hide-empty-rows">
+        <TemplateColumn Title="Action" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Action)">
+            @context.Action
+        </TemplateColumn>
+        <TemplateColumn Title="Flood Report Reference" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.ReportReference)">
+            @context.ReportReference
+        </TemplateColumn>
+        <TemplateColumn Title="Created On" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.CreatedAt)">
+            @context.CreatedAt.GdsReadable()
+        </TemplateColumn>
+        <TemplateColumn Title="Logged On" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.LoggedAt)">
+            @context.LoggedAt.GdsReadable()
+        </TemplateColumn>
+        <TemplateColumn Title="Notes" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Note)">
+            @context.Note
+        </TemplateColumn>
+    </QuickGrid>
+    <Paginator State="_pagination" />
+</div>

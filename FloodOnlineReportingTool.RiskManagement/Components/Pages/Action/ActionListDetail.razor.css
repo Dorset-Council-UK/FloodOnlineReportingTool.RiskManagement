@@ -1,0 +1,6 @@
+.grid ::deep .govuk-table tbody tr:nth-child(odd) {
+    background-color: var(--govuk-color-light-grey);
+}
+.grid ::deep .govuk-table tbody tr {
+    border-bottom: 0.5px solid var(--govuk-color-mid-grey);
+}
