@@ -1,3 +1,10 @@
-﻿<h3>ActionDetail</h3>
+﻿@if (actionLog is null)
+{
+    <GdsWarning Text="We couldn't find this action perhaps it has been taken on by another user?" />
+    <GdsBackLink Href="./action" />
+} else
+{
+    <div>Action</div>
+}
 
 

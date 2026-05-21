@@ -14,7 +14,7 @@ public partial class ActionDetail(
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     [Parameter]
-    public Guid ActionID { get; set; }
+    public required string ActionRef { get; set; }
 
     private ActionLog? actionLog { get; set; } = null;
 
@@ -26,7 +26,7 @@ public partial class ActionDetail(
             var authState = await AuthenticationState;
             if (authState.User.IsAuthenticated)
             {
-                var action = await actionLogRepository.GetActionLogsByID(ActionID, CancellationToken.None);
+                var action = await actionLogRepository.GetActionLogById(Guid.Parse(ActionRef), CancellationToken.None);
                 if (action is not null && action.IsSuccess)
                 {
                     if (action.ResultModel is not null)

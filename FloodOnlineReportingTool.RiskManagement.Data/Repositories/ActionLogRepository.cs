@@ -110,12 +110,12 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         return new PagedResult<ActionLog>(results, totalCount, pageSize, pageNumber, totalPages);
     }
 
-    public async Task<GetResult<ActionLog>> GetActionLogsByID(Guid actionID, CancellationToken ct)
+    public async Task<GetResult<ActionLog>> GetActionLogById(Guid actionId, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
         // TODO insert user filter
         var actionLog = await context.ActionLogs
-            .Where(a => a.Id == actionID)
+            .Where(a => a.Id == actionId)
             .FirstOrDefaultAsync(ct);
 
         return actionLog is not null ? GetResult<ActionLog>.Success(actionLog) : GetResult<ActionLog>.Failure(new[] { "Action log not found" });

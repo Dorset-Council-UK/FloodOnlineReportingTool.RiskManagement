@@ -14,7 +14,7 @@ public partial class Index(
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     [Parameter]
-    public Guid? ActionID { get; set; }
+    public string? ActionRef { get; set; }
 
     private bool _notPermitted = false;
 

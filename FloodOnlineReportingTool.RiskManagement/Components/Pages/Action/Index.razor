@@ -1,4 +1,4 @@
-﻿@page "/action/{ActionID}"
+﻿@page "/action/{ActionRef}"
 @page "/action"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -11,9 +11,9 @@
     <Authorized>
         @if (_notPermitted) {
             <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />
-        } else if (ActionID is not null)
+        } else if (!string.IsNullOrEmpty(ActionRef))
         {
-            <ActionDetail ActionID="ActionID.Value" />
+            <ActionDetail ActionRef="@ActionRef" />
         } else
         {
             <ActionListDetail />
