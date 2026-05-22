@@ -100,6 +100,48 @@ internal static class InitialData
         ];
     }
 
+    internal static ActionDefinition[] ActionDefinitionData()
+    {
+        return [
+            // Local actions, only in this project
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567801"), "ReportAssigned", "A flood report has been assigned to you", ActionTypes.Redirect),
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567802"), "EventAssigned", "A flood event has been assigned to you", ActionTypes.Redirect),
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567803"), "SourceDuplicateReview", "Possible duplicate source report logged", ActionTypes.Redirect),
+
+            // These are to trigger the user to read the reports not the actual messages between the systems.
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567804"), "SourceNew", "New source report logged", ActionTypes.Redirect),
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567805"), "ReportNew", "New flood report logged", ActionTypes.Redirect),
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567806"), "EventNew", "A new flood event has been logged", ActionTypes.Redirect),
+
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567807"), "ReportUpdate", "Update to a flood report logged", ActionTypes.Redirect),
+            new ActionDefinition(new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567808"), "EventUpdate", "An update to a flood event has been logged", ActionTypes.Redirect),
+
+            // Actions that are sent or received from other systems
+            new ActionDefinition(ActionTypeIds.TriggerFloodSourceArchive, "TriggerFloodSourceArchive", "Request to archive source report", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerFloodSourceRedaction, "TriggerFloodSourceRedaction", "Request to redact source report", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerFloodSourceRestore, "TriggerFloodSourceRestore", "Request to restore archived source report", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerFloodSourceDelete, "TriggerFloodSourceDelete", "Request to delete source report", ActionTypes.Decision),
+
+            new ActionDefinition(ActionTypeIds.FurtherDetailRequested, "FurtherDetailRequested", "A request for a reporter to provide more information has been logged", ActionTypes.Message),
+            new ActionDefinition(ActionTypeIds.FurtherDetailProvided, "FurtherDetailProvided", "The requested additional information has been provided", ActionTypes.Message),
+
+            new ActionDefinition(ActionTypeIds.TriggerFloodReportArchive, "TriggerFloodReportArchive", "Request to archive flood report", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerFloodReportRestore, "TriggerFloodReportRestore", "Request to restore archived flood report", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerFloodReportRedaction, "TriggerFloodReportRedaction", "Request to redact flood report", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerFloodReportDelete, "TriggerFloodReportDelete", "Request to delete flood report", ActionTypes.Decision),
+
+            new ActionDefinition(ActionTypeIds.TriggerEventArchive, "TriggerEventArchive", "Request to archive flood event", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerEventRestore, "TriggerEventRestore", "Request to restore archived flood event", ActionTypes.Decision),
+            new ActionDefinition(ActionTypeIds.TriggerEventDelete, "TriggerEventDelete", "Request to delete flood event", ActionTypes.Decision),
+
+            new ActionDefinition(ActionTypeIds.TriggerSection19, "TriggerSection19", "Work on a new section 19 investigation into flood event has been logged", ActionTypes.Redirect),
+            new ActionDefinition(ActionTypeIds.TriggerSection19Complete, "TriggerSection19Complete", "Section 19 investigation into flood event has been completed and report is available", ActionTypes.Redirect),
+
+            new ActionDefinition(ActionTypeIds.CommentNew, "CommentNew", "A new comment has been logged", ActionTypes.Message),
+            new ActionDefinition(ActionTypeIds.CommentReply, "CommentReply", "A reply to a comment has been logged", ActionTypes.Message),
+        ];
+    }
+
     internal static DownstreamApiLayer[] DownstreamApiLayerData()
     {
         return [
@@ -107,5 +149,4 @@ internal static class InitialData
             new DownstreamApiLayer("ward", false, false, "GeoServer", "/geoserver/ows", "", "name", RequestMethods.WFS, RequestVersions.V1_0_0, "name", SortOptions.Ascending)
         ];
     }
-
 }

@@ -2,6 +2,7 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
@@ -14,6 +15,10 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
+        // Look up the 'ReportNew' action definition seeded into the database
+        var actionDefinition = await context.ActionDefinitions
+            .FirstAsync(a => a.Name == "ReportNew", ct);
+
         var newAction = new ActionLog
         {
             Id = Guid.NewGuid(),
@@ -22,7 +27,8 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             CreatedAt = incomingAction.CreatedUtc,
             PointGeom = new Point(incomingAction.Easting, incomingAction.Northing),
             LoggedAt = DateTimeOffset.UtcNow,
-            Action = "New Report Logged",
+            ActionId = actionDefinition.Id,
+            Action = actionDefinition,
         };
 
         context.ActionLogs.Add(newAction);
@@ -52,7 +58,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         // TODO insert user filter
         var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30);
         return await context.ActionLogs
-            .Where(a => a.Action == "New Report Logged")
+            .Where(a => a.Action.Name == "ReportNew")
             .Where(a => a.LoggedAt >= thirtyDaysAgo && a.LoggedAt <= DateTimeOffset.UtcNow)
             .CountAsync(ct);
 
@@ -65,7 +71,8 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         // TODO insert user filter
 
         var actionLogs = await context.ActionLogs
-            .OrderByDescending(a => a.Action)
+            .Include(al => al.Action)
+            .OrderByDescending(a => a.Action.Name)
             .ToListAsync(ct);
         return actionLogs;
     }
@@ -80,7 +87,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         if (pageSize < 1) pageSize = 10;
 
         // Apply sort based on column name, defaulting to LoggedAt descending
-        IQueryable<ActionLog> query = context.ActionLogs.AsNoTracking();
+        IQueryable<ActionLog> query = context.ActionLogs.Include(al => al.Action).AsNoTracking();
 
         query = (sortColumn, ascending) switch
         {
@@ -115,6 +122,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         await using var context = await contextFactory.CreateDbContextAsync(ct);
         // TODO insert user filter
         var actionLog = await context.ActionLogs
+            .Include(al => al.Action)
             .Where(a => a.Id == actionId)
             .FirstOrDefaultAsync(ct);
 

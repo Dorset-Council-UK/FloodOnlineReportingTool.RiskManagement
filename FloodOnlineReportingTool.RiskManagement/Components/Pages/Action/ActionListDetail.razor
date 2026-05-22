@@ -9,7 +9,7 @@
             @context.CreatedAt.GdsReadable()
         </TemplateColumn>
         <TemplateColumn Title="Action" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Action)">
-            @context.Action
+            @context.Action.Description
         </TemplateColumn>
         <TemplateColumn Title="Flood Report Reference" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.ReportReference)">
             @context.ReportReference

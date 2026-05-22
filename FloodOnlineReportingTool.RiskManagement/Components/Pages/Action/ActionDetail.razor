@@ -4,7 +4,12 @@
     <GdsBackLink Href="./action" />
 } else
 {
-    <div>Action</div>
+    if (actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Redirect)
+    {
+        <p>@actionLog.Action.Description with the reference @actionLog.ReportReference</p>
+        <p>Redirecting you to the report...</p>
+    }
+    
 }
 
 
