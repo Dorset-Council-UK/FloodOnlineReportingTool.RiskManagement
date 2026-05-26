@@ -1,4 +1,6 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
@@ -7,6 +9,7 @@ public interface ICommonRepository
 {
     Task<IList<FloodProblem>> GetFloodProblems(string category, CancellationToken ct);
     Task<DownstreamApiLayer?> GetDownstreamApiLayers(string apiSourceRecord, CancellationToken ct);
+    Task<GetResult<SearchRedirect>> FindLocalByReference(string reference, CancellationToken ct);
     Task<SavedSearch?> GetSavedSearch(string reference, CancellationToken ct);
     Task<SavedSearch?> GetSavedSearch(Guid savedSearchId, CancellationToken ct);
     Task<SavedSearch> GetOrCreateSavedSearch(Guid? id, string? reference, SavedSearch searchCriteria, CancellationToken ct);

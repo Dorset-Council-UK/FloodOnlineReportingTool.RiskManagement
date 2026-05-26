@@ -29,6 +29,7 @@ internal static class DatabaseExtensions
 
             // Register repositories
             builder.Services.AddScoped<ICommonRepository, CommonRepository>();
+            builder.Services.AddScoped<IReferenceSearchService, ReferenceSearchService>();
             builder.Services.AddScoped<IActionLogRepository, ActionLogRepository>();
             builder.Services.AddScoped<IFloodEventRepository, FloodEventRepository>();
 

@@ -1,3 +1,39 @@
+/* Equivalent to .govuk-table__head on <thead> */
+::deep .govuk-table thead {
+}
+
+/* Equivalent to .govuk-table__body on <tbody> */
+::deep .govuk-table tbody {
+}
+
+/* Equivalent to .govuk-table__row on <tr> */
+::deep .govuk-table tr {
+}
+
+/* Equivalent to .govuk-table__header on <th> */
+/*NOTE:  !important used as quickgrid had its own padding
+  which was overriding this preferred version
+*/
+::deep .govuk-table th {
+    font-weight: 700;
+    padding: 10px 20px 10px 0 !important;
+    border-bottom: 1px solid #b1b4b6;
+    text-align: left;
+    vertical-align: top;
+}
+
+/* Equivalent to .govuk-table__cell on <td> */
+::deep .govuk-table td {
+    padding: 10px 20px 10px 0 !important;
+    border-bottom: 1px solid #b1b4b6;
+    text-align: left;
+    vertical-align: top;
+}
+
+::deep .quickgrid-hide-empty-rows tr:has(td):not(:has(td:not(:empty))) {
+    display: none;
+}
+
 .grid ::deep .govuk-table tbody tr:nth-child(odd) {
     background-color: var(--govuk-color-light-grey);
 }

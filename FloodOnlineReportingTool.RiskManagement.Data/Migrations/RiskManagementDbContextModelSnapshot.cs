@@ -138,6 +138,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<Guid>("RecordStatus")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("StatusNote")
                         .IsRequired()
                         .HasColumnType("text");

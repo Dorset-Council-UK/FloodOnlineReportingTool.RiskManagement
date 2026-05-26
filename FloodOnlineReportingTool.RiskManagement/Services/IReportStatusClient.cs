@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
@@ -63,6 +64,11 @@ public interface IReportStatusClient
     /// Exceptions must be handled by Blazor to allow the use of <see cref="Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException"/>
     /// </remarks>
     Task<PagedResult<SearchResultFloodReport>> SearchFloodReportsWithinMetres(double easting, double northing, double metres = 50, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
+
+    /// <summary>
+    /// Get flood report by reference using the downstream API
+    /// </summary>
+    Task<GetResult<SearchResultFloodReport>> SearchFloodReportByReference(string reference, CancellationToken ct = default);
 
     /// <summary>
     /// Searches for flood reports by UPRN using the downstream API with pagination

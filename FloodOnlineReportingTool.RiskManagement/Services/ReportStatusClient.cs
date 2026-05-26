@@ -1,5 +1,9 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Options;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Identity.Abstractions;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO.Converters;
@@ -28,6 +32,47 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
                     return JsonSerializer.Deserialize<PagedResult<T>>(stream, _jsonSerializerOptions);
                 };
             }, cancellationToken: ct);
+    }
+
+    /// <summary>
+    /// Searches the downstream API for a single flood report matching the given reference.
+    /// Returns a success result containing the report if found, or a failure result if not.
+    /// </summary>
+    public async Task<GetResult<SearchResultFloodReport>> SearchFloodReportByReference(string reference, CancellationToken ct = default)
+    {
+        logger.LogInformation("Searching downstream API for flood report by reference");
+
+        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/flood/reports/reference/{reference}?searchType=Report");
+        try
+        {
+            // The endpoint returns a single result or nothing — not a paged collection
+            var floodReportResult = await downstreamApi
+                .CallApiForUserAsync<SearchResultFloodReport>(RiskManagementOptions.ReportStatusApi, options =>
+                {
+                    options.RelativePath = relativePath;
+                    options.Deserializer = (content) =>
+                    {
+                        if (content is null) return null;
+                        var stream = content.ReadAsStream(ct);
+                        return JsonSerializer.Deserialize<SearchResultFloodReport>(stream, _jsonSerializerOptions);
+                    };
+                }, cancellationToken: ct);
+
+            if (floodReportResult is not null)
+            {
+                logger.LogInformation("Flood report with reference found in downstream API");
+                return GetResult<SearchResultFloodReport>.Success(floodReportResult);
+            }
+
+            logger.LogWarning("No flood report found in downstream API");
+            return GetResult<SearchResultFloodReport>.Failure(["No flood report found for reference."]);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
+                                                        or System.Net.HttpStatusCode.NotFound)
+        {
+            logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report exists", ex.StatusCode);
+            return GetResult<SearchResultFloodReport>.Failure(["No flood report found for reference."]);
+        }
     }
 
     public async Task<PagedResult<SearchResultFloodLocation>> SearchFloodLocations(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)

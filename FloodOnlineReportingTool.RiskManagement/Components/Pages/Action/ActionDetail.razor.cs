@@ -1,5 +1,6 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
@@ -8,7 +9,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Action;
 
 public partial class ActionDetail(
     ILogger<Index> logger,
-    IActionLogRepository actionLogRepository)
+    IActionLogRepository actionLogRepository,
+    NavigationManager navigationManager)
 {
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -32,6 +34,12 @@ public partial class ActionDetail(
                     if (action.ResultModel is not null)
                     {
                         actionLog = action.ResultModel;
+                        if(actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Redirect)
+                        {
+                            // We always just pass this on to the search as a search by ID result
+                            var nextPage = $"{SearchPages.Results.Url}/{actionLog.ReportReference}";
+                            navigationManager.NavigateTo(nextPage);
+                        }
                     } else
                     {
                         logger.LogWarning("Action not found");

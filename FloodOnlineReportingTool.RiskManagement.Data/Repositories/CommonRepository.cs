@@ -1,11 +1,18 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
-public class CommonRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : ICommonRepository
+public class CommonRepository(
+    IDbContextFactory<RiskManagementDbContext> contextFactory
+    ) : ICommonRepository
 {
 
     public async Task<IList<FloodProblem>> GetFloodProblems(string category, CancellationToken ct)
@@ -24,6 +31,42 @@ public class CommonRepository(IDbContextFactory<RiskManagementDbContext> context
         return await context.DownstreamApiLayers
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == apiSourceRecord, ct);
+    }
+
+    public async Task<GetResult<SearchRedirect>> FindLocalByReference(string reference, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+        // Run all local DB checks concurrently.
+        var savedSearchTask = context.SavedSearches
+            .AsNoTracking()
+            .Where(s => s.Reference == reference)
+            .Select(s => s.Id)
+            .FirstOrDefault();
+
+        var floodEventTask = context.FloodEvents
+            .AsNoTracking()
+            .Where(f => f.Reference == reference)
+            .Select(f => f.Id)
+            .FirstOrDefault();
+
+        if (savedSearchTask != Guid.Empty)
+            return GetResult<SearchRedirect>.Success(new SearchRedirect
+            {
+                Id = savedSearchTask,
+                Reference = reference,
+                RedirectType = RecordTypes.Search
+            });
+
+        if (floodEventTask != Guid.Empty)
+            return GetResult<SearchRedirect>.Success(new SearchRedirect
+            {
+                Id = floodEventTask,
+                Reference = reference,
+                RedirectType = RecordTypes.Event
+            });
+
+        return GetResult<SearchRedirect>.Failure([$"No local record found for reference '{reference}'."]);
     }
 
     public async Task<SavedSearch?> GetSavedSearch(string reference, CancellationToken ct)

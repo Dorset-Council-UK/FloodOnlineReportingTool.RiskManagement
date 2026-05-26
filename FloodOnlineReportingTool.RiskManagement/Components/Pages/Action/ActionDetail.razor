@@ -8,8 +8,22 @@
     {
         <p>@actionLog.Action.Description with the reference @actionLog.ReportReference</p>
         <p>Redirecting you to the report...</p>
+    } else if (actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Decision)
+    {
+        <p>We have received a notification for @actionLog.ReportReference at @actionLog.LoggedAt which requires a decision.</p>
+        @if(actionLog.CreatedAt != actionLog.LoggedAt)
+        {
+            <p>The notification was originally created at @actionLog.CreatedAt so please be aware of the delay in the notification being passed on.</p>
+        }
+        <p>@actionLog.Action.Description</p>
+    } else
+    {
+        <p>Message received for flood report/event @actionLog.ReportReference
+            <br />Logged at: @actionLog.LoggedAt</p>
+        <p>@actionLog.Action.Description</p>
+        <p>@actionLog.Note</p>
     }
-    
+
 }
 
 

@@ -47,6 +47,7 @@ public partial class ActionListDetail(
     {
         try
         {
+            var searchResults = request.Count ?? 0;
             var pageSize = request.Count ?? _pagination.ItemsPerPage;
             var pageNumber = (request.StartIndex / pageSize) + 1;
 
