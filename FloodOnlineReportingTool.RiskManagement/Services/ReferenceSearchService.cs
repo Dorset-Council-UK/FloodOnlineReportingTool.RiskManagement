@@ -31,7 +31,7 @@ public class ReferenceSearchService(
         }
 
         // Fall through to remote API if not found locally
-        var reportResult = await reportStatusClient.SearchFloodReportByReference(reference, ct);
+        var reportResult = await reportStatusClient.FindFloodReportByReference(reference, ct);
         if (reportResult.IsSuccess)
         {
             return GetResult<SearchRedirect>.Success(new SearchRedirect
