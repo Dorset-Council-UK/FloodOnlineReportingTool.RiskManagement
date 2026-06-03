@@ -215,7 +215,6 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
                                                         or System.Net.HttpStatusCode.NotFound)
         {
-        {
             logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report source exists", ex.StatusCode);
             return GetResult<SearchResultFloodReportSource>.Failure(["No flood report source found for reference."]);
         }
