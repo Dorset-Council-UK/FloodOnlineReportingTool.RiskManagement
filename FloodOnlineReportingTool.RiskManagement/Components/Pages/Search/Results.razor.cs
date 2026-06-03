@@ -109,14 +109,17 @@ public partial class Results(ILogger<Results> logger,
                 else
                 {
                     // handle other redirect types
-                    if(foundEntity.ResultModel?.RedirectType == RecordTypes.Report)
+                    if (foundEntity.ResultModel?.RedirectType == RecordTypes.Report)
                     {
                         var nextPage = $"{ReportPages.Details.Url}/{foundEntity.ResultModel.Reference}";
                         navigationManager.NavigateTo(nextPage);
-                    } else if (foundEntity.ResultModel?.RedirectType == RecordTypes.Event)
+                        return;
+                    }
+                    else if (foundEntity.ResultModel?.RedirectType == RecordTypes.Event)
                     {
                         var nextPage = $"{EventPages.Details.Url}/{foundEntity.ResultModel.Reference}";
                         navigationManager.NavigateTo(nextPage);
+                        return;
                     }
                 }
             }

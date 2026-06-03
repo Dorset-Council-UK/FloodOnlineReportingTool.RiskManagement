@@ -8,7 +8,7 @@
         <TemplateColumn Title="Created On" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.CreatedAt)">
             @context.CreatedAt.GdsReadable()
         </TemplateColumn>
-        <TemplateColumn Title="Action" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Action)">
+        <TemplateColumn Title="Action" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Action.Description)">
             @context.Action.Description
         </TemplateColumn>
         <TemplateColumn Title="Flood Report Reference" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.ReportReference)">

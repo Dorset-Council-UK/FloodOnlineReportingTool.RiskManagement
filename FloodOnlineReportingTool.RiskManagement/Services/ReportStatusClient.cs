@@ -43,7 +43,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Checking downstream API for flood report existence by reference");
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/flood/reports/reference/{reference}?searchType=Report");
+        var relativePath = $"/api/flood/reports/reference/{Uri.EscapeDataString(reference)}?searchType=Report";
         try
         {
             // The endpoint returns a single result or nothing — not a paged collection
@@ -150,7 +150,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     {
         logger.LogInformation("Searching downstream API for flood report by reference");
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/flood/reports/reference/{reference}?searchType=Report");
+        var relativePath = $"/api/flood/reports/reference/{Uri.EscapeDataString(reference)}?searchType=Report";
         try
         {
             // The endpoint returns a single result or nothing — not a paged collection
@@ -185,9 +185,9 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
 
     private async Task<GetResult<SearchResultFloodReportSource>> SearchFloodReportSourceByReference(Guid floodReportId, string reference, CancellationToken ct = default)
     {
-        logger.LogInformation("Searching downstream API for flood report by reference");
+        logger.LogInformation("Searching downstream API for flood report source by reference");
 
-        var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/flood/report/{floodReportId}/sources/{reference}");
+        var relativePath = $"/api/flood/report/{floodReportId}/sources/{Uri.EscapeDataString(reference)}";
         try
         {
             // The endpoint returns a single result or nothing — not a paged collection
@@ -215,8 +215,9 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
                                                         or System.Net.HttpStatusCode.NotFound)
         {
+        {
             logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report source exists", ex.StatusCode);
-            return GetResult<SearchResultFloodReportSource>.Failure(["No flood report found for reference."]);
+            return GetResult<SearchResultFloodReportSource>.Failure(["No flood report source found for reference."]);
         }
     }
 

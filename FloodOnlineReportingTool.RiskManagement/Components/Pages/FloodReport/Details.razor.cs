@@ -35,7 +35,8 @@ public partial class Details(
         if (AuthenticationState is null)
         {
             _notPermitted = true;
-            logger.LogWarning("Attempt to access action logs without authentication");
+            logger.LogWarning("Attempt to access flood report details without authentication");
+            return;
         }
 
         try

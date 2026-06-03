@@ -91,8 +91,8 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
 
         query = (sortColumn, ascending) switch
         {
-            ("Action", true)                    => query.OrderBy(a => a.Action),
-            ("Action", false)                   => query.OrderByDescending(a => a.Action),
+            ("Action", true)                    => query.OrderBy(a => a.Action.Name),
+            ("Action", false)                   => query.OrderByDescending(a => a.Action.Name),
             ("Flood Report Reference", true)    => query.OrderBy(a => a.ReportReference),
             ("Flood Report Reference", false)   => query.OrderByDescending(a => a.ReportReference),
             ("Created On", true)                => query.OrderBy(a => a.CreatedAt),

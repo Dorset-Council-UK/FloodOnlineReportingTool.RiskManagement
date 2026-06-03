@@ -28,7 +28,8 @@ public partial class ActionDetail(
             var authState = await AuthenticationState;
             if (authState.User.IsAuthenticated)
             {
-                var action = await actionLogRepository.GetActionLogById(Guid.Parse(ActionRef), CancellationToken.None);
+                if (!Guid.TryParse(ActionRef, out var actionId)) { logger.LogWarning("Invalid action id '{ActionRef}'", ActionRef); return; }
+                var action = await actionLogRepository.GetActionLogById(actionId, CancellationToken.None);
                 if (action is not null && action.IsSuccess)
                 {
                     if (action.ResultModel is not null)
