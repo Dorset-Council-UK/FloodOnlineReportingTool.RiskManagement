@@ -1,9 +1,10 @@
 ﻿@if (actionLog is null)
 {
     <GdsWarning Text="We couldn't find this action perhaps it has been taken on by another user?" />
-    <GdsBackLink Href="./action" />
+    <GdsBackLink Href="action" />
 } else
 {
+    <GdsBackLink Href="action" />
     if (actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Redirect)
     {
         <p>@actionLog.Action.Description with the reference @actionLog.ReportReference</p>

@@ -2,7 +2,8 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
-using FloodOnlineReportingTool.RiskManagement.Services;
+
+namespace FloodOnlineReportingTool.RiskManagement.Services;
 
 /// <summary>
 /// Orchestrates a reference lookup across both local database entities and
