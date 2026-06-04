@@ -62,6 +62,10 @@ public partial class Index(
         // Go to the next page or pass back to the summary
         var nextPage = GetNextPage();
         var nextPageUrl = nextPage.Url;
+        if (_isReferenceKnown)
+        {
+            nextPageUrl += "/" + Model.ByReference;
+        }
         navigationManager.NavigateTo(nextPageUrl);
     }
 

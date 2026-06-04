@@ -1,4 +1,7 @@
-﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+﻿using FloodOnlineReportingTool.Contracts.Shared.Models;
+using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
@@ -57,12 +60,22 @@ public interface IReportStatusClient
     Task<PagedResult<SearchResultFloodReport>> SearchFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
 
     /// <summary>
-    /// Searches for flood reports with metres using the downstream API with pagination
+    /// Searches for flood reports within metres using the downstream API with pagination
     /// </summary>
-    /// <remarks>
-    /// Exceptions must be handled by Blazor to allow the use of <see cref="Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException"/>
-    /// </remarks>
     Task<PagedResult<SearchResultFloodReport>> SearchFloodReportsWithinMetres(double easting, double northing, double metres = 50, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
+
+    /// <summary>
+    /// Checks whether a flood report exists for the given reference in the downstream API.
+    /// Returns a <see cref="SearchRedirect"/> with the report Id if found, used for redirect
+    /// routing only — not for display purposes.
+    /// </summary>
+    Task<GetResult<SearchRedirect>> FindFloodReportByReference(string reference, CancellationToken ct = default);
+
+    /// <summary>
+    /// Retrieves the full flood report detail for display on the details page.
+    /// Internally maps <see cref="FloodReportWithSourceReferences"/> to <see cref="SearchResultFloodReport"/>.
+    /// </summary>
+    Task<GetResult<SearchResultFloodReport>> GetFloodReportDetail(string reference, bool firstSourceOnly, CancellationToken ct = default);
 
     /// <summary>
     /// Searches for flood reports by UPRN using the downstream API with pagination
@@ -96,5 +109,11 @@ public interface IReportStatusClient
     /// </remarks>
     Task<PagedResult<SearchResultFloodRoad>> SearchFloodRoadsFloodReports(int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
 
+    /// <summary>
+    /// Searches for flood reports using the downstream API with pagination and filtering
+    /// </summary>
+    /// <remarks>
+    /// Exceptions must be handled by Blazor to allow the use of <see cref="Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException"/>
+    /// </remarks>
     Task<PagedResult<SearchResultFloodReport>> SearchFloodReports(DateTimeOffset? resultsFrom, DateTimeOffset? resultsTo, ICollection<Guid> floodSources, long? uprn, long? usrn, string? postcode, MultiPolygon? geom, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default);
 }

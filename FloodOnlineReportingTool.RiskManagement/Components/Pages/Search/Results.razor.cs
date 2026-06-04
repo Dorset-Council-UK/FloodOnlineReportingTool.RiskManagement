@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
@@ -20,6 +21,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 public partial class Results(ILogger<Results> logger,
                              ICommonRepository commonRepository,
                              IReportStatusClient reportStatusClient,
+                             IReferenceSearchService referenceSearchService,
                              ISearchResultsState searchResultsState,
                              IWebHostEnvironment environment,
                              MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
@@ -82,25 +84,52 @@ public partial class Results(ILogger<Results> logger,
             return;
         }
 
-
         var options = searchResultsState.Options;
         if (options is null || !string.Equals(options.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
         {
-            var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
-
-            if (savedSearch == null)
+            try
             {
-                // Failure - No saved search found for reference
-                _isLoading = false;
-                StateHasChanged();
-                return;
-            }
-            // Convert Entity → ViewModel
-            SearchResultsViewModel = savedSearch.SavedSearchToResultsView();
-            SearchResultsViewModel.SearchReference = SearchReference;
+                _gettingToken = false;
+                var foundEntity = await referenceSearchService.FindByReference(SearchReference, _cts.Token);
 
-            // Persist in state for page navigation
-            searchResultsState.SetResultOptions(SearchResultsViewModel);
+                if (foundEntity is null || !foundEntity.IsSuccess)
+                {
+                    _isLoading = false;
+                    StateHasChanged();
+                    return;
+                }
+
+                if (foundEntity.ResultModel?.RedirectType == RecordTypes.Search && foundEntity.ResultModel?.Id.HasValue == true)
+                {
+                    var savedSearch = await commonRepository.GetSavedSearch((Guid)foundEntity.ResultModel.Id, _cts.Token);
+                    SearchResultsViewModel = savedSearch?.SavedSearchToResultsView() ?? new SearchResultsViewModel();
+                    SearchResultsViewModel.SearchReference = SearchReference;
+                    searchResultsState.SetResultOptions(SearchResultsViewModel);
+                }
+                else
+                {
+                    // handle other redirect types
+                    if (foundEntity.ResultModel?.RedirectType == RecordTypes.Report)
+                    {
+                        var nextPage = $"{ReportPages.Details.Url}/{foundEntity.ResultModel.Reference}";
+                        navigationManager.NavigateTo(nextPage);
+                        return;
+                    }
+                    else if (foundEntity.ResultModel?.RedirectType == RecordTypes.Event)
+                    {
+                        var nextPage = $"{EventPages.Details.Url}/{foundEntity.ResultModel.Reference}";
+                        navigationManager.NavigateTo(nextPage);
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handles MsalUiRequiredException / MicrosoftIdentityWebChallengeUserException.
+                // consentHandler.HandleException will trigger a redirect to re-authenticate
+                // or prompt for incremental consent, then return the user to this page.
+                consentHandler.HandleException(ex);
+            }
         }
         else
         {
@@ -188,6 +217,7 @@ public partial class Results(ILogger<Results> logger,
         }
         catch (Exception ex)
         {
+            _gettingToken = false;
             logger.LogError(ex, "Error while searching flood reports");
 
             _searchState = SearchState.Error;

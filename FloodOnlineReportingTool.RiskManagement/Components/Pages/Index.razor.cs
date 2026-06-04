@@ -22,20 +22,31 @@ public partial class Index(ILogger<Index> logger,
 
     protected override async Task OnInitializedAsync()
     {
-        if (AuthenticationState is not null)
+        // Don't get any data if you don't have permission
+        AuthenticationState? authState;
+        if (AuthenticationState is null)
         {
-            var authState = await AuthenticationState;
-            if (authState.User.IsAuthenticated)
+            logger.LogWarning("Attempt to access home page without authentication");
+            return;
+        }
+        else
+        {
+            authState = await AuthenticationState;
+            if (!authState.User.IsAuthenticated)
             {
-                _userActionCount = await actionLogRepository.GetActionCountForUser(_cts.Token);
-                _userPropertyCount = await actionLogRepository.GetPropertyCountForUser(_cts.Token);
-                _userEventCount = await floodEventRepository.GetEventCountForUser(_cts.Token);
-
-                _userActionStyle = _userActionCount <= 3 ? "success" : (_userActionCount <= 5 ? "warning" : "danger");
-                _userPropertyStyle = _userPropertyCount <= 3 ? "success" : (_userPropertyCount <= 6 ? "warning" : "danger");
-                _userEventStyle = _userEventCount <= 3 ? "success" : (_userEventCount <= 6 ? "warning" : "danger");
+                logger.LogWarning("Attempt to access home page without authentication");
+                return;
             }
-        }    
+        }
+
+        _userActionCount = await actionLogRepository.GetActionCountForUser(_cts.Token);
+        _userPropertyCount = await actionLogRepository.GetPropertyCountForUser(_cts.Token);
+        _userEventCount = await floodEventRepository.GetEventCountForUser(_cts.Token);
+
+        _userActionStyle = _userActionCount <= 3 ? "success" : (_userActionCount <= 5 ? "warning" : "danger");
+        _userPropertyStyle = _userPropertyCount <= 3 ? "success" : (_userPropertyCount <= 6 ? "warning" : "danger");
+        _userEventStyle = _userEventCount <= 3 ? "success" : (_userEventCount <= 6 ? "warning" : "danger");
+ 
     }
 
     public void Dispose()

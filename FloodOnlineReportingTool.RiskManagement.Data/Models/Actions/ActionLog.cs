@@ -1,4 +1,6 @@
-﻿using NetTopologySuite.Geometries;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
 
@@ -19,8 +21,10 @@ public record ActionLog
 
     // App defined properties
     public DateTimeOffset LoggedAt { get; init; } = DateTimeOffset.UtcNow;
-    public string Action { get; init; } = string.Empty;
     public DateTimeOffset? ActionedAt { get; set; }
     public Guid? ActionedByUserId { get; set; }
     public string? Note { get; init; } // This will be used to describe unusual resolutions such as closing without completion by an admin. 
+
+    public required Guid ActionId { get; init; }
+    public required ActionDefinition Action { get; init; }
 }

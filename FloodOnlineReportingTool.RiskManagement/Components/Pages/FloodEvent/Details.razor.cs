@@ -53,33 +53,41 @@ public partial class Details(
         }
 
         // Don't get any data if you don't have permission
-        if (AuthenticationState is not null)
+        AuthenticationState? authState;
+        if (AuthenticationState is null)
         {
-            var authState = await AuthenticationState;
-            if (authState.User.IsAuthenticated)
+            logger.LogWarning("Attempt to access flood event details without authentication");
+            return;
+        } else
+        {
+            authState = await AuthenticationState;
+            if (!authState.User.IsAuthenticated)
             {
-                var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
-                var hasWriterPolicy = writerPolicyCheck.Succeeded;
-
-                if (hasWriterPolicy)
-                {
-                    // Setup model and edit context
-                    Model = await GetModel();
-                    EditContext = new(Model);
-                    EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-                    MessageStore = new ValidationMessageStore(EditContext);
-
-                    // Pre-populate the search title if it's empty
-                    await PopulateSearchTitle();
-
-                    floodEventState.SetEventDetails(Model);
-
-                    // Load the options
-                    _floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
-                    _eventStatuses = await floodEventRepository.GetEventStatuses(_cts.Token);
-                    _investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
-                }
+                logger.LogWarning("Attempt to access flood event details without authentication");
+                return;
             }
+        }
+        
+        var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
+        var hasWriterPolicy = writerPolicyCheck.Succeeded;
+
+        if (hasWriterPolicy)
+        {
+            // Setup model and edit context
+            Model = await GetModel();
+            EditContext = new(Model);
+            EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+            MessageStore = new ValidationMessageStore(EditContext);
+
+            // Pre-populate the search title if it's empty
+            await PopulateSearchTitle();
+
+            floodEventState.SetEventDetails(Model);
+
+            // Load the options
+            _floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
+            _eventStatuses = await floodEventRepository.GetEventStatuses(_cts.Token);
+            _investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
         }
     }
 

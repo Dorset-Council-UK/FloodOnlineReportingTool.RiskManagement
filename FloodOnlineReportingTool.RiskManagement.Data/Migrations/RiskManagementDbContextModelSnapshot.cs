@@ -31,9 +31,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("ActionId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset?>("ActionedAt")
                         .HasColumnType("timestamp with time zone");
@@ -64,6 +63,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ActionId");
 
                     b.ToTable("ActionLogs", "fortriskmanagement");
                 });
@@ -137,6 +138,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<Guid>("RecordStatus")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("StatusNote")
                         .IsRequired()
                         .HasColumnType("text");
@@ -188,6 +193,207 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.HasIndex("FloodEventId");
 
                     b.ToTable("FloodEventComments", "fortriskmanagement");
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.ActionDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Lk_ActionDefinitions", "fortriskmanagement", t =>
+                        {
+                            t.HasComment("All possible actions and their user friendly descriptions");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567801"),
+                            ActionType = 0,
+                            Description = "A flood report has been assigned to you",
+                            Name = "ReportAssigned"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567802"),
+                            ActionType = 0,
+                            Description = "A flood event has been assigned to you",
+                            Name = "EventAssigned"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567803"),
+                            ActionType = 0,
+                            Description = "Possible duplicate source report logged",
+                            Name = "SourceDuplicateReview"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567804"),
+                            ActionType = 0,
+                            Description = "New source report logged",
+                            Name = "SourceNew"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567805"),
+                            ActionType = 0,
+                            Description = "New flood report logged",
+                            Name = "ReportNew"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567806"),
+                            ActionType = 0,
+                            Description = "A new flood event has been logged",
+                            Name = "EventNew"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567807"),
+                            ActionType = 0,
+                            Description = "Update to a flood report logged",
+                            Name = "ReportUpdate"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567808"),
+                            ActionType = 0,
+                            Description = "An update to a flood event has been logged",
+                            Name = "EventUpdate"
+                        },
+                        new
+                        {
+                            Id = new Guid("076a4d83-4572-48b2-ae67-185c0877693f"),
+                            ActionType = 1,
+                            Description = "Request to archive source report",
+                            Name = "TriggerFloodSourceArchive"
+                        },
+                        new
+                        {
+                            Id = new Guid("8067409e-7883-4fa9-a7cd-2ccd82ef4074"),
+                            ActionType = 1,
+                            Description = "Request to redact source report",
+                            Name = "TriggerFloodSourceRedaction"
+                        },
+                        new
+                        {
+                            Id = new Guid("febe4f8e-ca64-4e83-aabb-99bb15ae25ab"),
+                            ActionType = 1,
+                            Description = "Request to restore archived source report",
+                            Name = "TriggerFloodSourceRestore"
+                        },
+                        new
+                        {
+                            Id = new Guid("c2d3c27a-a0f6-46f0-b036-9a68b22e55f2"),
+                            ActionType = 1,
+                            Description = "Request to delete source report",
+                            Name = "TriggerFloodSourceDelete"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-5e6f-4789-8abc-1234567890ab"),
+                            ActionType = 2,
+                            Description = "A request for a reporter to provide more information has been logged",
+                            Name = "FurtherDetailRequested"
+                        },
+                        new
+                        {
+                            Id = new Guid("df655f85-fef9-4388-ab22-f10fd491657d"),
+                            ActionType = 2,
+                            Description = "The requested additional information has been provided",
+                            Name = "FurtherDetailProvided"
+                        },
+                        new
+                        {
+                            Id = new Guid("1a572d25-4dcb-464e-b4d4-b93a74d618aa"),
+                            ActionType = 1,
+                            Description = "Request to archive flood report",
+                            Name = "TriggerFloodReportArchive"
+                        },
+                        new
+                        {
+                            Id = new Guid("3f9f56fe-0ca5-4851-90ec-8f7a3082c95c"),
+                            ActionType = 1,
+                            Description = "Request to restore archived flood report",
+                            Name = "TriggerFloodReportRestore"
+                        },
+                        new
+                        {
+                            Id = new Guid("ccdcd417-1283-4545-988f-0fc7584bbda0"),
+                            ActionType = 1,
+                            Description = "Request to redact flood report",
+                            Name = "TriggerFloodReportRedaction"
+                        },
+                        new
+                        {
+                            Id = new Guid("7afdfe7c-04a0-43d5-bf9b-abe53e1f2b1c"),
+                            ActionType = 1,
+                            Description = "Request to delete flood report",
+                            Name = "TriggerFloodReportDelete"
+                        },
+                        new
+                        {
+                            Id = new Guid("e5f6a7b8-92a3-4bcd-cdef-5678901234ef"),
+                            ActionType = 1,
+                            Description = "Request to archive flood event",
+                            Name = "TriggerEventArchive"
+                        },
+                        new
+                        {
+                            Id = new Guid("d3510bd2-5141-4bcc-8f00-847cf8f9ef19"),
+                            ActionType = 1,
+                            Description = "Request to restore archived flood event",
+                            Name = "TriggerEventRestore"
+                        },
+                        new
+                        {
+                            Id = new Guid("123caad9-c1b9-4149-8f9e-3ef33dcd037b"),
+                            ActionType = 1,
+                            Description = "Request to delete flood event",
+                            Name = "TriggerEventDelete"
+                        },
+                        new
+                        {
+                            Id = new Guid("d4e5f6a7-8192-4abc-bdef-4567890123de"),
+                            ActionType = 0,
+                            Description = "Work on a new section 19 investigation into flood event has been logged",
+                            Name = "TriggerSection19"
+                        },
+                        new
+                        {
+                            Id = new Guid("e310c7f5-2c0e-447f-aa27-6cb4c6aea033"),
+                            ActionType = 0,
+                            Description = "Section 19 investigation into flood event has been completed and report is available",
+                            Name = "TriggerSection19Complete"
+                        },
+                        new
+                        {
+                            Id = new Guid("24b82488-37ed-4c36-8aae-82479611c3b5"),
+                            ActionType = 2,
+                            Description = "A new comment has been logged",
+                            Name = "CommentNew"
+                        },
+                        new
+                        {
+                            Id = new Guid("f6a7b8c9-a3b4-4cde-def0-6789012345f0"),
+                            ActionType = 2,
+                            Description = "A reply to a comment has been logged",
+                            Name = "CommentReply"
+                        });
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.CommentType", b =>
@@ -1022,6 +1228,17 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.HasIndex("Created");
 
                     b.ToTable("OutboxState", "fortriskmanagement");
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Actions.ActionLog", b =>
+                {
+                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups.ActionDefinition", "Action")
+                        .WithMany()
+                        .HasForeignKey("ActionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Action");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEventComment", b =>

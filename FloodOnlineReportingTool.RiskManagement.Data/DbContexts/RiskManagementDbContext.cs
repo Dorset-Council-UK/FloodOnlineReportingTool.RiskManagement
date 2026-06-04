@@ -14,6 +14,7 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<FloodEventComment> FloodEventComments { get; set; }
     public DbSet<ActionLog> ActionLogs { get; set; }
 
+    public DbSet<ActionDefinition> ActionDefinitions { get; set; }
     public DbSet<CommentType> CommentTypes { get; set; }
     public DbSet<EventStatus> EventStatuses { get; set; }
     public DbSet<FloodStatus> FloodStatuses { get; set; }
