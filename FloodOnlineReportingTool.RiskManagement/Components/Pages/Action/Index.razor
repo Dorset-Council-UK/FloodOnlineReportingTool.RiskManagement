@@ -9,9 +9,7 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader">
     <Authorized>
-        @if (_notPermitted) {
-            <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />
-        } else if (!string.IsNullOrEmpty(ActionRef))
+        @if (!string.IsNullOrEmpty(ActionRef))
         {
             <ActionDetail ActionRef="@ActionRef" />
         } else

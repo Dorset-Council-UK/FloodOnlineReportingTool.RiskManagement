@@ -8,10 +8,7 @@
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
-        @if (_notPermitted)
-        {
-            <GdsWarning Text="You do not have permission to view flood reports. Contact your administrator to request permission." />
-        } else if (_gettingToken)
+        @if (_gettingToken)
         {
             <p>Please wait whilst we authenticate you...</p>
         }
@@ -46,5 +43,8 @@
             }
         }
     </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to view flood reports. Contact your administrator to request permission." />
+    </NotAuthorized>
 </AuthorizeView>
 

@@ -38,17 +38,16 @@ public class CommonRepository(
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
         // Run all local DB checks concurrently.
-        var savedSearchTask = context.SavedSearches
+        var savedSearchTask = await context.SavedSearches
             .AsNoTracking()
             .Where(s => s.Reference == reference)
             .Select(s => s.Id)
-            .FirstOrDefault();
-
-        var floodEventTask = context.FloodEvents
+            .FirstOrDefaultAsync(ct);
+        var floodEventTask = await context.FloodEvents
             .AsNoTracking()
             .Where(f => f.Reference == reference)
             .Select(f => f.Id)
-            .FirstOrDefault();
+            .FirstOrDefaultAsync(ct);
 
         if (savedSearchTask != Guid.Empty)
             return GetResult<SearchRedirect>.Success(new SearchRedirect

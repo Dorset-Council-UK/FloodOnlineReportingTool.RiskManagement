@@ -16,15 +16,15 @@ public partial class Index(
     [Parameter]
     public string? ActionRef { get; set; }
 
-    private bool _notPermitted = false;
-
     protected override async Task OnInitializedAsync()
     {
         // Don't get any data if you don't have permission
         if (AuthenticationState is null)
         {
-            _notPermitted = true;
-            logger.LogWarning("Attempt to access action logs without authentication");
+            logger.LogWarning("Attempt to access flood report details without authentication");
+            return;
         }
+
+        
     }
 }

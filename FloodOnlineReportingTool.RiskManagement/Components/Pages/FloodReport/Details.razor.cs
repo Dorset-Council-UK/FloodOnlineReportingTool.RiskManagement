@@ -22,7 +22,6 @@ public partial class Details(
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     private bool _gettingToken;
-    private bool _notPermitted = false;
     private bool _isLoading = true;
     private bool _notFound = false;
     private string ReportStatus { get; set; }
@@ -38,7 +37,6 @@ public partial class Details(
         // Don't get any data if you don't have permission
         if (AuthenticationState is null)
         {
-            _notPermitted = true;
             logger.LogWarning("Attempt to access flood report details without authentication");
             return;
         }
