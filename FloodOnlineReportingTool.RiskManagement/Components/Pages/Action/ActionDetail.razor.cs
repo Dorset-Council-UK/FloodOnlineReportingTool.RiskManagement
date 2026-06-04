@@ -23,16 +23,17 @@ public partial class ActionDetail(
     protected override async Task OnInitializedAsync()
     {
         // Don't get any data if you don't have permission
+        AuthenticationState? authState;
         if (AuthenticationState is null)
         {
-            logger.LogWarning("Attempt to access flood report details without authentication");
+            logger.LogWarning("Attempt to access action details without authentication");
             return;
         } else
         {
-            var authState = await AuthenticationState;
+            authState = await AuthenticationState;
             if (!authState.User.IsAuthenticated)
             {
-                logger.LogWarning("Attempt to access flood report details without authentication");
+                logger.LogWarning("Attempt to access action details without authentication");
                 return;
             }
         }
