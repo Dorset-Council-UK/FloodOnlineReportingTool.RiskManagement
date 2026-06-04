@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
@@ -10,6 +11,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodReport;
 public partial class Details(
     ILogger<Details> logger,
     IReportStatusClient reportStatusClient,
+    ICommonRepository commonRepository,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
@@ -21,15 +23,17 @@ public partial class Details(
 
     private bool _gettingToken;
     private bool _notPermitted = false;
+    private bool _isLoading = true;
     private bool _notFound = false;
+    private string ReportStatus { get; set; }
 
     [Parameter]
     public required string Reference { get; set; }
 
     private readonly CancellationTokenSource _cts = new();
-    private SearchResultFloodReport? ViewModel { get; set; }
+    private SearchResultFloodReport? ViewModel { get; set; } = default!;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
         // Don't get any data if you don't have permission
         if (AuthenticationState is null)
@@ -48,9 +52,11 @@ public partial class Details(
             // should not be used here as it does not contain the full data needed for display.
             var reportResult = await reportStatusClient.GetFloodReportDetail(Reference, true, _cts.Token);
 
-            if (reportResult.IsSuccess)
+            if (reportResult.IsSuccess && reportResult.ResultModel is not null)
             {
+                var reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
                 ViewModel = reportResult.ResultModel;
+                ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? "";
                 logger.LogInformation("Flood report detail loaded successfully for reference");
             }
             else
@@ -67,5 +73,6 @@ public partial class Details(
             _gettingToken = true;
             consentHandler.HandleException(ex);
         }
+        _isLoading = false;
     }
 }

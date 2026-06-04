@@ -7,12 +7,43 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
         @if (_notPermitted)
         {
             <GdsWarning Text="You do not have permission to view flood reports. Contact your administrator to request permission." />
-        } else
+        } else if (_gettingToken)
         {
-            <h3 class="govuk-heading">View Flood Report</h3>
+            <p>Please wait whilst we authenticate you...</p>
+        }
+        else if (_notFound)
+        {
+            <GdsWarning Text="Flood report not found." />
+        }
+        else if (!_isLoading && ViewModel is not null)
+        {
+            var firstSource = ViewModel.SourceRecords?.FirstOrDefault();
+
+            <h2 class="govuk-heading">View Flood Report</h2>
+
+            <p><u>This is very much just a draft page</u></p>
+
+            <p>Insert action buttons here...Mark as read, mark as validated, request more information, lock the record, redact the record etc.</p>
+
+            <p>
+                Flood report (reference @ViewModel.Reference) was reported on @(firstSource?.CreatedUtc.ToString() ?? "unknown date").
+            </p>
+            <p>The status of the record is currently <strong>@ReportStatus</strong></p>
+            <p>The cause of the flooding is recorded as:</p>
+            <ul>
+                <li>Insert causes</li>
+            </ul>
+            <p>The record is assigned to ...</p>
+            @if (!string.IsNullOrWhiteSpace(firstSource?.ViewUri.AbsoluteUri))
+            {
+                <p>
+                    Head to <a href="@firstSource.ViewUri" target="_blank">@firstSource.ViewUri</a> to view the full record.
+                </p>
+            }
         }
     </Authorized>
 </AuthorizeView>
