@@ -23,31 +23,37 @@ public partial class ActionDetail(
     protected override async Task OnInitializedAsync()
     {
         // Don't get any data if you don't have permission
-        if (AuthenticationState is not null)
+        if (AuthenticationState is null)
+        {
+            logger.LogWarning("Attempt to access flood report details without authentication");
+            return;
+        } else
         {
             var authState = await AuthenticationState;
-            if (authState.User.IsAuthenticated)
+            if (!authState.User.IsAuthenticated)
             {
-                if (!Guid.TryParse(ActionRef, out var actionId)) { logger.LogWarning("Invalid action id '{ActionRef}'", ActionRef); return; }
-                var action = await actionLogRepository.GetActionLogById(actionId, CancellationToken.None);
-                if (action is not null && action.IsSuccess)
-                {
-                    if (action.ResultModel is not null)
-                    {
-                        actionLog = action.ResultModel;
-                        if(actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Redirect)
-                        {
-                            // We always just pass this on to the search as a search by ID result
-                            var nextPage = $"{SearchPages.Results.Url}/{actionLog.ReportReference}";
-                            navigationManager.NavigateTo(nextPage);
-                        }
-                    } else
-                    {
-                        logger.LogWarning("Action not found");
-                    }
-                }
+                logger.LogWarning("Attempt to access flood report details without authentication");
+                return;
             }
+        }
 
+        if (!Guid.TryParse(ActionRef, out var actionId)) { logger.LogWarning("Invalid action id '{ActionRef}'", ActionRef); return; }
+        var action = await actionLogRepository.GetActionLogById(actionId, CancellationToken.None);
+        if (action is not null && action.IsSuccess)
+        {
+            if (action.ResultModel is not null)
+            {
+                actionLog = action.ResultModel;
+                if(actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Redirect)
+                {
+                    // We always just pass this on to the search as a search by ID result
+                    var nextPage = $"{SearchPages.Results.Url}/{actionLog.ReportReference}";
+                    navigationManager.NavigateTo(nextPage);
+                }
+            } else
+            {
+                logger.LogWarning("Action not found");
+            }
         }
     }
 }

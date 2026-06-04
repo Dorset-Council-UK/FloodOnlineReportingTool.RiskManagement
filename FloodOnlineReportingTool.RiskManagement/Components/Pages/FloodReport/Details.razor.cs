@@ -5,6 +5,7 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
+using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodReport;
 
@@ -39,6 +40,15 @@ public partial class Details(
         {
             logger.LogWarning("Attempt to access flood report details without authentication");
             return;
+        }
+        else
+        {
+            var authState = await AuthenticationState;
+            if (!authState.User.IsAuthenticated)
+            {
+                logger.LogWarning("Attempt to access flood report details without authentication");
+                return;
+            }
         }
 
         try

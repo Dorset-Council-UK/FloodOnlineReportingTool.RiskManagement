@@ -21,10 +21,19 @@ public partial class Index(
         // Don't get any data if you don't have permission
         if (AuthenticationState is null)
         {
-            logger.LogWarning("Attempt to access flood report details without authentication");
+            logger.LogWarning("Attempt to access action details without authentication");
             return;
         }
+        else
+        {
+            var authState = await AuthenticationState;
+            if (!authState.User.IsAuthenticated)
+            {
+                logger.LogWarning("Attempt to access action details without authentication");
+                return;
+            }
+        }
 
-        
+
     }
 }
