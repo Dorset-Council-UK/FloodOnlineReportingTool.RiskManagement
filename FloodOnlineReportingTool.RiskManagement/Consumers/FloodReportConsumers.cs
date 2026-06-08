@@ -16,7 +16,19 @@ internal class FloodReportConsumers(ILogger<FloodReportConsumers> logger, IActio
         var message = context.Message;
         var cancellationToken = context.CancellationToken;
 
-        await actionLogRepository.CreateActionLog(message, cancellationToken).ConfigureAwait(false);
+        var result = await actionLogRepository.CreateActionLog(message, cancellationToken);
+        if (result.IsSuccess)
+        {
+            var actionLog = result.Value;
+            logger.LogInformation("Successfully created action log for report {ReportReference}", actionLog.ReportReference);
+        }
+        else
+        {
+            foreach (var error in result.Errors)
+            {
+                logger.LogError("Error creating action log for report {ReportReference}: {Error}", message.Reference, error);
+            }
+        }
     }   
     
 

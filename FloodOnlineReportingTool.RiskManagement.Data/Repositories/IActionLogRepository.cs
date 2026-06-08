@@ -7,7 +7,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public interface IActionLogRepository
 {
-    Task<CreateOrUpdateResult<ActionLog>> CreateActionLog(FloodReportCreated incomingAction, CancellationToken ct);
+    Task<Result<ActionLog>> CreateActionLog(FloodReportCreated incomingAction, CancellationToken ct);
 
     Task<int> GetActionCountForUser(CancellationToken ct);
     Task<int> GetPropertyCountForUser(CancellationToken ct);
