@@ -60,5 +60,11 @@ internal static class ClaimsPrincipalExtensions
         /// Get the nameidentifier claim which is http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier
         /// </summary>
         internal string UserId => claimsPrincipal?.GetNameIdentifierId() ?? Unknown;
+
+        /// <summary>
+        /// Gets the unique object ID associated with the <see cref="ClaimsPrincipal"/>.
+        /// </summary>
+        /// <remarks>Checking the claims in the order oid, http://schemas.microsoft.com/identity/claims/objectidentifier</remarks>
+        internal string? Oid => claimsPrincipal?.GetObjectId();
     }
 }
