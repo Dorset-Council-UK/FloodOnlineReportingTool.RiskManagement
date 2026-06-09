@@ -39,7 +39,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     /// Returns a <see cref="SearchRedirect"/> with the report Id if found, used for redirect
     /// routing only — not for display purposes.
     /// </summary>
-    public async Task<GetResult<SearchRedirect>> FindFloodReportByReference(string reference, CancellationToken ct = default)
+    public async Task<SearchRedirect?> FindFloodReportByReference(string reference, CancellationToken ct = default)
     {
         logger.LogInformation("Checking downstream API for flood report existence by reference");
 
@@ -62,22 +62,22 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
             if (floodReportResult is not null)
             {
                 logger.LogInformation("Flood report with reference found in downstream API");
-                return GetResult<SearchRedirect>.Success(new SearchRedirect
+                return new SearchRedirect
                 {
                     Id = floodReportResult.Id,
                     Reference = reference,
-                    RedirectType = RecordTypes.Report
-                });
+                    RedirectType = RecordTypes.Report,
+                };
             }
 
             logger.LogWarning("No flood report found in downstream API");
-            return GetResult<SearchRedirect>.Failure(["No flood report found for reference."]);
+            return null;
         }
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
                                                         or System.Net.HttpStatusCode.NotFound)
         {
             logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report exists", ex.StatusCode);
-            return GetResult<SearchRedirect>.Failure(["No flood report found for reference."]);
+            return null;
         }
     }
 

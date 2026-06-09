@@ -1,11 +1,8 @@
-using FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodReport;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
-using MassTransit.Contracts;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
@@ -15,10 +12,12 @@ public partial class Estimates(
     ILogger<Estimates> logger,
     NavigationManager navigationManager,
     IFloodEventState floodEventState,
-    ICommonRepository commonRepository,
-    IFloodEventRepository floodEventRepository) : IAsyncDisposable
+    IFloodEventRepository floodEventRepository,
+    ISavedSearchRepository savedSearchRepository
+) : IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
+    private ValidationMessageStore _messageStore = default!;
     private EventEstimatesViewModel Model { get; set; } = default!;
     private EventEstimatesViewModel? _modelFromState = null;
     private EditContext EditContext = default!;
@@ -44,6 +43,7 @@ public partial class Estimates(
         Model ??= new();
         EditContext = new(Model);
         EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _messageStore = new(EditContext);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -59,10 +59,10 @@ public partial class Estimates(
             }
             else
             {
-                var databaseModel = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
-                if (databaseModel != null)
+                var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+                if (savedSearch != null)
                 {
-                    Model = Model.ToModel(databaseModel);
+                    Model = Model.ToModel(savedSearch);
                     EditContext = new(Model);
                     EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
                 }
@@ -95,34 +95,61 @@ public partial class Estimates(
 
     private async Task OnValidSubmit()
     {
+        var errorFieldIdentifier = EditContext.Field(nameof(Model.SearchReference));
+
         // Save the record
         if (SearchReference == null)
         {
+            _messageStore.Add(errorFieldIdentifier, "Search reference is missing. Unable to save estimates.");
+            EditContext.NotifyValidationStateChanged();
             return;
         }
 
-        var currentSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
-        if (currentSearch == null)
+        var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+        if (savedSearch == null)
         {
+            _messageStore.Add(errorFieldIdentifier, "Saved search not found for the provided search reference. Unable to save estimates.");
+            EditContext.NotifyValidationStateChanged();
             return;
         }
 
         var eventDetails = floodEventState.Details;
         if (eventDetails == null) 
         {
+            _messageStore.Add(errorFieldIdentifier, "Event details are missing. Unable to save estimates.");
+            EditContext.NotifyValidationStateChanged();
             return;
         }
+
         var floodEvent = Model.ToFloodEvent(eventDetails, Model);
-        await floodEventRepository.CreateOrUpdateFloodEvent(currentSearch.Id, floodEvent, _cts.Token);
+        var createFloodEventResult = await floodEventRepository.Create(floodEvent, _cts.Token);
+        if (!createFloodEventResult.IsSuccess)
+        {
+            foreach (var error in createFloodEventResult.Errors)
+            {
+                _messageStore.Add(errorFieldIdentifier, error);
+            }
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        savedSearch.SearchTitle = Model.SearchTitle;
+        savedSearch.FloodEventId = floodEvent.Id;
+        var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
+        if (!updateSavedSearchResult.IsSuccess)
+        {
+            foreach (var error in updateSavedSearchResult.Errors)
+            {
+                _messageStore.Add(errorFieldIdentifier, error);
+            }
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
 
         // Clear the model
         floodEventState.SetEventDetails(null);
         floodEventState.SetEventEstimates(null);
         navigationManager.NavigateTo($"{EventPages.View.Url}/{SearchReference}");
-
-        _isLoading = false;
-        StateHasChanged();
-        return;
     }
 
     private void BackToDetails()

@@ -1,5 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
@@ -48,24 +47,6 @@ public interface ISavedSearchRepository
     /// </summary>
     /// <returns>A result pattern with the updated saved search, or a list of errors.</returns>
     Task<Result<SavedSearch?>> Update(string reference, SavedSearch searchCriteria, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Update the saved search to link to a flood event using the ID
-    /// </summary>
-    /// <returns>A result pattern with the updated saved search, or a list of errors.</returns>
-    Task<Result<SavedSearch?>> Update(Guid savedSearchId, Guid floodEventId, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Update the saved search title using the ID
-    /// </summary>
-    /// <returns>A result pattern with a boolean indicating success, or a list of errors.</returns>
-    Task<Result<bool>> UpdateTitle(Guid savedSearchId, string title, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Update the saved search title using the reference
-    /// </summary>
-    /// <returns>A result pattern with a boolean indicating success, or a list of errors.</returns>
-    Task<Result<bool>> UpdateTitle(string reference, string title, CancellationToken cancellationToken);
 
     Task<Result<SearchRedirect?>> FindLocalByReference(string reference, CancellationToken cancellationToken);
 }

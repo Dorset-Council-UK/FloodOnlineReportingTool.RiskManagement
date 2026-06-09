@@ -69,29 +69,6 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         return Result<SavedSearch?>.Success(searchCriteria);
     }
 
-    public async Task<Result<SavedSearch?>> Update(Guid savedSearchId, Guid floodEventId, CancellationToken cancellationToken)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-        var existingSearch = await context.SavedSearches.FindAsync([savedSearchId], cancellationToken);
-        if (existingSearch is null)
-        {
-            return Result<SavedSearch?>.Failure([$"No saved search found for ID '{savedSearchId}'."]);
-        }
-
-        if (existingSearch.FloodEventId is not null)
-        {
-            return Result<SavedSearch?>.Failure([$"A flood event is already associated with the saved search ID '{savedSearchId}'."]);
-        }
-
-        existingSearch.FloodEventId = floodEventId;
-
-        context.SavedSearches.Update(existingSearch);
-        await context.SaveChangesAsync(cancellationToken);
-
-        return Result<SavedSearch?>.Success(existingSearch);
-    }
-
     public async Task<Result<SavedSearch?>> Update(string reference, SavedSearch searchCriteria, CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -162,52 +139,6 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         await context.SaveChangesAsync(cancellationToken);
 
         return Result<SavedSearch?>.Success(updatedSearch);
-    }
-
-    public async Task<Result<bool>> UpdateTitle(Guid savedSearchId, string title, CancellationToken cancellationToken)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-        var existingSearch = await context.SavedSearches
-            .FirstOrDefaultAsync(s => s.Id == savedSearchId, cancellationToken);
-
-        if (existingSearch is null)
-        {
-            return Result<bool>.Failure([$"No saved search found for ID '{savedSearchId}'."]);
-        }
-
-        return await UpdateTitle(context, existingSearch, title, cancellationToken);
-    }
-
-    public async Task<Result<bool>> UpdateTitle(string reference, string title, CancellationToken cancellationToken)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-        var existingSearch = await context.SavedSearches
-            .FirstOrDefaultAsync(s => s.Reference == reference, cancellationToken);
-
-        if (existingSearch is null)
-        {
-            return Result<bool>.Failure([$"No saved search found for reference '{reference}'."]);
-        }
-
-        return await UpdateTitle(context, existingSearch, title, cancellationToken);
-    }
-
-    /// <summary>
-    /// Logic to update a saved search title, used by both UpdateTitle methods
-    /// </summary>
-    private static async Task<Result<bool>> UpdateTitle(RiskManagementDbContext context, SavedSearch existingSearch, string title, CancellationToken cancellationToken)
-    {
-        existingSearch.SearchTitle = title;
-
-        context.SavedSearches.Update(existingSearch);
-        var changes = await context.SaveChangesAsync(cancellationToken);
-        if (changes == 0)
-        {
-            return Result<bool>.Failure(["Failed to update the saved search title."]);
-        }
-        return Result<bool>.Success(value: true);
     }
 
     public async Task<Result<SearchRedirect?>> FindLocalByReference(string reference, CancellationToken cancellationToken)

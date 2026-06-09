@@ -18,14 +18,17 @@ using System.Text;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
-public partial class Results(ILogger<Results> logger,
-                             ICommonRepository commonRepository,
-                             IReportStatusClient reportStatusClient,
-                             IReferenceSearchService referenceSearchService,
-                             ISearchResultsState searchResultsState,
-                             IWebHostEnvironment environment,
-                             MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
-                             NavigationManager navigationManager) : IAsyncDisposable
+public partial class Results(
+    ILogger<Results> logger,
+    ICommonRepository commonRepository,
+    IReportStatusClient reportStatusClient,
+    IReferenceSearchService referenceSearchService,
+    ISavedSearchRepository savedSearchRepository,
+    ISearchResultsState searchResultsState,
+    IWebHostEnvironment environment,
+    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
+    NavigationManager navigationManager
+) : IAsyncDisposable
 {
     private EditContext _editContext = null!;
     private ValidationMessageStore _messageStore = default!;
@@ -90,18 +93,19 @@ public partial class Results(ILogger<Results> logger,
             try
             {
                 _gettingToken = false;
-                var foundEntity = await referenceSearchService.FindByReference(SearchReference, _cts.Token);
+                var searchRedirect = await referenceSearchService.FindByReference(SearchReference, _cts.Token);
 
-                if (foundEntity is null || !foundEntity.IsSuccess)
+                if (searchRedirect is null)
                 {
                     _isLoading = false;
                     StateHasChanged();
                     return;
                 }
 
-                if (foundEntity.ResultModel?.RedirectType == RecordTypes.Search && foundEntity.ResultModel?.Id.HasValue == true)
+                if (searchRedirect.RedirectType == RecordTypes.Search && searchRedirect.Id.HasValue)
                 {
-                    var savedSearch = await commonRepository.GetSavedSearch((Guid)foundEntity.ResultModel.Id, _cts.Token);
+                    Guid savedSearchId = searchRedirect.Id.Value;
+                    var savedSearch = await savedSearchRepository.Get(savedSearchId, _cts.Token);
                     SearchResultsViewModel = savedSearch?.SavedSearchToResultsView() ?? new SearchResultsViewModel();
                     SearchResultsViewModel.SearchReference = SearchReference;
                     searchResultsState.SetResultOptions(SearchResultsViewModel);
@@ -109,15 +113,15 @@ public partial class Results(ILogger<Results> logger,
                 else
                 {
                     // handle other redirect types
-                    if (foundEntity.ResultModel?.RedirectType == RecordTypes.Report)
+                    if (searchRedirect.RedirectType == RecordTypes.Report)
                     {
-                        var nextPage = $"{ReportPages.Details.Url}/{foundEntity.ResultModel.Reference}";
+                        var nextPage = $"{ReportPages.Details.Url}/{searchRedirect.Reference}";
                         navigationManager.NavigateTo(nextPage);
                         return;
                     }
-                    else if (foundEntity.ResultModel?.RedirectType == RecordTypes.Event)
+                    else if (searchRedirect.RedirectType == RecordTypes.Event)
                     {
-                        var nextPage = $"{EventPages.Details.Url}/{foundEntity.ResultModel.Reference}";
+                        var nextPage = $"{EventPages.Details.Url}/{searchRedirect.Reference}";
                         navigationManager.NavigateTo(nextPage);
                         return;
                     }
