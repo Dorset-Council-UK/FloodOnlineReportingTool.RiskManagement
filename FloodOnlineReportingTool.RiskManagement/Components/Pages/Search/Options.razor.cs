@@ -8,14 +8,14 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
-
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class Options(
     ILogger<Options> logger,
     ICommonRepository commonRepository,
-    NavigationManager navigationManager,
-    ISearchOptionsState searchOptionsState
+    ISavedSearchRepository savedSearchRepository,
+    ISearchOptionsState searchOptionsState,
+    NavigationManager navigationManager
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.Options.Title;
@@ -30,6 +30,7 @@ public partial class Options(
 
     private EditContext EditContext = default!;
     private readonly CancellationTokenSource _cts = new();
+    private ValidationMessageStore _messageStore = default!;
     private bool _isLoading = true;
 
     [Parameter]
@@ -43,6 +44,7 @@ public partial class Options(
         Model ??= new();
         EditContext = new(Model);
         EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _messageStore = new(EditContext);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -56,7 +58,7 @@ public partial class Options(
         if (SearchReference is not null && !string.Equals(options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
         {
             // Replace the stored model with the details from the saved search by reference
-            var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+            var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
             options = savedSearch?.SavedSearchToOptionsView();
         }
         if (options is not null)
@@ -78,14 +80,12 @@ public partial class Options(
             await _cts.CancelAsync();
             _cts.Dispose();
         }
-        catch (OperationCanceledException)
-        {
-            // Expected during normal cancellation; no action required.
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(Options));
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private async Task OnSubmit()
@@ -104,28 +104,41 @@ public partial class Options(
         // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
         
-        try
-        {
-            // Convert ViewModel → Entity
-            var savedSearchEntity = Model.OptionsViewToSavedSearch(null);
+        // Convert ViewModel → Entity
+        var savedSearchEntity = Model.OptionsViewToSavedSearch(searchTitle: null);
             
-            // Get or create SavedSearch in database
-            if (Model.SearchReference is null)
+        // Get or create SavedSearch in database
+        if (Model.SearchReference is null)
+        {
+            var createResult = await savedSearchRepository.Create(savedSearchEntity, _cts.Token);
+            if (!createResult.IsSuccess)
             {
-                var savedSearch = await commonRepository.GetOrCreateSavedSearch(null, null, savedSearchEntity, _cts.Token);
-                Model.SearchReference = savedSearch.Reference ?? null;
-            } else
-            {
-                await commonRepository.UpdateSavedSearch(Model.SearchReference, savedSearchEntity, _cts.Token);
+                var errorField = EditContext.Field(nameof(Model.SearchReference));
+                foreach (var error in createResult.Errors)
+                {
+                    _messageStore.Add(errorField, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
             }
-            
-            // Navigate to results
-            navigationManager.NavigateTo($"{SearchPages.Results.Url}/{Model.SearchReference}");
+
+            navigationManager.NavigateTo($"{SearchPages.Results.Url}/{createResult.Value.Reference}");
+            return;
         }
-        catch (Exception ex)
+
+        var updateResult = await savedSearchRepository.Update(Model.SearchReference, savedSearchEntity, _cts.Token);
+        if (!updateResult.IsSuccess)
         {
-            logger.LogError(ex, "Failed to create or retrieve saved search");
+            var errorField = EditContext.Field(nameof(Model.SearchReference));
+            foreach (var error in updateResult.Errors)
+            {
+                _messageStore.Add(errorField, error);
+            }
+            EditContext.NotifyValidationStateChanged();
+            return;
         }
+
+        navigationManager.NavigateTo($"{SearchPages.Results.Url}/{updateResult.Value.Reference}");
     }
 
     private void GoToMap()
