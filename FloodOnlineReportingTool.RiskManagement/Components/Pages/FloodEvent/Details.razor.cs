@@ -22,6 +22,7 @@ public partial class Details(
     ICommonRepository commonRepository,
     IFloodEventRepository floodEventRepository,
     IFloodEventState floodEventState,
+    ISavedSearchRepository savedSearchRepository,
     ISearchResultsState searchResultsState,
     IAuthorizationService authorizationService
 ) : IAsyncDisposable
@@ -111,7 +112,7 @@ public partial class Details(
         }
 
         // Next try to get the saved search from the database
-        var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+        var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
         if (savedSearch is not null)
         {
             return new EventDetailsViewModel(savedSearch);
@@ -151,17 +152,41 @@ public partial class Details(
             return;
         }
 
-        var savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
-        if (savedSearch == null)
+        var errorFieldIdentifier = EditContext.Field(nameof(Model.SearchReference));
+
+        var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+        if (savedSearch is null)
         {
-            MessageStore.Add(EditContext.Field(nameof(Model.SearchReference)), "The saved search could not be found. Please go back and try again.");
+            MessageStore.Add(errorFieldIdentifier, "The saved search could not be found. Please go back and try again.");
             EditContext.NotifyValidationStateChanged();
             return;
         }
 
-        var floodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
-        await commonRepository.SetSavedSearchTitle(savedSearch.Id, Model.SearchTitle, _cts.Token);
-        await floodEventRepository.CreateOrUpdateFloodEvent(savedSearch.Id, floodEvent, _cts.Token);
+        var newFloodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
+        var createdFloodEventResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
+        if (!createdFloodEventResult.IsSuccess)
+        {
+            foreach (var error in createdFloodEventResult.Errors)
+            {
+                MessageStore.Add(errorFieldIdentifier, error);
+            }
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
+
+        var floodEvent = createdFloodEventResult.Value;
+        savedSearch.SearchTitle = Model.SearchTitle;
+        savedSearch.FloodEventId = floodEvent.Id;
+        var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
+        if (!updateSavedSearchResult.IsSuccess)
+        {
+            foreach (var error in updateSavedSearchResult.Errors)
+            {
+                MessageStore.Add(errorFieldIdentifier, error);
+            }
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
 
         // Clear the model
         floodEventState.SetEventDetails(null);
@@ -242,7 +267,7 @@ public partial class Details(
         if (!string.IsNullOrWhiteSpace(SearchReference))
         {
             // Get the saved search from database
-            SavedSearch? savedSearch = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+            SavedSearch? savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
             if (savedSearch != null)
             {
                 // Parts from the saved search
@@ -270,13 +295,13 @@ public partial class Details(
         }
         else
         {
-            var databaseModel = await commonRepository.GetSavedSearch(SearchReference, _cts.Token);
+            var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
             EventEstimatesViewModel estimates;
-            if (databaseModel != null)
+            if (savedSearch != null)
             {
                 estimates = new();
 
-                estimates = estimates.ToModel(databaseModel);
+                estimates = estimates.ToModel(savedSearch);
                 estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
                 estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
                 estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
