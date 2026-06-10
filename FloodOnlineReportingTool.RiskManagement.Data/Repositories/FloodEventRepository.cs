@@ -37,15 +37,6 @@ public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> con
             .AnyAsync(fe => fe.Id == floodEventId, cancellationToken);
     }
 
-    public async Task<bool> Exists(string reference, CancellationToken cancellationToken)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await context.FloodEvents
-            .AsNoTracking()
-            .IgnoreAutoIncludes()
-            .AnyAsync(fe => fe.Reference == reference, cancellationToken);
-    }
-
     public async Task<Result<FloodEvent?>> Create(FloodEvent floodEvent, CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -80,31 +71,6 @@ public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> con
             return Result<FloodEvent?>.Failure([$"No flood event found with ID '{floodEventId}'."]);
         }
 
-        return await Update(context, existingFloodEvent, floodEvent, cancellationToken);
-    }
-
-    public async Task<Result<FloodEvent?>> Update(string reference, FloodEvent floodEvent, CancellationToken cancellationToken)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-
-        var existingFloodEvent = await context.FloodEvents
-            .AsNoTracking()
-            .IgnoreAutoIncludes()
-            .FirstOrDefaultAsync(fe => fe.Reference == reference, cancellationToken);
-
-        if (existingFloodEvent is null)
-        {
-            return Result<FloodEvent?>.Failure([$"No flood event found with reference '{reference}'."]);
-        }
-
-        return await Update(context, existingFloodEvent, floodEvent, cancellationToken);
-    }
-
-    /// <summary>
-    /// Logic to update a flood event, used by both Update methods
-    /// </summary>
-    private static async Task<Result<FloodEvent?>> Update(RiskManagementDbContext context, FloodEvent existingFloodEvent, FloodEvent floodEvent, CancellationToken cancellationToken)
-    {
         var updatedFloodEvent = existingFloodEvent with
         {
             // Id
