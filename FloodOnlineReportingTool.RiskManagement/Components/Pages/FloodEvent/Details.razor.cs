@@ -177,6 +177,7 @@ public partial class Details(
         var floodEvent = createdFloodEventResult.Value;
         savedSearch.SearchTitle = Model.SearchTitle;
         savedSearch.FloodEventId = floodEvent.Id;
+        savedSearch.UpdatedBy = await GetUserName();
         var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
         if (!updateSavedSearchResult.IsSuccess)
         {
@@ -192,6 +193,17 @@ public partial class Details(
         floodEventState.SetEventDetails(null);
         floodEventState.SetEventEstimates(null);
         navigationManager.NavigateTo($"{EventPages.View.Url}/{SearchReference}");
+    }
+
+    private async Task<string?> GetUserName()
+    {
+        if (AuthenticationState is null)
+        {
+            return null;
+        }
+
+        var authState = await AuthenticationState;
+        return authState.User.DisplayName;
     }
 
     private async Task PopulateSearchTitle()

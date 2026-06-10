@@ -19,6 +19,9 @@ public record SavedSearch
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public string Reference { get; set; } = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
     public string SearchTitle { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? UpdatedAt { get; init; }
+    public string? UpdatedBy { get; set; }
 
     // Search parameters
 

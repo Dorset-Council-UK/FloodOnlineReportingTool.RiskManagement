@@ -31,8 +31,7 @@ internal static class ClaimsPrincipalExtensions
         /// Get the display name from the claims
         /// </summary>
         /// <remarks>
-        ///     <para>GetDisplayName() from Microsoft.Identity.Web finds claims in the order preferred_username, http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name, name.</para>
-        ///     <para>We need name to be more important.</para>
+        ///     <para>GetDisplayName() from Microsoft.Identity.Web finds claims in the order name, http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name, preferred_username.</para>
         /// </remarks>
         internal string DisplayName => GetClaimValue(claimsPrincipal, ["name", ClaimTypes.Name, "preferred_username"]) ?? Unknown;
 

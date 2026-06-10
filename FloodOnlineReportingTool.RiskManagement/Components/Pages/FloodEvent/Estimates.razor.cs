@@ -4,7 +4,9 @@ using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -21,6 +23,9 @@ public partial class Estimates(
     private EventEstimatesViewModel Model { get; set; } = default!;
     private EventEstimatesViewModel? _modelFromState = null;
     private EditContext EditContext = default!;
+
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     [Parameter]
     public string? SearchReference { get; set; }
@@ -135,6 +140,7 @@ public partial class Estimates(
 
         savedSearch.SearchTitle = Model.SearchTitle;
         savedSearch.FloodEventId = floodEvent.Id;
+        savedSearch.UpdatedBy = await GetUserName();
         var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
         if (!updateSavedSearchResult.IsSuccess)
         {
@@ -161,5 +167,16 @@ public partial class Estimates(
         }
         StateHasChanged();
         return;
+    }
+
+    private async Task<string?> GetUserName()
+    {
+        if (AuthenticationState is null)
+        {
+            return null;
+        }
+
+        var authState = await AuthenticationState;
+        return authState.User.DisplayName;
     }
 }

@@ -6,7 +6,9 @@ using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
@@ -25,6 +27,9 @@ public partial class Options(
         SearchPages.Home.ToGdsBreadcrumb(),
         SearchPages.Options.ToGdsBreadcrumb(),
     ];
+
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     private SearchOptionsViewModel Model { get; set; } = default!;
 
@@ -126,6 +131,7 @@ public partial class Options(
             return;
         }
 
+        savedSearchEntity.UpdatedBy = await GetUserName();
         var updateResult = await savedSearchRepository.Update(Model.SearchReference, savedSearchEntity, _cts.Token);
         if (!updateResult.IsSuccess)
         {
@@ -139,6 +145,17 @@ public partial class Options(
         }
 
         navigationManager.NavigateTo($"{SearchPages.Results.Url}/{updateResult.Value.Reference}");
+    }
+
+    private async Task<string?> GetUserName()
+    {
+        if (AuthenticationState is null)
+        {
+            return null;
+        }
+
+        var authState = await AuthenticationState;
+        return authState.User.DisplayName;
     }
 
     private void GoToMap()
