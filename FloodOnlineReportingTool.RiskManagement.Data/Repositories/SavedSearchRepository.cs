@@ -106,18 +106,28 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
     /// </summary>
     private static async Task<Result<SavedSearch?>> Update(RiskManagementDbContext context, SavedSearch existingSearch, SavedSearch searchCriteria, CancellationToken cancellationToken)
     {
-        if (existingSearch.IsDuplicateOf(searchCriteria))
+        if (string.IsNullOrWhiteSpace(searchCriteria.UpdatedBy))
+        {
+            return Result<SavedSearch?>.Failure(["'UpdatedBy' is required to update a saved search."]);
+        }
+
+        var duplicateCheck = existingSearch.IsDuplicateOf(searchCriteria);
+        if (duplicateCheck.IsDuplicate)
         {
             return Result<SavedSearch?>.Failure([
                 "This is a duplicate saved search.",
-                "Update the existing search or change the criteria.",
+                $"The other saved search was last updated at {duplicateCheck.LastUpdated.GdsReadable()} by {duplicateCheck.UpdatedBy}.",
+                $"Update the other saved search reference {duplicateCheck.SavedSearchReference} or change the search criteria.",
             ]);
         }
 
         var updatedSearch = existingSearch with
         {
-            //Id = searchCriteria.Id,
-            //Reference = searchCriteria.Reference,
+            // Id
+            // Reference
+            // CreatedAt
+            UpdatedAt = DateTimeOffset.UtcNow,
+            UpdatedBy = searchCriteria.UpdatedBy,
             SearchTitle = searchCriteria.SearchTitle,
             ResultsFrom = searchCriteria.ResultsFrom,
             ResultsTo = searchCriteria.ResultsTo,
