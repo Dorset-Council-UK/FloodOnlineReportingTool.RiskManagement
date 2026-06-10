@@ -12,7 +12,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.QuickGrid;
 using Microsoft.Identity.Web;
 using System.Text;
 
@@ -39,7 +38,7 @@ public partial class Results(ILogger<Results> logger,
     public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
-    public GridItemsProvider<FloodResultItem>? SearchResultsProvider { get; private set; }
+    public PagedResult<FloodReportTableRow>? SearchResultsGrouped { get; private set; }
 
     private MiniMap? _miniMapRef;
     private bool _isLoadingMapData;
@@ -143,43 +142,8 @@ public partial class Results(ILogger<Results> logger,
 
         //execute the API search
         await Search();
-        SearchResultsProvider = ProvideSearchResults;
         _isLoading = false;
         StateHasChanged();
-    }
-
-    private async ValueTask<GridItemsProviderResult<FloodResultItem>> ProvideSearchResults(
-        GridItemsProviderRequest<FloodResultItem> request)
-    {
-        try
-        {
-            var pageSize = request.Count ?? SearchResultsViewModel.PagingSize;
-            var pageNumber = (request.StartIndex / pageSize) + 1;
-
-            var rawResult = await reportStatusClient.SearchFloodReports(
-                SearchResultsViewModel.FromDate.DateUtc,
-                SearchResultsViewModel.ToDate.DateUtc,
-                SearchResultsViewModel.ByFloodSource,
-                null, null, SearchResultsViewModel.ByPostcode,
-                SearchResultsViewModel.ByPolygon,
-                pageNumber, pageSize,
-                request.CancellationToken);
-            var result = rawResult.ToFloodResultItem(_reportStatuses);
-
-            List<FloodResultItem> items = result?.Results.ToList() ?? [];
-            return GridItemsProviderResult.From(items, result?.TotalCount ?? 0);
-        }
-        catch (MicrosoftIdentityWebChallengeUserException ex)
-        {
-            logger.LogWarning(ex, "Consent required while fetching flood reports for table view");
-            consentHandler.HandleException(ex);
-            return GridItemsProviderResult.From<FloodResultItem>([], 0);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error while fetching flood reports for table view");
-            return GridItemsProviderResult.From<FloodResultItem>([], 0);
-        }
     }
 
     [Authorize]
@@ -201,6 +165,7 @@ public partial class Results(ILogger<Results> logger,
                                                                         SearchResultsViewModel.ByPolygon,
                                                                         pageNumber);
             SearchResults = rawResult.ToFloodResultItem(_reportStatuses);
+            SearchResultsGrouped = rawResult.ToFloodReportTableRows(_reportStatuses);
 
             _searchState = SearchResults is null || SearchResults.TotalCount == 0
                 ? SearchState.NoResults

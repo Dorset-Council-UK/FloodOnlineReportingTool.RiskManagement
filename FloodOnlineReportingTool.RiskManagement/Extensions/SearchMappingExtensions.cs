@@ -56,7 +56,38 @@ internal static class SearchMappingExtensions
             Organisations = sr.Organisations
         });
     }
-    
+
+    /// <summary>
+    /// Groups a paged API result into one <see cref="FloodReportTableRow"/> per
+    /// <see cref="SearchResultFloodReport"/>, preserving the source records collection
+    /// for display in an expandable table.
+    /// </summary>
+    internal static PagedResult<FloodReportTableRow>? ToFloodReportTableRows(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
+    {
+        if (source is null)
+        {
+            return null;
+        }
+
+        var items = source.Results
+            .Select(r =>
+            {
+                var statusName = reportStatuses
+                    .FirstOrDefault(s => s.Id == r.RecordStatusId)?.Text ?? string.Empty;
+
+                return new FloodReportTableRow
+                {
+                    Id = r.Id,
+                    Reference = r.Reference,
+                    RecordStatus = statusName,
+                    SourceRecords = r.SourceRecords
+                };
+            })
+            .ToList();
+
+        return new PagedResult<FloodReportTableRow>(items, source.TotalCount, source.PageSize, source.CurrentPage, source.TotalPages);
+    }
+
 
     /// <summary>
     /// Maps SearchOptionsViewModel directly to SavedSearch entity.

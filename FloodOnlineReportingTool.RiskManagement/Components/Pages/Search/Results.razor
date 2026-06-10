@@ -48,9 +48,9 @@
                         </li>
                     </ul>
                     <div class="govuk-tabs__panel" id="table">
-                        @if (SearchResultsProvider is not null)
+                        @if (SearchResultsGrouped is not null)
                         {
-                            <SearchResultTable ItemsProvider="SearchResultsProvider" />
+                            <SearchResultTable SearchResults="SearchResultsGrouped" OnPageChanged="(int p) => OnPageChanged(p)" />
                         }
                     </div>
                     <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
