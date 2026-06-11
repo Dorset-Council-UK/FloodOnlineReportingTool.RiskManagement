@@ -996,6 +996,11 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)));
+
                     b.Property<Guid?>("FloodEventId")
                         .HasColumnType("uuid");
 
@@ -1054,6 +1059,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.Property<long?>("USRN")
                         .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
