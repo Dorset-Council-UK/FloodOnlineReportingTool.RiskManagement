@@ -102,7 +102,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
     }
 
     /// <summary>
-    /// Logic to update a saved search, used by both Update methods
+    /// Logic to update a saved search, used by both Update by ID and Update by reference methods
     /// </summary>
     private static async Task<Result<SavedSearch?>> Update(RiskManagementDbContext context, SavedSearch existingSearch, SavedSearch searchCriteria, CancellationToken cancellationToken)
     {
@@ -162,13 +162,6 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             .Select(s => s.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
-        var floodEventId = await context.FloodEvents
-            .AsNoTracking()
-            .IgnoreAutoIncludes()
-            .Where(f => f.Reference == reference)
-            .Select(f => f.Id)
-            .FirstOrDefaultAsync(cancellationToken);
-
         if (savedSearchId != Guid.Empty)
         {
             return Result<SearchRedirect?>.Success(new SearchRedirect
@@ -178,6 +171,13 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
                 RedirectType = RecordTypes.Search,
             });
         }
+
+        var floodEventId = await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Where(f => f.Reference == reference)
+            .Select(f => f.Id)
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (floodEventId != Guid.Empty)
         {

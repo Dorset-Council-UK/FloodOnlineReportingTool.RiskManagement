@@ -4,7 +4,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
 internal record SavedSearchDuplicateCheck
 {
-    [MemberNotNullWhen(true, [nameof(UpdatedBy), nameof(SavedSearchId), nameof(SavedSearchReference)])]
+    [MemberNotNullWhen(true, nameof(UpdatedBy), nameof(SavedSearchId), nameof(SavedSearchReference))]
     internal bool IsDuplicate { get; init; }
 
     internal DateTimeOffset? LastUpdated { get; init; }
@@ -15,23 +15,31 @@ internal record SavedSearchDuplicateCheck
 
     internal string? SavedSearchReference { get; init; }
 
-    private SavedSearchDuplicateCheck(bool isDuplicate)
-    {
-        IsDuplicate = isDuplicate;
-    }
+    private SavedSearchDuplicateCheck() {}
 
-    private SavedSearchDuplicateCheck(DateTimeOffset? lastUpdated, string? updatedBy, Guid savedSearchId, string? savedSearchReference)
+    internal static SavedSearchDuplicateCheck Duplicate(SavedSearch savedSearch)
     {
         const string Unknown = "Unknown";
 
-        IsDuplicate = true;
-        LastUpdated = lastUpdated; // can still be null sometimes (hopefully not)
-        UpdatedBy = string.IsNullOrWhiteSpace(updatedBy) ? Unknown : updatedBy;
-        SavedSearchId = savedSearchId;
-        SavedSearchReference = string.IsNullOrWhiteSpace(savedSearchReference) ? Unknown : savedSearchReference;
+        return new()
+        {
+            IsDuplicate = true,
+            LastUpdated = savedSearch.UpdatedAt, // can still be null sometimes (hopefully not)
+            UpdatedBy = string.IsNullOrWhiteSpace(savedSearch.UpdatedBy) ? Unknown : savedSearch.UpdatedBy,
+            SavedSearchId = savedSearch.Id,
+            SavedSearchReference = string.IsNullOrWhiteSpace(savedSearch.Reference) ? Unknown : savedSearch.Reference,
+        };
     }
 
-    internal static SavedSearchDuplicateCheck Duplicate(SavedSearch savedSearch) => new(savedSearch.UpdatedAt, savedSearch.UpdatedBy, savedSearch.Id, savedSearch.Reference);
-
-    internal static SavedSearchDuplicateCheck NotDuplicate() => new(isDuplicate: false);
+    internal static SavedSearchDuplicateCheck NotDuplicate()
+    {
+        return new()
+        {
+            IsDuplicate = false,
+            LastUpdated = null,
+            UpdatedBy = null,
+            SavedSearchId = null,
+            SavedSearchReference = null,
+        };
+    }
 }
