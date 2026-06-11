@@ -8,13 +8,17 @@ internal class FloodEventConfiguration : IEntityTypeConfiguration<FloodEvent>
 {
     public void Configure(EntityTypeBuilder<FloodEvent> builder)
     {
+        builder
+            .HasIndex(fe => fe.Reference)
+            .IsUnique();
+
         // Store enums as integers in the database
         builder
             .Property(fe => fe.MitigationTaken)
-                .HasConversion<int>();
+            .HasConversion<int>();
 
         builder
             .Property(fe => fe.FloodExtentConfidence)
-                .HasConversion<int>();
+            .HasConversion<int>();
     }
 }

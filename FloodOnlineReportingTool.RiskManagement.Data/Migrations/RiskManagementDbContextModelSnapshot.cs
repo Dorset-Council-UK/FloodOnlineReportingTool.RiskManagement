@@ -148,6 +148,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
                     b.ToTable("FloodEvents", "fortriskmanagement");
                 });
 
@@ -993,7 +996,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.SavedSearch", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -1028,7 +1030,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.Property<string>("Reference")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("ReporterString")
                         .IsRequired()
@@ -1069,6 +1072,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FloodEventId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
 
                     b.ToTable("SavedSearches", "fortriskmanagement");
                 });
