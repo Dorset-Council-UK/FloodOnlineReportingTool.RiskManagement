@@ -54,7 +54,7 @@
                         }
                     </div>
                     <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
-                        <SearchResultList SearchResults="SearchResults" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
+                        <SearchResultList SearchResults="SearchResultsGrouped" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
                     </div>
                     <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="map">
                         <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />

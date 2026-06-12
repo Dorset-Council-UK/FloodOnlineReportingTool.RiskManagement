@@ -301,8 +301,8 @@ public partial class Results(ILogger<Results> logger,
         {
             sb.Append($"<strong>Flooding started:</strong> {report.ImpactStartUtc.Value:d MMMM yyyy}<br/>");
         }
-        var sources = report.Causes.Count > 0 ? string.Join(", ", report.Causes.Select(s => s.Name)) : "No flooding sources identified";
-        sb.Append($"<strong>Sources:</strong> {sources}<br/>");
+        var causes = report.Causes.Count > 0 ? string.Join(", ", report.Causes.Select(s => s.Name)) : "No flooding causes identified";
+        sb.Append($"<strong>Causes:</strong> {causes}<br/>");
         sb.Append($"<strong>Created:</strong> {report.CreatedUtc:d MMMM yyyy}<br/>");
 
         if (report.UpdatedUtc is not null)

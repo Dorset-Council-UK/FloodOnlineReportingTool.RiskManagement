@@ -5,6 +5,8 @@
     <button class="govuk-button @(!_showGrouped ? "" : "govuk-button--secondary")" @onclick="() => _showGrouped = false">Flat</button>
 </div>
 
+<div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.Results.Sum(r => r.SourceRecords.Count) sources</div>
+
 <div class="grid">
     @if (_showGrouped)
     {
@@ -52,7 +54,7 @@
                                 <td class="govuk-table__cell">@source.ImpactStartUtc.GdsReadable()</td>
                                 <td class="govuk-table__cell">@source.CreatedUtc.GdsReadable()</td>
                                 <td class="govuk-table__cell">
-                                    @(source.Causes.Count > 0 ? string.Join(", ", source.Causes.Select(c => c.Name)) : "No flooding sources identified")
+                                    @(source.Causes.Count > 0 ? string.Join(", ", source.Causes.Select(c => c.Name)) : "No flooding causes identified")
                                 </td>
                             </tr>
                         }
