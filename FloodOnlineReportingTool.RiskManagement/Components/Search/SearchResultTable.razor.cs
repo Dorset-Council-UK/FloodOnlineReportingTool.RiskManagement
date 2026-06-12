@@ -13,6 +13,7 @@ public partial class SearchResultTable
     public EventCallback<int> OnPageChanged { get; set; }
 
     private readonly HashSet<Guid> _expandedRows = [];
+    private bool _showGrouped = true;
 
     private void Toggle(Guid id)
     {
@@ -21,4 +22,26 @@ public partial class SearchResultTable
             _expandedRows.Add(id);
         }
     }
+
+    private IQueryable<FlatSourceRow> FlatItems =>
+        SearchResults.Results
+            .OrderBy(r => r.Reference)
+            .SelectMany(r => r.SourceRecords.Select(s => new FlatSourceRow(
+                r.Reference,
+                s.Reference,
+                s.ViewUri,
+                s.ImpactStartUtc,
+                s.CreatedUtc,
+                s.Causes.Count > 0 ? string.Join(", ", s.Causes.Select(c => c.Name)) : "No flooding sources identified"
+            )))
+            .AsQueryable();
+
+    private record FlatSourceRow(
+        string ReportReference,
+        string SourceReference,
+        Uri ViewUri,
+        DateTimeOffset? ImpactStartUtc,
+        DateTimeOffset CreatedUtc,
+        string CausesDisplay
+    );
 }

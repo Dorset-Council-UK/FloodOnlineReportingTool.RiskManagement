@@ -6,6 +6,12 @@
     vertical-align: top;
 }
 
+::deep .govuk-table th button {
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+}
+
 ::deep .govuk-table td {
     padding: 10px;
     border-bottom: 1px solid #b1b4b6;
