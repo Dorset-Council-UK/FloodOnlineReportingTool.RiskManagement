@@ -1,6 +1,3 @@
-@using FloodOnlineReportingTool.Contracts.Shared.Search
-@using FloodOnlineReportingTool.RiskManagement.Models.Search
-
 <div class="grid">
     <table class="govuk-table">
         <thead class="govuk-table__head">
@@ -26,7 +23,7 @@
                         </button>
                     </td>
                     <td class="govuk-table__cell" colspan="5">
-                        <span class="govuk-!-font-weight-bold">@row.Reference</span>
+                        <span class="govuk-!-font-weight-bold"><a class="govuk-link report-toggle-link" @onclick="() => Toggle(row.Id)">@row.Reference</a></span>
                         <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">@row.RecordStatus</strong>
                         <span class="govuk-body-s govuk-!-margin-left-2 source-count">
                             @row.SourceRecords.Count @(row.SourceRecords.Count == 1 ? "source" : "sources")

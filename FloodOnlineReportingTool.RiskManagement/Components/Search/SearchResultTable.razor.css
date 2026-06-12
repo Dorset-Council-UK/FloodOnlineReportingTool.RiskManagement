@@ -7,7 +7,7 @@
 }
 
 ::deep .govuk-table td {
-    padding: 10px 20px 10px 0;
+    padding: 10px;
     border-bottom: 1px solid #b1b4b6;
     text-align: left;
     vertical-align: top;
@@ -19,14 +19,13 @@
 }
 
 ::deep .toggle-btn {
-    appearance: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.75rem;
-    color: #1d70b8;
-    padding: 0;
-    line-height: 1;
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #05476d;
+  padding: 0;
+  line-height: 1;
 }
 
 ::deep .toggle-btn:hover {
@@ -35,6 +34,11 @@
 
 ::deep .report-row td {
     background-color: #f3f2f1;
+}
+
+::deep .report-row .report-toggle-link {
+  cursor: pointer;
+  color: #1d70b8;
 }
 
 ::deep .source-row td {
