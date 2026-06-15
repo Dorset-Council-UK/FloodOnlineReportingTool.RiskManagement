@@ -32,7 +32,7 @@ public partial class SearchResultTable
                 s.ViewUri,
                 s.ImpactStartUtc,
                 s.CreatedUtc,
-                s.Causes.Count > 0 ? string.Join(", ", s.Causes.Select(c => c.Name)) : "No flooding sources identified"
+                s.Causes.Count > 0 ? string.Join(", ", s.Causes.Select(c => c.Name)) : "No flooding causes identified"
             )))
             .AsQueryable();
 
