@@ -34,7 +34,15 @@
                             </button>
                         </td>
                         <td class="govuk-table__cell" colspan="5">
-                            <span class="govuk-!-font-weight-bold"><a href="#" class="govuk-link report-toggle-link" @onclick="() => Toggle(row.Id)" @onclick:preventDefault="true">@row.Reference</a></span>
+                            <span class="govuk-!-font-weight-bold">
+                                <button type="button"
+                                        class="report-toggle-link"
+                                        @onclick="() => Toggle(row.Id)"
+                                        aria-expanded="@isExpanded.ToString().ToLowerInvariant()"
+                                        aria-label="@(isExpanded ? "Collapse" : "Expand") sources for @row.Reference">
+                                    @row.Reference
+                                </button>
+                            </span>
                             <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">@row.RecordStatus</strong>
                             <span class="govuk-body-s govuk-!-margin-left-2 source-count">
                                 @row.SourceRecords.Count @(row.SourceRecords.Count == 1 ? "source" : "sources")
