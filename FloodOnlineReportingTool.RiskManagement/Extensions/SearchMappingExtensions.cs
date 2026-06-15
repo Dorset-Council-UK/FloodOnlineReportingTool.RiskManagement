@@ -69,18 +69,21 @@ internal static class SearchMappingExtensions
             return null;
         }
 
+        var statusById = reportStatuses
+            .GroupBy(s => s.Id)
+            .ToDictionary(g => g.Key, g => g.First().Text);
+
         var items = source.Results
             .Select(r =>
             {
-                var statusName = reportStatuses
-                    .FirstOrDefault(s => s.Id == r.RecordStatusId)?.Text ?? string.Empty;
+                statusById.TryGetValue(r.RecordStatusId, out var statusName);
 
                 return new FloodReportTableRow
                 {
                     Id = r.Id,
                     Reference = r.Reference,
-                    RecordStatus = statusName,
-                    SourceRecords = r.SourceRecords
+                    RecordStatus = statusName ?? string.Empty,
+                    SourceRecords = r.SourceRecords,
                 };
             })
             .ToList();
