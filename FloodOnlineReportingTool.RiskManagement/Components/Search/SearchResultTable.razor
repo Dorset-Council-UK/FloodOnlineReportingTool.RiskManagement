@@ -1,8 +1,8 @@
 @using Microsoft.AspNetCore.Components.QuickGrid
 
 <div class="govuk-button-group govuk-!-margin-bottom-3">
-    <button class="govuk-button @(_showGrouped ? "" : "govuk-button--secondary")" @onclick="() => _showGrouped = true">Grouped</button>
-    <button class="govuk-button @(!_showGrouped ? "" : "govuk-button--secondary")" @onclick="() => _showGrouped = false">Flat</button>
+    <button type="button" class="govuk-button @(_showGrouped ? "" : "govuk-button--secondary")" @onclick="() => _showGrouped = true">Grouped</button>
+    <button type="button" class="govuk-button @(!_showGrouped ? "" : "govuk-button--secondary")" @onclick="() => _showGrouped = false">Flat</button>
 </div>
 
 <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.Results.Sum(r => r.SourceRecords.Count) sources</div>
@@ -34,7 +34,7 @@
                             </button>
                         </td>
                         <td class="govuk-table__cell" colspan="5">
-                            <span class="govuk-!-font-weight-bold"><a class="govuk-link report-toggle-link" @onclick="() => Toggle(row.Id)">@row.Reference</a></span>
+                            <span class="govuk-!-font-weight-bold"><a href="#" class="govuk-link report-toggle-link" @onclick="() => Toggle(row.Id)" @onclick:preventDefault="true">@row.Reference</a></span>
                             <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">@row.RecordStatus</strong>
                             <span class="govuk-body-s govuk-!-margin-left-2 source-count">
                                 @row.SourceRecords.Count @(row.SourceRecords.Count == 1 ? "source" : "sources")
