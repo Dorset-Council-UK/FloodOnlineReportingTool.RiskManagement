@@ -13,11 +13,11 @@ internal static class SearchMappingExtensions
     /// <summary>
     /// Creates a PagedResult from API return.
     /// </summary>
-    internal static PagedResult<FloodResultItem>? ToFloodResultItem(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
+    internal static PagedResult<FloodResultItem> ToFloodResultItem(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
     {
         if (source is null)
         {
-            return null;
+            return new PagedResult<FloodResultItem>([], 0, 0, 0, 0);
         }
 
         var items = source.Results
@@ -56,7 +56,41 @@ internal static class SearchMappingExtensions
             Organisations = sr.Organisations
         });
     }
-    
+
+    /// <summary>
+    /// Groups a paged API result into one <see cref="FloodReportTableRow"/> per
+    /// <see cref="SearchResultFloodReport"/>, preserving the source records collection
+    /// for display in an expandable table.
+    /// </summary>
+    internal static PagedResult<FloodReportTableRow> ToFloodReportTableRows(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
+    {
+        if (source is null)
+        {
+            return new PagedResult<FloodReportTableRow>([], 0, 0, 0, 0);
+        }
+
+        var statusById = reportStatuses
+            .GroupBy(s => s.Id)
+            .ToDictionary(g => g.Key, g => g.First().Text);
+
+        var items = source.Results
+            .Select(r =>
+            {
+                statusById.TryGetValue(r.RecordStatusId, out var statusName);
+
+                return new FloodReportTableRow
+                {
+                    Id = r.Id,
+                    Reference = r.Reference,
+                    RecordStatus = statusName ?? string.Empty,
+                    SourceRecords = r.SourceRecords,
+                };
+            })
+            .ToList();
+
+        return new PagedResult<FloodReportTableRow>(items, source.TotalCount, source.PageSize, source.CurrentPage, source.TotalPages);
+    }
+
 
     /// <summary>
     /// Maps SearchOptionsViewModel directly to SavedSearch entity.

@@ -13,7 +13,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
-            <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount results found</div>
+            <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.Results.Sum(r => r.SourceRecords.Count) sources</div>
             @foreach (var result in SearchResults!.Results)
             {
                 <FloodInformation SearchResult="result" />
