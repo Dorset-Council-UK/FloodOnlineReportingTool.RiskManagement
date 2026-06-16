@@ -13,11 +13,11 @@ internal static class SearchMappingExtensions
     /// <summary>
     /// Creates a PagedResult from API return.
     /// </summary>
-    internal static PagedResult<FloodResultItem>? ToFloodResultItem(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
+    internal static PagedResult<FloodResultItem> ToFloodResultItem(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
     {
         if (source is null)
         {
-            return null;
+            return new PagedResult<FloodResultItem>([], 0, 0, 0, 0);
         }
 
         var items = source.Results
@@ -62,11 +62,11 @@ internal static class SearchMappingExtensions
     /// <see cref="SearchResultFloodReport"/>, preserving the source records collection
     /// for display in an expandable table.
     /// </summary>
-    internal static PagedResult<FloodReportTableRow>? ToFloodReportTableRows(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
+    internal static PagedResult<FloodReportTableRow> ToFloodReportTableRows(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
     {
         if (source is null)
         {
-            return null;
+            return new PagedResult<FloodReportTableRow>([], 0, 0, 0, 0);
         }
 
         var statusById = reportStatuses

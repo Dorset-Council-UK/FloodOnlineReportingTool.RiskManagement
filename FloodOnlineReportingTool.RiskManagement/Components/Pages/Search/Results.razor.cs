@@ -163,7 +163,8 @@ public partial class Results(ILogger<Results> logger,
                                                                         null,
                                                                         SearchResultsViewModel.ByPostcode,
                                                                         SearchResultsViewModel.ByPolygon,
-                                                                        pageNumber);
+                                                                        pageNumber,
+                                                                        ct: _cts.Token);
             SearchResults = rawResult.ToFloodResultItem(_reportStatuses);
             SearchResultsGrouped = rawResult.ToFloodReportTableRows(_reportStatuses);
 
