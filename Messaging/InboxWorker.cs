@@ -24,7 +24,7 @@ public sealed class InboxWorker(
             ?? throw new InvalidOperationException("Missing configuration setting: 'Inbox:SubscriptionName' is required.");
 
         string? suffix = configuration["Messaging:TopicSuffix"];
-        string topicName = string.IsNullOrWhiteSpace(suffix) ? TopicNames.FloodReportSourceCreated : $"{TopicNames.FloodReportSourceCreated}{suffix}";
+        string topicName = string.IsNullOrWhiteSpace(suffix) ? TopicNames.FloodReportCreated : $"{TopicNames.FloodReportCreated}{suffix}";
 
         logger.LogInformation("Service bus processor starting...");
 
