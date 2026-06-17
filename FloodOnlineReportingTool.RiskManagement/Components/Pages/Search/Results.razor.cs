@@ -1,6 +1,7 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models;
@@ -106,7 +107,7 @@ public partial class Results(
                 {
                     Guid savedSearchId = searchRedirect.Id.Value;
                     var savedSearch = await savedSearchRepository.Get(savedSearchId, _cts.Token);
-                    SearchResultsViewModel = savedSearch?.SavedSearchToResultsView() ?? new SearchResultsViewModel();
+                    SearchResultsViewModel = savedSearch?.ToSearchResultsViewModel() ?? new SearchResultsViewModel();
                     SearchResultsViewModel.SearchReference = SearchReference;
                     searchResultsState.SetResultOptions(SearchResultsViewModel);
                 }
