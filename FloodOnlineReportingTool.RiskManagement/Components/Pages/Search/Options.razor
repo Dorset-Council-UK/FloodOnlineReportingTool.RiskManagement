@@ -26,79 +26,82 @@ else
                 }
 
                 <div class="govuk-form-group">
-                    <fieldset class="govuk-fieldset">
-                        <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                            <h2 class="govuk-fieldset__heading">Search options</h2>
-                        </legend>
-                        <div class="govuk-grid-row">
-                            <div class="govuk-grid-column-one-half">
-                                <GdsInputDate Id="search-start" For="() => Model.FromDate">
-                                    <Heading>
-                                        <GdsLabel For="Model.FromDate" Text="Reports from" />
-                                    </Heading>
-                                </GdsInputDate>
-                            </div>
-                            <div class="govuk-grid-column-one-half">
-                                <GdsInputDate Id="search-end" For="() => Model.ToDate">
-                                    <Heading>
-                                        <GdsLabel For="Model.ToDate" Text="Report until" />
-                                    </Heading>
-                                </GdsInputDate>
-                            </div>   
-                        </div>
-                    </fieldset>
+                    <GdsFieldsetGroup LegendTextSize="GdsSize.Medium">
+                        <Heading>
+                            <GdsHeading Level="2" class="govuk-fieldset__heading">Search options</GdsHeading>
+                        </Heading>
+                        <Content>
+                            <GdsGridRow>
+                                <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                                    <GdsInputDate Id="search-start" For="() => Model.FromDate">
+                                        <Heading>
+                                            <GdsLabel For="Model.FromDate" Text="Reports from" />
+                                        </Heading>
+                                    </GdsInputDate>
+                                </GdsGridColumn>
+                                <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                                    <GdsInputDate Id="search-end" For="() => Model.ToDate">
+                                        <Heading>
+                                            <GdsLabel For="Model.ToDate" Text="Report until" />
+                                        </Heading>
+                                    </GdsInputDate>
+                                </GdsGridColumn>
+                            </GdsGridRow>
+                        </Content>
+                    </GdsFieldsetGroup>
                 </div>
 
                 <div class="govuk-form-group">
-                    <fieldset class="govuk-fieldset">
-                        <div class="govuk-grid-row">
-                            <div class="govuk-grid-column-one-half">
+                    <GdsFieldsetGroup>
+                        <GdsGridRow>
+                            <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                                 <GdsFormGroup For="() => Model.ByPersonsName">
                                     <GdsLabel Text="Search for reports by the person's name" />
                                     <GdsErrorMessage />
                                     <GdsInputText @bind-Value=Model.ByPersonsName class="govuk-input govuk-input--width-50" disabled="@(!_canEdit)" />
                                 </GdsFormGroup>
-                            </div>
-                            <div class="govuk-grid-column-one-half">
+                            </GdsGridColumn>
+                            <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                                 <GdsFormGroup For="() => Model.ByPostcode">
                                     <GdsLabel Text="Search by affected postcode" />
                                     <GdsErrorMessage />
                                     <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" disabled="@(!_canEdit)" />
                                 </GdsFormGroup>
-                            </div>
-                        </div>
-                    </fieldset>
+                            </GdsGridColumn>
+                        </GdsGridRow>
+                    </GdsFieldsetGroup>
                 </div>
 
                 <div class="govuk-form-group">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <fieldset class="govuk-fieldset">
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                            <GdsFieldsetGroup>
                                 <GdsLabel Text="Filter results by the source of flooding" />
                                 <GdsHint>Select all that apply</GdsHint>
                                 <GdsErrorMessage />
-                                <GdsCheckboxes Smaller="true" Options="_floodSourceOptions" />
-                            </fieldset>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
+                                <GdsCheckboxes Smaller Options="_floodSourceOptions" />
+                            </GdsFieldsetGroup>
+                        </GdsGridColumn>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                             <div style="height:400px;" class="govuk-!-margin-bottom-2">
                                 <MiniMap Geometry="Model.ByPolygon"></MiniMap>
                             </div>
-                            <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="@GoToMap" Text="Add or modify search area" disabled="@(!_canEdit)" />
-                        </div>
-                    </div>
+                            <GdsButton IsSubmit="false" PreventDoubleClick AdditionalCssClasses="govuk-button--secondary" OnClick="@GoToMap" Text="Add or modify search area" disabled="@(!_canEdit)" />
+                        </GdsGridColumn>
+                    </GdsGridRow>
                 </div>
 
                 @if (_canEdit)
                 {
                     <div class="govuk-form-group">
-                        <fieldset class="govuk-fieldset">
-                            <div class="govuk-grid-row">
-                                <div class="govuk-grid-column-full">
+                        <GdsFieldsetGroup>
+                            <GdsGridRow>
+                                <GdsGridColumn Width="GdsGridColumnWidth.Full">
                                     <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button>
-                                </div>
-                            </div>
-                        </fieldset>
+                                    <GdsButton IsSubmit PreventDoubleClick Text="Search" />
+                                </GdsGridColumn>
+                            </GdsGridRow>
+                        </GdsFieldsetGroup>
                     </div>
                 }
             </EditForm>

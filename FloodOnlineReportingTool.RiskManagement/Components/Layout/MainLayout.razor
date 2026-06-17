@@ -16,15 +16,15 @@
     </NavLinks>
 </GdsHeader>
 
-<div class="govuk-width-container">
+<GdsContainer>
     <GdsPhaseBanner Phase="@_phase" FeedbackLink="_feedbackUri" />
 
     <SectionOutlet SectionName="Layout.GdsBreadcrumbs" />
 
-    <main class="govuk-main-wrapper govuk-body" id="main-content" role="main">
+    <GdsMainWrapper AdditionalCssClasses="govuk-body" id="main-content">
         @Body
-    </main>
-</div>
+    </GdsMainWrapper>
+</GdsContainer>
 
 <GdsFooter />
 
