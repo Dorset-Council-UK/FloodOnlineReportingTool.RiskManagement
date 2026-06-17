@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -37,6 +38,7 @@ public partial class Options(
     private readonly CancellationTokenSource _cts = new();
     private ValidationMessageStore _messageStore = default!;
     private bool _isLoading = true;
+    private bool _canEdit;
 
     [Parameter]
     public string? SearchReference { get; set; }
@@ -46,10 +48,13 @@ public partial class Options(
     protected override void OnInitialized()
     {
         // Setup model and edit context
-        Model ??= new();
-        EditContext = new(Model);
-        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        _messageStore = new(EditContext);
+        if (Model is null)
+        {
+            Model = new();
+            EditContext = new(Model);
+            EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+            _messageStore = new(EditContext);
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -64,7 +69,10 @@ public partial class Options(
         {
             // Replace the stored model with the details from the saved search by reference
             var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
-            options = savedSearch?.SavedSearchToOptionsView();
+            if (savedSearch is not null)
+            {
+                options = savedSearch.ToSearchOptionsViewModel();
+            }
         }
         if (options is not null)
         {
@@ -72,6 +80,7 @@ public partial class Options(
             EditContext = new(Model);
             EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
             Model.SearchReference = SearchReference;
+            _canEdit = options.OverrideLock || !options.IsSavedSearchLocked;
         }
 
         SetGdsOptions();
@@ -95,6 +104,14 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        if (!_canEdit)
+        {
+            var errorField = EditContext.Field(nameof(Model.SearchReference));
+            _messageStore.Add(errorField, "This search is locked and cannot be modified");
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
+
         if (EditContext.Validate())
         {
             await OnValidSubmit();
@@ -162,7 +179,14 @@ public partial class Options(
     {
         Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         searchOptionsState.SetOptions(Model);
-        navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
+
+        if (SearchReference is null)
+        {
+            navigationManager.NavigateTo(SearchPages.OptionsMap.Url);
+            return;
+        }
+
+        navigationManager.NavigateTo($"{SearchPages.OptionsMap.Url}/{SearchReference}");
     }
 
     private void SetGdsOptions()
