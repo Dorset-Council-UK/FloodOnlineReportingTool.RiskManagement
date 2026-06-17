@@ -990,6 +990,40 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging.OutboxMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Created")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("Delivered")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErrorReason")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OutboxMessages", "fortriskmanagement");
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.SavedSearch", b =>
                 {
                     b.Property<Guid>("Id")

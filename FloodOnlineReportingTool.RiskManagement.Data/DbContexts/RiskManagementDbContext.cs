@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<FloodProblem> FloodProblems { get; set; }
     public DbSet<ReportStatus> ReportStatuses { get; set; }
     public DbSet<DownstreamApiLayer> DownstreamApiLayers { get; set; }
+
+    public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
