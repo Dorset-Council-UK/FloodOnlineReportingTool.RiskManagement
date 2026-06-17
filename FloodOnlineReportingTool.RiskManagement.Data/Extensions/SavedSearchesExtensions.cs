@@ -1,6 +1,6 @@
 ﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
-internal static class SavedSearchesExtensions
+public static class SavedSearchesExtensions
 {
     extension(SavedSearch savedSearch)
     {
@@ -28,5 +28,11 @@ internal static class SavedSearchesExtensions
                 ? SavedSearchDuplicateCheck.Duplicate(savedSearch)
                 : SavedSearchDuplicateCheck.NotDuplicate();
         }
+
+        /// <summary>
+        ///     <para>Is this saved search locked?</para>
+        ///     <para>A saved search is considered locked if it is associated with a flood event, meaning it cannot be modified or deleted.</para>
+        /// </summary>
+        public bool IsLocked => savedSearch.FloodEventId is not null;
     }
 }
