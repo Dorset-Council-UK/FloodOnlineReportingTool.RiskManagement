@@ -1,3 +1,5 @@
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -7,15 +9,15 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using NetTopologySuite.Geometries;
-using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class OptionsMap(
     ILogger<OptionsMap> logger,
     IGeoServerClient geoServerClient,
-    NavigationManager navigationManager,
-    ISearchOptionsState searchOptionsState
+    ISavedSearchRepository savedSearchRepository,
+    ISearchOptionsState searchOptionsState,
+    NavigationManager navigationManager
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.OptionsMap.Title;
@@ -26,6 +28,10 @@ public partial class OptionsMap(
         SearchPages.Options.ToGdsBreadcrumb(),
     ];
 
+    [Parameter]
+    public string? SearchReference { get; set; }
+    private string PreviousPageUrl => SearchReference is null ? SearchPages.Options.Url : $"{SearchPages.Options.Url}/{SearchReference}";
+
     private SearchOptionsViewModel Model { get; set; } = default!;
 
     private EditContext EditContext = default!;
@@ -33,6 +39,7 @@ public partial class OptionsMap(
     private EditContext digitisingContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
+    private bool _canEdit;
 
     private string _searchTerm = string.Empty;
     private bool _isSearching = false;
@@ -64,27 +71,29 @@ public partial class OptionsMap(
     {
         if (firstRender)
         {
-            var options = searchOptionsState.Options;
             // GdsInputDate caches the GdsDate object reference on first render, so the existing
             // objects must be mutated in-place rather than replaced to keep the component in sync.
+            var options = searchOptionsState.Options;
+            if (SearchReference is not null && !string.Equals(options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+            {
+                // Replace the stored model with the details from the saved search by reference
+                var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+                if (savedSearch is not null)
+                {
+                    options = savedSearch.ToSearchOptionsViewModel();
+                }
+            }
             if (options is not null)
             {
                 Model = options;
-                EditContext = new EditContext(Model);
+                EditContext = new(Model);
                 EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+                Model.SearchReference = SearchReference;
+                _canEdit = options.OverrideLock || !options.IsSavedSearchLocked;
+
                 // Reuse the same EditContext instance for all sections to keep validation state consistent
                 regionContext = EditContext;
                 digitisingContext = EditContext;
-                Model.FromDate.DayText = options.FromDate.DayText;
-                Model.FromDate.MonthText = options.FromDate.MonthText;
-                Model.FromDate.YearText = options.FromDate.YearText;
-                Model.ToDate.DayText = options.ToDate.DayText;
-                Model.ToDate.MonthText = options.ToDate.MonthText;
-                Model.ToDate.YearText = options.ToDate.YearText;
-                Model.ByPostcode = options.ByPostcode;
-                Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodSource = options.ByFloodSource;
-                Model.ByPolygon = options.ByPolygon;
             }
 
             _isLoading = false;
@@ -105,20 +114,18 @@ public partial class OptionsMap(
                 _searchCts.Dispose();
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected during normal cancellation; no action required.
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(OptionsMap));
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private void SaveAndReturn()
     {
         searchOptionsState.SetOptions(Model);
-        navigationManager.NavigateTo(SearchPages.Options.Url);
+        navigationManager.NavigateTo(PreviousPageUrl);
     }
 
     private async Task OnSearch()
@@ -140,7 +147,10 @@ public partial class OptionsMap(
     private async Task SearchAsync(string searchTerm)
     {
         // Cancel any pending search
-        _searchCts?.Cancel();
+        if (_searchCts != null)
+        {
+            await _searchCts.CancelAsync();
+        }
         _searchCts = new CancellationTokenSource();
         
         try
