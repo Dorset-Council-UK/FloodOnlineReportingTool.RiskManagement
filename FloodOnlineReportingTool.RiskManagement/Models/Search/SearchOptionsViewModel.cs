@@ -1,5 +1,4 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Converters;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using GdsBlazorComponents;
 using NetTopologySuite.Geometries;
 using System.Text.Json.Serialization;
@@ -29,4 +28,15 @@ public class SearchOptionsViewModel : ISearchOptions
     public string? ByPersonsName { get; set; }
     [JsonConverter(typeof(MultiPolygonJsonConverter))]
     public MultiPolygon? ByPolygon { get; set; }
+
+    /// <summary>
+    /// Is the saved search locked for editing.
+    /// </summary>
+    public bool IsSavedSearchLocked { get; set; }
+
+    /// <summary>
+    ///     <para>From the flood event, the user can override the lock and edit the search options</para>
+    ///     <para>This takes precidence over <see cref="IsSavedSearchLocked"/></para>
+    /// </summary>
+    public bool OverrideLock { get; set; }
 }

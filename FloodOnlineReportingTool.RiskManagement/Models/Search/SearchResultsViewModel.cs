@@ -40,4 +40,15 @@ public class SearchResultsViewModel : ISearchOptions
     public ICollection<Guid> LimitByStatus { get; init; } = [];
 
     public int? PageNumber { get; set; }
+
+    /// <summary>
+    /// Is the saved search locked for editing.
+    /// </summary>
+    public bool IsSavedSearchLocked { get; set; }
+
+    /// <summary>
+    ///     <para>From the flood event, the user can override the lock and edit the search options</para>
+    ///     <para>This takes precidence over <see cref="IsSavedSearchLocked"/></para>
+    /// </summary>
+    public bool OverrideLock { get; set; }
 }
