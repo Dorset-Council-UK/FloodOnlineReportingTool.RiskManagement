@@ -1,5 +1,4 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -45,7 +44,7 @@ public partial class Options(
 
     private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         // Setup model and edit context
         if (Model is null)
@@ -55,35 +54,35 @@ public partial class Options(
             EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
             _messageStore = new(EditContext);
         }
+
+        _floodSourceOptions = await CreateFloodSourceOptions();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        // Configure option lists once on page load - No selections these are fixed option lists
-        _floodSourceOptions = _floodSourceOptions.Count == 0 ? await CreateFloodSourceOptions() : _floodSourceOptions;
-
-        // GdsInputDate caches the GdsDate object reference on first render, so the existing
-        // objects must be mutated in-place rather than replaced to keep the component in sync.
-        var options = searchOptionsState.Options;
-        if (SearchReference is not null && !string.Equals(options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        // 1. data from repository
+        bool hasReferenceChanged = SearchReference is not null && !string.Equals(searchOptionsState.Options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase);
+        if (hasReferenceChanged)
         {
-            // Replace the stored model with the details from the saved search by reference
-            var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+            var savedSearch = await savedSearchRepository.Get(SearchReference!, _cts.Token);
             if (savedSearch is not null)
             {
-                options = savedSearch.ToSearchOptionsViewModel();
+                Model.CopyFrom(savedSearch);
+                UpdateSelectedFloodSourceOptions();
             }
         }
-        if (options is not null)
+
+        // 2. State - for example returning from the options map page
+        if (!hasReferenceChanged && searchOptionsState.Options is not null)
         {
-            Model = options;
-            EditContext = new(Model);
-            EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-            Model.SearchReference = SearchReference;
-            _canEdit = options.OverrideLock || !options.IsSavedSearchLocked;
+            Model.CopyFrom(searchOptionsState.Options);
+            UpdateSelectedFloodSourceOptions();
         }
 
-        SetGdsOptions();
+        // 3. Page parameters
+        Model.SearchReference = SearchReference;
+        _canEdit = Model.OverrideLock || !Model.IsSavedSearchLocked;
+
         _isLoading = false;
     }
 
@@ -189,18 +188,24 @@ public partial class Options(
         navigationManager.NavigateTo($"{SearchPages.OptionsMap.Url}/{SearchReference}");
     }
 
-    private void SetGdsOptions()
+    private void FloodSourceChanged(GdsOptionItem<Guid> option)
     {
-        foreach(var options in _floodSourceOptions)
+        if (option.Selected)
         {
-            if (Model.ByFloodSource.Contains(options.Value))
-            {
-                options.Selected = true;
-            }
-            else
-            {
-                options.Selected = false;
-            }
+            Model.ByFloodSource.Add(option.Value);
+        }
+        else
+        {
+            Model.ByFloodSource.Remove(option.Value);
+        }
+    }
+
+    private void UpdateSelectedFloodSourceOptions()
+    {
+        var currentlySelected = Model.ByFloodSource.ToHashSet();
+        foreach (var option in _floodSourceOptions)
+        {
+            option.Selected = currentlySelected.Contains(option.Value);
         }
     }
 
@@ -211,12 +216,12 @@ public partial class Options(
         return [.. floodProblems.Select((o, idx) => CreateFloodOption(o, idPrefix))];
     }
 
-    private static GdsOptionItem<Guid> CreateFloodOption(FloodProblem floodProblem, string idPrefix)
+    private GdsOptionItem<Guid> CreateFloodOption(FloodProblem floodProblem, string idPrefix)
     {
         var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
         var label = floodProblem.TypeName.AsSpan();
+        var selected = Model.ByFloodSource.Contains(floodProblem.Id);
 
-        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, false);
+        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
     }
-
 }
