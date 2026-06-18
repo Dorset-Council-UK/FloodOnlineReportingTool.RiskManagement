@@ -84,9 +84,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<int>("EventAction")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("FloodEventId")
                         .HasColumnType("uuid");
 

@@ -29,7 +29,7 @@ public class EventLogRepository(
         }
         var floodEventId = savedSearch.FloodEventId;
 
-        var existingRecord = context.EventLogs.Where(el => el.EventId == floodEventId && el.EventAction == EventLogType).AsNoTracking().SingleOrDefault();
+        var existingRecord = context.EventLogs.Where(el => el.FloodEventId == floodEventId && el.EventAction == EventLogType).AsNoTracking().SingleOrDefault();
 
         if (existingRecord is not null)
         {
@@ -46,7 +46,7 @@ public class EventLogRepository(
         var newAction = new EventLog
         {
             Id = Guid.NewGuid(),
-            EventId = floodEvent.Id,
+            FloodEventId = floodEvent.Id,
             FloodEvent = floodEvent,
 
             LoggedAt = DateTimeOffset.UtcNow,

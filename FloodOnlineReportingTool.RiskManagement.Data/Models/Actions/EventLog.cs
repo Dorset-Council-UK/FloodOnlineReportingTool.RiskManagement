@@ -7,7 +7,7 @@ public record EventLog
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
     // Linked flood event
-    public required Guid EventId { get; init; }
+    public required Guid FloodEventId { get; init; }
     public FloodEvent FloodEvent { get; init; } = null!;
 
     public DateTimeOffset LoggedAt { get; init; } = DateTimeOffset.UtcNow;
