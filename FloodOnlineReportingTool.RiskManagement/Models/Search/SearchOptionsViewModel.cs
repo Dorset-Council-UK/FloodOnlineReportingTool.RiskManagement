@@ -35,8 +35,8 @@ public class SearchOptionsViewModel : ISearchOptions
     public bool IsSavedSearchLocked { get; set; }
 
     /// <summary>
-    ///     <para>From the flood event, the user can override the lock and edit the search options</para>
-    ///     <para>This takes precidence over <see cref="IsSavedSearchLocked"/></para>
+    /// From the flood event, the user can override the lock and edit the search options.
     /// </summary>
+    /// <remarks>This takes precidence over <see cref="IsSavedSearchLocked"/>.</remarks>
     public bool OverrideLock { get; set; }
 }
