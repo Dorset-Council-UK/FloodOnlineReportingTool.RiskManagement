@@ -15,9 +15,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.6" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.2" />
-  </ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="10.0.1" />
 
   <ItemGroup>
     <ProjectReference Include="..\FloodOnlineReportingTool.RiskManagement.Data\FloodOnlineReportingTool.RiskManagement.Data.csproj" />

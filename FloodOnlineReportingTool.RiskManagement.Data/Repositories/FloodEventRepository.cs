@@ -76,7 +76,7 @@ public class FloodEventRepository(
         if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
         {
             // Trigger an investigation request if not already done.
-            _ = eventLogRepository.CreateEventLog(savedSearchId, Models.Enums.ActionEventTypes.TriggerInvestigation, ct);
+            await eventLogRepository.CreateEventLog(savedSearchId, Models.Enums.ActionEventTypes.TriggerInvestigation, ct);
         }
 
         return existingSearch;

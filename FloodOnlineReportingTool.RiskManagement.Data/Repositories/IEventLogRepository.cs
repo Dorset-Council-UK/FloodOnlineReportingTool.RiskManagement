@@ -5,7 +5,5 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public interface IEventLogRepository
-{
-    Task<CreateOrUpdateResult<EventLog>> CreateEventLog(Guid FloodEventId, ActionEventTypes EventLogType, CancellationToken ct);
-    Task<GetResult<EventLog>> GetEventLogById(Guid eventLogId, CancellationToken ct);
+    Task<CreateOrUpdateResult<EventLog>> CreateEventLog(Guid savedSearchId, ActionEventTypes eventLogType, CancellationToken ct);
 }

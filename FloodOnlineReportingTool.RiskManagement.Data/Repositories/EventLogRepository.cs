@@ -6,7 +6,6 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
@@ -17,11 +16,11 @@ public class EventLogRepository(
 {
     private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
 
-    public async Task<CreateOrUpdateResult<EventLog>> CreateEventLog(Guid SearchedSearchId, ActionEventTypes EventLogType, CancellationToken ct)
+    public async Task<CreateOrUpdateResult<EventLog>> CreateEventLog(Guid savedSearchId, ActionEventTypes eventLogType, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
-        var savedSearch = context.SavedSearches.Where(ss => ss.Id == SearchedSearchId).AsNoTracking().SingleOrDefault();
+        var savedSearch = await context.SavedSearches.AsNoTracking().SingleOrDefaultAsync(ss => ss.Id == savedSearchId, ct);
 
         if (savedSearch is null)
         {
@@ -36,7 +35,7 @@ public class EventLogRepository(
             return CreateOrUpdateResult<EventLog>.Failure(["Already has a record, don't add a second"]);
         }
 
-        var floodEvent = context.FloodEvents.Where(fe => fe.Id == floodEventId).AsNoTracking().SingleOrDefault();
+        var floodEvent = await context.FloodEvents.SingleOrDefaultAsync(fe => fe.Id == floodEventId, ct);
         if (floodEvent is null)
         {
             return CreateOrUpdateResult<EventLog>.Failure(["Flood event not found"]);
@@ -51,10 +50,10 @@ public class EventLogRepository(
 
             LoggedAt = DateTimeOffset.UtcNow,
             ActionedRequestByUserId = null,
-            EventAction = EventLogType
+            EventAction = eventLogType
         };
 
-        switch (EventLogType)
+        switch (eventLogType)
         {
             case ActionEventTypes.TriggerInvestigation:
                 // Send a message to trigger the investigation
@@ -73,11 +72,8 @@ public class EventLogRepository(
             default:
                 break;
         }
-        await context.SaveChangesAsync(ct);
-
         context.EventLogs.Add(newAction);
         await context.SaveChangesAsync(ct);
-
         return CreateOrUpdateResult<EventLog>.Success(newAction);
     }
 
