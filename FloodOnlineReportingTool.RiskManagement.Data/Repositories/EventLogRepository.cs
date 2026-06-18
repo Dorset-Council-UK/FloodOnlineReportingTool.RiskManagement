@@ -28,7 +28,7 @@ public class EventLogRepository(
         }
         var floodEventId = savedSearch.FloodEventId;
 
-        var existingRecord = context.EventLogs.Where(el => el.FloodEventId == floodEventId && el.EventAction == eventLogType).AsNoTracking().SingleOrDefault();
+        var existingRecord = await context.EventLogs.AsNoTracking().SingleOrDefaultAsync(el => el.FloodEventId == floodEventId && el.EventAction == eventLogType, ct);
 
         if (existingRecord is not null)
         {
