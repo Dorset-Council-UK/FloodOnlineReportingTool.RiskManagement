@@ -13,6 +13,7 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<FloodEvent> FloodEvents { get; set; }
     public DbSet<FloodEventComment> FloodEventComments { get; set; }
     public DbSet<ActionLog> ActionLogs { get; set; }
+    public DbSet<EventLog> EventLogs { get; set; }
 
     public DbSet<ActionDefinition> ActionDefinitions { get; set; }
     public DbSet<CommentType> CommentTypes { get; set; }
@@ -28,11 +29,6 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(SchemaNames.RiskManagement);
-
-        // Add the inbox and outbox pattern messaging tables
-        modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxStateEntity();
-        modelBuilder.AddOutboxMessageEntity();
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(RiskManagementDbContext).Assembly);
     }

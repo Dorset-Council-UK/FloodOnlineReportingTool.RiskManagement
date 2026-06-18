@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+﻿using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
@@ -6,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
-public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : IFloodEventRepository
+public class FloodEventRepository(
+    IDbContextFactory<RiskManagementDbContext> contextFactory,
+    IEventLogRepository eventLogRepository
+    ) : IFloodEventRepository
 {
     public async Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid savedSearchId, FloodEvent floodEvent, CancellationToken ct)
     {
@@ -37,7 +41,7 @@ public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> con
         {
             // Update existing flood event with new values (except Id)
             var existingEvent = existingSearch.FloodEvent;
-            existingSearch.FloodEvent = existingEvent with
+            var updatedEvent = existingEvent with
             {
                 Id = existingEvent.Id, 
                 MitigationTaken = floodEvent.MitigationTaken,
@@ -62,9 +66,18 @@ public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> con
                 StatusNote = floodEvent.StatusNote,
                 FloodExtentConfidence = floodEvent.FloodExtentConfidence
             };
+            context.Entry(existingEvent).State = EntityState.Detached;
+            context.Entry(updatedEvent).State = EntityState.Modified;
+            existingSearch.FloodEvent = updatedEvent;
         }
-
+        
         await context.SaveChangesAsync(ct);
+
+        if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
+        {
+            // Trigger an investigation request if not already done.
+            _ = eventLogRepository.CreateEventLog(savedSearchId, Models.Enums.ActionEventTypes.TriggerInvestigation, ct);
+        }
 
         return existingSearch;
     }
