@@ -1,4 +1,5 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Converters;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using GdsBlazorComponents;
 using NetTopologySuite.Geometries;
 using System.Text.Json.Serialization;
@@ -39,4 +40,44 @@ public class SearchOptionsViewModel : ISearchOptions
     /// </summary>
     /// <remarks>This takes precidence over <see cref="IsSavedSearchLocked"/>.</remarks>
     public bool OverrideLock { get; set; }
+
+    /// <summary>
+    /// Copy the values from a <see cref="SavedSearch"/> into this view model.
+    /// </summary>
+    /// <remarks>This copies the values, never creates a new SearchOptionsViewModel.</remarks>
+    public void CopyFrom(SavedSearch savedSearch)
+    {
+        ArgumentNullException.ThrowIfNull(savedSearch);
+        
+        SearchReference = savedSearch.Reference;
+        // ByReference
+        FromDate.CopyFrom(savedSearch.ResultsFrom);
+        ToDate.CopyFrom(savedSearch.ResultsTo);
+        ByFloodSource = [.. savedSearch.FloodSources];
+        ByPostcode = string.IsNullOrWhiteSpace(savedSearch.Postcode) ? null : savedSearch.Postcode;
+        ByPersonsName = string.IsNullOrWhiteSpace(savedSearch.ReporterString) ? null : savedSearch.ReporterString;
+        ByPolygon = savedSearch.Geom;
+        IsSavedSearchLocked = savedSearch.IsLocked;
+        // OverrideLock
+    }
+
+    /// <summary>
+    /// Copy the values from another <see cref="SearchOptionsViewModel"/> into this view model.
+    /// </summary>
+    /// <remarks>This copies the values, never creates a new SearchOptionsViewModel.</remarks>
+    public void CopyFrom(SearchOptionsViewModel other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        SearchReference = other.SearchReference;
+        ByReference = other.ByReference;
+        FromDate.CopyFrom(other.FromDate);
+        ToDate.CopyFrom(other.ToDate);
+        ByFloodSource = other.ByFloodSource;
+        ByPostcode = other.ByPostcode;
+        ByPersonsName = other.ByPersonsName;
+        ByPolygon = other.ByPolygon;
+        IsSavedSearchLocked = other.IsSavedSearchLocked;
+        OverrideLock = other.OverrideLock;
+    }
 }
