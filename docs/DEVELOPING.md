@@ -51,7 +51,7 @@ To update the standards module, navigate to the `FloodOnlineReportingTool.RiskMa
 ```shell
 git submodule update
 ```
-
+ 
 ## User Secrets and Configuration
 
 You must set up user secrets for development. Run the following command in the terminal within the project folder:
