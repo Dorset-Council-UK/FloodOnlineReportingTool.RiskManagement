@@ -10,7 +10,7 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
 - **.NET**: Ensure you have the .NET 10 SDK installed.
 - **PostgreSQL 13+**: This is the default database provider. The project uses Entity Framework, making it adaptable to other providers with minimal effort.
 - **PostGIS**: Database extension required for spatial data support in PostgreSQL. Using the public schema.
-- **Message system (optional)**: The project includes a messaging system using Azure Service Bus. You can enable or disable this system through the `Messaging:Enabled` setting in your configuration.
+- **Message system**: The project includes a messaging system using Azure Service Bus. 
 
 ## Getting Started
 
@@ -40,9 +40,9 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
     ```shell
     dotnet ef database update --project "FloodOnlineReportingTool.RiskManagement.Data" --startup-project "FloodOnlineReportingTool.RiskManagement"
     ```
-    or with PowerShell command:
+    or if using the Package Manager Console in Visual Studio, set the default project to FloodOnlineReportingTool.RiskManagement.Data and run:
     ```powershell
-    Update-Database -Project "FloodOnlineReportingTool.RiskManagement.Data" -StartupProject "FloodOnlineReportingTool.RiskManagement"
+    Update-Database -StartupProject FloodOnlineReportingTool.RiskManagement
     ```
 
 ## Update standards module
@@ -51,7 +51,7 @@ To update the standards module, navigate to the `FloodOnlineReportingTool.RiskMa
 ```shell
 git submodule update
 ```
-
+ 
 ## User Secrets and Configuration
 
 You must set up user secrets for development. Run the following command in the terminal within the project folder:
@@ -64,7 +64,6 @@ You must set up user secrets for development. Run the following command in the t
   ```
 Then add your configuration:
 
-- **Messaging**: Used for the optional messaging system.
 - **ConnectionStrings**: Required for database access.
 
 Example secrets file:
@@ -82,11 +81,20 @@ Example secrets file:
   },
   "ConnectionStrings": {
     "FloodReportingRiskManagement": "Host=localhost;Port=5432;Database=YourDatabaseName;Username=YourUserName;Password=YourPassword;SearchPath=fortriskmanagement,public"
-  },
-  "Messaging": {
-    "Enabled": "true",
-    "ConnectionString": "sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=your-key-here"
   }
+}
+```
+Then add your configuration for the Messaging project:
+
+Example Messaging project secrets file:
+```json
+{
+  "ConnectionStrings": {
+    "FloodReportingRiskManagement": "Host=localhost;Port=5432;Database=YourDatabaseName;Username=YourUserName;Password=YourPassword;SearchPath=fortriskmanagement,public",
+    "service-bus": "Endpoint=sb://your-namespace.servicebus.windows.net/;SharedAccessKeyName=your-shared-access-key-name;SharedAccessKey=your-shared-access-key"
+  },
+  "Messaging:TopicSuffix": "-name",
+  "Inbox:SubscriptionName": "subscription-name"
 }
 ```
 

@@ -77,15 +77,14 @@ internal static class WebApplicationBuilderExtension
             return builder;
         }
 
-        internal (RiskManagementOptions RiskManagement, ProxyOptions? Proxy, MessagingOptions Messaging) AddRiskManagementOptions()
+        internal (RiskManagementOptions RiskManagement, ProxyOptions? Proxy) AddRiskManagementOptions()
         {
 
             var riskManagementOptions = builder.AddProjectOptions();
             var proxyOptions = builder.AddProxyOptions();
-            var messagingOptions = builder.AddMessagingOptions();
             builder.AddMiniMapOptions();
 
-            return (riskManagementOptions, proxyOptions, messagingOptions);
+            return (riskManagementOptions, proxyOptions);
         }
     }
 }

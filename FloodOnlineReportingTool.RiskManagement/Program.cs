@@ -11,11 +11,10 @@ builder.Services.AddHttpContextAccessor();
 
 // Settings
 builder.AddFORTAzureKeyVault();
-var (riskManagementOptions, proxyOptions, messagingOptions) = builder.AddRiskManagementOptions();
+var (riskManagementOptions, proxyOptions) = builder.AddRiskManagementOptions();
 
 builder.AddAuthentication();
 builder.AddRiskManagementHealthChecks();
-builder.AddMessageSystem(messagingOptions);
 builder.AddDatabase();
 
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
