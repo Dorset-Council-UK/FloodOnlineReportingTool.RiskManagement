@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Web + Messaging",
+    "Projects": [
+      {
+        "Path": "FloodOnlineReportingTool.RiskManagement\\FloodOnlineReportingTool.RiskManagement.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Messaging\\Messaging.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

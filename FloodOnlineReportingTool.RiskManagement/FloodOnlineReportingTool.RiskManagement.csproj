@@ -16,7 +16,6 @@
 		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="3.4.0" />
 		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-		<PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="9.0.1" />
 		<PackageReference Include="Meziantou.Analyzer" Version="3.0.43">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

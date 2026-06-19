@@ -26,15 +26,6 @@ internal static class OptionsExtensions
         builder.Services.Configure<MiniMapOptions>(section);
     }
 
-    internal static MessagingOptions AddMessagingOptions<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        var section = builder.Configuration.GetRequiredSection(MessagingOptions.SectionName);
-        builder.Services.Configure<MessagingOptions>(section);
-        var options = section.Get<MessagingOptions>()
-            ?? throw new ConfigurationMissingException($"Configuration section '{MessagingOptions.SectionName}' is not properly defined.");
-        return options;
-    }
-
     /// <summary>
     /// Configures proxy options for the application and optionally sets up forwarded headers middleware.
     /// </summary>

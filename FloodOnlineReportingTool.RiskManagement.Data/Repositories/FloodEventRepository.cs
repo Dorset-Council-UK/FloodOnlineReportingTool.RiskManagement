@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+﻿using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
@@ -6,7 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
-public class FloodEventRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : IFloodEventRepository
+public class FloodEventRepository(
+    IDbContextFactory<RiskManagementDbContext> contextFactory,
+    IEventLogRepository eventLogRepository
+    ) : IFloodEventRepository
 {
     public async Task<int> Count(CancellationToken cancellationToken)
     {
