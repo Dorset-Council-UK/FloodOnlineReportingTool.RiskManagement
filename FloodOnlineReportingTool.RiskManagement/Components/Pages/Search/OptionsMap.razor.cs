@@ -1,4 +1,3 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
@@ -71,30 +70,27 @@ public partial class OptionsMap(
     {
         if (firstRender)
         {
-            // GdsInputDate caches the GdsDate object reference on first render, so the existing
-            // objects must be mutated in-place rather than replaced to keep the component in sync.
-            var options = searchOptionsState.Options;
-            if (SearchReference is not null && !string.Equals(options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+            // 1. data from repository
+            bool hasReferenceChanged = SearchReference is not null && !string.Equals(searchOptionsState.Options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase);
+            if (hasReferenceChanged)
             {
-                // Replace the stored model with the details from the saved search by reference
-                var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+                var savedSearch = await savedSearchRepository.Get(SearchReference!, _cts.Token);
                 if (savedSearch is not null)
                 {
-                    options = savedSearch.ToSearchOptionsViewModel();
+                    Model.CopyFrom(savedSearch);
+                    searchOptionsState.SetOptions(Model);
                 }
             }
-            if (options is not null)
-            {
-                Model = options;
-                EditContext = new(Model);
-                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-                Model.SearchReference = SearchReference;
-                _canEdit = options.OverrideLock || !options.IsSavedSearchLocked;
 
-                // Reuse the same EditContext instance for all sections to keep validation state consistent
-                regionContext = EditContext;
-                digitisingContext = EditContext;
+            // 2. State - for example returning from the options map page
+            if (!hasReferenceChanged && searchOptionsState.Options is not null)
+            {
+                Model.CopyFrom(searchOptionsState.Options);
             }
+
+            // 3. Page parameters
+            Model.SearchReference = SearchReference;
+            _canEdit = Model.OverrideLock || !Model.IsSavedSearchLocked;
 
             _isLoading = false;
             StateHasChanged();
