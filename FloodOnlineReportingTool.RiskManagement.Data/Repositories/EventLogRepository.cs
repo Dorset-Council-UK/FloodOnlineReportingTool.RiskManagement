@@ -2,7 +2,6 @@
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +19,7 @@ public class EventLogRepository(
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
-        var savedSearch = await context.SavedSearches.AsNoTracking().SingleOrDefaultAsync(ss => ss.Id == savedSearchId, ct);
+        var savedSearch = await context.SavedSearches.AsNoTracking().FirstOrDefaultAsync(ss => ss.Id == savedSearchId, ct);
 
         if (savedSearch is null)
         {
@@ -28,14 +27,14 @@ public class EventLogRepository(
         }
         var floodEventId = savedSearch.FloodEventId;
 
-        var existingRecord = await context.EventLogs.AsNoTracking().SingleOrDefaultAsync(el => el.FloodEventId == floodEventId && el.EventAction == eventLogType, ct);
+        var existingRecord = await context.EventLogs.AsNoTracking().AnyAsync(el => el.FloodEventId == floodEventId && el.EventAction == eventLogType, ct);
 
-        if (existingRecord is not null)
+        if (existingRecord)
         {
             return CreateOrUpdateResult<EventLog>.Failure(["Already has a record, don't add a second"]);
         }
 
-        var floodEvent = await context.FloodEvents.SingleOrDefaultAsync(fe => fe.Id == floodEventId, ct);
+        var floodEvent = await context.FloodEvents.FirstOrDefaultAsync(fe => fe.Id == floodEventId, ct);
         if (floodEvent is null)
         {
             return CreateOrUpdateResult<EventLog>.Failure(["Flood event not found"]);
@@ -44,11 +43,8 @@ public class EventLogRepository(
         // TODO: add the user requesting to the log
         var newAction = new EventLog
         {
-            Id = Guid.NewGuid(),
             FloodEventId = floodEvent.Id,
             FloodEvent = floodEvent,
-
-            LoggedAt = DateTimeOffset.UtcNow,
             ActionedRequestByUserId = null,
             EventAction = eventLogType
         };
