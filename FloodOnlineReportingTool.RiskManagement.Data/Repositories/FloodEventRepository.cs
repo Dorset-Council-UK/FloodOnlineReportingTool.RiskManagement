@@ -10,7 +10,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
     IEventLogRepository eventLogRepository
-    ) : IFloodEventRepository
+) : IFloodEventRepository
 {
     public async Task<int> Count(CancellationToken cancellationToken)
     {
@@ -57,6 +57,16 @@ public class FloodEventRepository(
 
         context.FloodEvents.Add(floodEvent);
         await context.SaveChangesAsync(cancellationToken);
+
+        if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
+        {
+            // Trigger an investigation request if not already done.
+            var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(floodEvent.Id, Models.Enums.ActionEventTypes.TriggerInvestigation, cancellationToken);
+            if (!createEventLogResult.IsSuccess)
+            {
+                return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
+            }
+        }
 
         return Result<FloodEvent?>.Success(floodEvent);
     }
@@ -106,6 +116,8 @@ public class FloodEventRepository(
 
         context.FloodEvents.Update(updatedFloodEvent);
         await context.SaveChangesAsync(cancellationToken);
+
+        // update event log?
 
         return Result<FloodEvent?>.Success(updatedFloodEvent);
     }
