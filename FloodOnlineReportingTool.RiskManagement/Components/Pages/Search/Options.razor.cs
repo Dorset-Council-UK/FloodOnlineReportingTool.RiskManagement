@@ -68,6 +68,7 @@ public partial class Options(
             if (savedSearch is not null)
             {
                 Model.CopyFrom(savedSearch);
+                searchOptionsState.SetOptions(Model);
                 UpdateSelectedFloodSourceOptions();
             }
         }
