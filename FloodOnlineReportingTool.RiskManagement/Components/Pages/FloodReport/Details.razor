@@ -23,8 +23,17 @@
             <h2 class="govuk-heading">View Flood Report</h2>
 
             <p><u>This is very much just a draft page</u></p>
-
-            <p>Insert action buttons here...Mark as read, mark as validated, request more information, lock the record, redact the record etc.</p>
+            <EditForm EditContext="_actionsEditContext">
+                <GdsErrorSummary />
+                <div class="govuk-button-group">
+                    @if (AcknowledgeAction is not null)
+                    {
+                        <GdsButton IsSubmit=false Text="Acknowledge Report" OnClick="AcknowledgeAsync" />
+                    }
+                    <!-- Add other buttons here -->
+                </div>
+                <p>Insert action buttons here...Mark as read, mark as validated, request more information, lock the record, redact the record etc.</p>
+            </EditForm>
 
             <p>
                 Flood report (reference @ViewModel.Reference) was reported on @(firstSource?.CreatedUtc.ToString() ?? "unknown date").

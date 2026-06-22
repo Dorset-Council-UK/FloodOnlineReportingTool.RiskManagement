@@ -4,6 +4,7 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
 using System.Security.Claims;
 
@@ -13,6 +14,7 @@ public partial class Details(
     ILogger<Details> logger,
     IReportStatusClient reportStatusClient,
     ICommonRepository commonRepository,
+    IActionLogRepository actionLogRepository,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
@@ -26,6 +28,13 @@ public partial class Details(
     private bool _isLoading = true;
     private bool _notFound = false;
     private string ReportStatus { get; set; }
+    private Guid? AcknowledgeAction { get; set; }
+
+    // Shared EditContext for all action buttons on the page — errors from any action
+    // are pushed here and rendered once by a single GdsErrorSummary.
+    private readonly object _actionsModel = new();
+    private EditContext? _actionsEditContext;
+    private ValidationMessageStore? _actionsMessageStore;
 
     [Parameter]
     public required string Reference { get; set; }
@@ -35,6 +44,9 @@ public partial class Details(
 
     protected override async Task OnInitializedAsync()
     {
+        _actionsEditContext = new EditContext(_actionsModel);
+        _actionsMessageStore = new ValidationMessageStore(_actionsEditContext);
+
         // Don't get any data if you don't have permission
         AuthenticationState? authState;
         if (AuthenticationState is null)
@@ -66,6 +78,8 @@ public partial class Details(
                 var reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
                 ViewModel = reportResult.ResultModel;
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? "";
+
+                AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Id, _cts.Token);
                 logger.LogInformation("Flood report detail loaded successfully for reference");
             }
             else
@@ -83,5 +97,41 @@ public partial class Details(
             consentHandler.HandleException(ex);
         }
         _isLoading = false;
+    }
+
+    /// <summary>
+    /// Acknowledges that the current user has read the flood report.
+    /// Any errors are pushed into the shared <see cref="_actionsMessageStore"/> so that
+    /// <see cref="GdsErrorSummary"/> renders them using the standard GOV.UK pattern.
+    /// </summary>
+    private async Task AcknowledgeAsync()
+    {
+        _actionsMessageStore!.Clear();
+
+        if (AcknowledgeAction is not Guid acknowledgeAction)
+        {
+            _actionsMessageStore.Add(new FieldIdentifier(_actionsModel, string.Empty),
+                "Unable to acknowledge the report: no pending acknowledgement action was found.");
+            _actionsEditContext!.NotifyValidationStateChanged();
+            return;
+        }
+
+        var currentUserDisplayName = string.Empty;
+        if (AuthenticationState is not null)
+        {
+            var authState = await AuthenticationState;
+            currentUserDisplayName = authState.User.GetDisplayName();
+        }
+
+        if (string.IsNullOrEmpty(currentUserDisplayName))
+        {
+            _actionsMessageStore.Add(new FieldIdentifier(_actionsModel, string.Empty),
+                "Unable to acknowledge the report: the current user could not be identified.");
+            _actionsEditContext!.NotifyValidationStateChanged();
+            return;
+        }
+
+        await actionLogRepository.AcknowledgeReport(acknowledgeAction, currentUserDisplayName, _cts.Token);
+        AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Id, _cts.Token);
     }
 }
