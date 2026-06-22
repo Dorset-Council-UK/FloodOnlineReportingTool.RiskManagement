@@ -2,12 +2,23 @@
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 
-public record Result<T>(bool IsSuccess, T? Value, ICollection<string> Errors)
+public record Result<T>
 {
     [MemberNotNullWhen(true, nameof(Value))]
-    public bool IsSuccess { get; init; } = IsSuccess;
+    public bool IsSuccess { get; init; }
 
-    internal static Result<T> Success(T value) => new(IsSuccess: true, value, []);
+    public T? Value { get; init; }
 
-    internal static Result<T> Failure(ICollection<string> errors) => new(IsSuccess: false, Value: default, errors);
+    public ICollection<string> Errors { get; init; } = [];
+
+    private Result(bool isSuccess, T? value, ICollection<string> errors)
+    {
+        IsSuccess = isSuccess;
+        Value = value;
+        Errors = errors;
+    }
+
+    internal static Result<T> Success(T value) => new(isSuccess: true, value, []);
+
+    internal static Result<T> Failure(ICollection<string> errors) => new(isSuccess: false, value: default, errors);
 }
