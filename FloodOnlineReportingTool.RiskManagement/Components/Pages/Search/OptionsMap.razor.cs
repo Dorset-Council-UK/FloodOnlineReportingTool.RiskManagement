@@ -48,6 +48,7 @@ public partial class OptionsMap(
     private string _selectedWard = string.Empty;
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
+    private ValidationMessageStore _messageStore = default!;
 
     private Guid _wardSelectKey = Guid.NewGuid();
     private Guid _parishSelectKey = Guid.NewGuid();
@@ -61,6 +62,8 @@ public partial class OptionsMap(
         Model ??= new();
         EditContext = new EditContext(Model);
         EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _messageStore = new(EditContext);
+
         // Reuse the same EditContext instance for all sections to keep validation state consistent
         regionContext = EditContext;
         digitisingContext = EditContext;
@@ -126,6 +129,16 @@ public partial class OptionsMap(
 
     private async Task OnSearch()
     {
+        _messageStore.Clear();
+
+        if (!_canEdit)
+        {
+            var errorField = EditContext.Field(nameof(Model.SearchReference));
+            _messageStore.Add(errorField, "This search is locked and cannot be modified");
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
+
         _regionSearchErrorMessage = string.Empty;
         // Clear results if search term is too short
         if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)

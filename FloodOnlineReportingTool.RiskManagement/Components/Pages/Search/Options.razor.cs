@@ -104,6 +104,8 @@ public partial class Options(
 
     private async Task OnSubmit()
     {
+        _messageStore.Clear();
+
         if (!_canEdit)
         {
             var errorField = EditContext.Field(nameof(Model.SearchReference));
