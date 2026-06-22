@@ -1,5 +1,3 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
@@ -7,9 +5,8 @@ using System.Security.Claims;
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Action;
 
 public partial class Index(
-    ILogger<Index> logger,
-    NavigationManager navigationManager)
-{
+    ILogger<Index> logger
+) {
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
