@@ -20,7 +20,8 @@ internal static class SavedSearchExtensions
                 ByPostcode = savedSearch.Postcode,
                 ByPersonsName = savedSearch.ReporterString,
                 ByPolygon = savedSearch.Geom,
-                IsSavedSearchLocked = savedSearch.IsLocked,
+                // A saved search is considered locked if it is associated with a flood event, meaning it cannot be modified or deleted
+                IsSavedSearchLocked = savedSearch.FloodEventId is not null,
             };
         }
 
@@ -46,7 +47,8 @@ internal static class SavedSearchExtensions
                 SortOrder = savedSearch.SortOrder,
                 LimitByOrganisation = savedSearch.LimitByOrganisation,
                 LimitByStatus = savedSearch.LimitByStatus,
-                IsSavedSearchLocked = savedSearch.IsLocked,
+                // A saved search is considered locked if it is associated with a flood event, meaning it cannot be modified or deleted
+                IsSavedSearchLocked = savedSearch.FloodEventId is not null,
             };
         }
     }

@@ -57,7 +57,8 @@ public class SearchOptionsViewModel : ISearchOptions
         ByPostcode = string.IsNullOrWhiteSpace(savedSearch.Postcode) ? null : savedSearch.Postcode;
         ByPersonsName = string.IsNullOrWhiteSpace(savedSearch.ReporterString) ? null : savedSearch.ReporterString;
         ByPolygon = savedSearch.Geom;
-        IsSavedSearchLocked = savedSearch.IsLocked;
+        // A saved search is considered locked if it is associated with a flood event, meaning it cannot be modified or deleted
+        IsSavedSearchLocked = savedSearch.FloodEventId is not null;
         // OverrideLock
     }
 
