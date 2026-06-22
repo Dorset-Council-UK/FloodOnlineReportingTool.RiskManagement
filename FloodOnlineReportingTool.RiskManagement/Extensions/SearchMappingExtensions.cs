@@ -95,8 +95,12 @@ internal static class SearchMappingExtensions
     /// </summary>
     internal static SavedSearch OptionsViewToSavedSearch(this SearchOptionsViewModel viewModel, string? searchTitle)
     {
-        return new SavedSearch
+        var savedSearch = new SavedSearch
         {
+            // Id
+            // CreatedAt
+            // UpdatedAt
+            // UpdatedBy
             SearchTitle = searchTitle ?? string.Empty,
             ResultsFrom = viewModel.FromDate.DateUtc,
             ResultsTo = viewModel.ToDate.DateUtc,
@@ -112,6 +116,13 @@ internal static class SearchMappingExtensions
             LimitByOrganisation = [],
             LimitByStatus = [],
         };
+
+        if (!string.IsNullOrWhiteSpace(viewModel.SearchReference))
+        {
+            savedSearch.Reference = viewModel.SearchReference.Trim().ToUpperInvariant();
+        }
+
+        return savedSearch;
     }
 
     /// <summary>
@@ -138,9 +149,9 @@ internal static class SearchMappingExtensions
             ShowResultsAs = viewModel.ShowResultsAs,
         };
 
-        if (!string.IsNullOrWhiteSpace(viewModel.ByReference))
+        if (!string.IsNullOrWhiteSpace(viewModel.SearchReference))
         {
-            savedSearch.Reference = viewModel.ByReference.Trim().ToUpperInvariant();
+            savedSearch.Reference = viewModel.SearchReference.Trim().ToUpperInvariant();
         }
 
         return savedSearch;
