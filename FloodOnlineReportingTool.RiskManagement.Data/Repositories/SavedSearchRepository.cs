@@ -168,7 +168,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             errors.Add($"The other saved search was last updated{atPart}{byPart}.");
         }
 
-        errors.Add($"Update the other saved search reference {duplicateSavedSearch.Reference} or change the search criteria.");
+        errors.Add($"Update the other saved search, reference {duplicateSavedSearch.Reference}, or change the search criteria.");
 
         return errors;
     }
