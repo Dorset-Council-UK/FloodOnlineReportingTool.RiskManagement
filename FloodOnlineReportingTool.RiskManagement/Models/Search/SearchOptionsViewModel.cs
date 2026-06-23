@@ -74,7 +74,7 @@ public class SearchOptionsViewModel : ISearchOptions
         ByReference = other.ByReference;
         FromDate.CopyFrom(other.FromDate);
         ToDate.CopyFrom(other.ToDate);
-        ByFloodSource = other.ByFloodSource;
+        ByFloodSource = [.. other.ByFloodSource];
         ByPostcode = other.ByPostcode;
         ByPersonsName = other.ByPersonsName;
         ByPolygon = other.ByPolygon;
