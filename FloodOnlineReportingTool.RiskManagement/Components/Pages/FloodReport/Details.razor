@@ -24,113 +24,117 @@
 
             @* TODO - Action buttons here *@
 
-            @* TODO - add geometry to minimap *@
-            <div class="govuk-grid-column-one-half">
-                <div style="height:400px;" class="govuk-!-margin-bottom-2">
-                    <MiniMap></MiniMap>
-                </div>
-            </div>
+            <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">  
+                <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds">
 
-            @* TODO - add working link to full report to button *@
-            <GdsButton Text="View the complete report" />
+                    @* TODO - add working link to full report to button *@
+                    <GdsButton Text="View the complete report" />
 
-            <GdsHeading Level="3">Basic details</GdsHeading>
-            <dl class="govuk-summary-list">
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Reference
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @ViewModel.Reference
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Flood location
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add flood location data *@
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Reported on
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @(firstSource?.CreatedUtc.ToString() ?? "Unknown date")
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Record status
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @ReportStatus
-                    </dd>
-                </div>
-            </dl>
+                    <GdsHeading Level="3">Basic details</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Reference
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @ViewModel.Reference
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood location
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood location data *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Reported on
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @(firstSource?.CreatedUtc.ToString() ?? "Unknown date")
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Record status
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @ReportStatus
+                            </dd>
+                        </div>
+                    </dl>
 
-            <GdsHeading Level="3">About the flood</GdsHeading>
-            <dl class="govuk-summary-list">
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Flood cause
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add flood cause data *@
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Is the flood ongoing?
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add flood ongoing status *@
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Uninhabitable?
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add uninhabitable status *@
-                    </dd>
-                </div>
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Vulnerable people?
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add vulnerable people data *@
-                    </dd>
-                </div>
-            </dl>
+                    <GdsHeading Level="3">About the flood</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood cause
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood cause data *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Is the flood ongoing?
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood ongoing status *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Uninhabitable?
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add uninhabitable status *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Vulnerable people?
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add vulnerable people data *@
+                            </dd>
+                        </div>
+                    </dl>
 
-            <GdsHeading Level="3">Contacts</GdsHeading>
-            <dl class="govuk-summary-list">
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Contacts available
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add contacts available data *@
-                    </dd>
-                </div>
-            </dl>
+                    <GdsHeading Level="3">Contacts</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Contacts available
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add contacts available data *@
+                            </dd>
+                        </div>
+                    </dl>
 
-            <GdsHeading Level="3">Organisations</GdsHeading>
-            <dl class="govuk-summary-list">
-                <div class="govuk-summary-list__row">
-                    <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                        Lead organisation
-                    </dt>
-                    <dd class="govuk-summary-list__value">
-                        @* TODO - add lead organisation data *@
-                    </dd>
-                </div>
-            </dl>
+                    <GdsHeading Level="3">Organisations</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Lead organisation
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add lead organisation data *@
+                            </dd>
+                        </div>
+                    </dl>
+                </GdsGridColumn>
 
+                @* TODO - add geometry to minimap *@
+                <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                    <div style="height:300px;" class="govuk-!-margin-bottom-2">
+                        <MiniMap></MiniMap>
+                    </div>
+                </GdsGridColumn>
 
+            </GdsGridRow>
 
             
 
