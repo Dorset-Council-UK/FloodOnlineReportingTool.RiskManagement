@@ -22,8 +22,6 @@
 
             <GdsHeading Level="2">View flood report summary</GdsHeading>
 
-            @* TODO - Action buttons here *@
-
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">  
                 <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds">
 
@@ -143,25 +141,8 @@
                 </GdsGridColumn>
 
             </GdsGridRow>
-
-            
-
-            <p>
-                Flood report (reference @ViewModel.Reference) was reported on @(firstSource?.CreatedUtc.ToString() ?? "unknown date").
-            </p>
-            <p>The status of the record is currently <strong>@ReportStatus</strong></p>
-            <p>The cause of the flooding is recorded as:</p>
-            <ul>
-                <li>Insert causes</li>
-            </ul>
-            <p>The record is assigned to ...</p>
-            @if (!string.IsNullOrWhiteSpace(firstSource?.ViewUri.AbsoluteUri))
-            {
-                <p>
-                    Head to <a href="@firstSource.ViewUri" target="_blank">@firstSource.ViewUri</a> to view the full record.
-                </p>
-            }
         }
+
     </Authorized>
     <NotAuthorized>
         <GdsWarning Text="You do not have permission to view flood reports. Contact your administrator to request permission." />
