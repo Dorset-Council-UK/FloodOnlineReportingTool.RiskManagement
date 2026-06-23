@@ -17,6 +17,11 @@ public interface IFloodEventRepository
     Task<int> Count(string userId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Count the number of flood events created in the past 30 days
+    /// </summary>
+    Task<int> CountCreatedInPast30Days(CancellationToken cancellationToken);
+
+    /// <summary>
     /// Does the flood event exist using the ID
     /// </summary>
     Task<bool> Exists(Guid floodEventId, CancellationToken cancellationToken);

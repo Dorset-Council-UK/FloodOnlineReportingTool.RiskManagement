@@ -25,6 +25,11 @@ public class FloodEventRepository(
         // - User range assigned to the user
         // - The users permission level (e.g. only show actions that the user has permissions to fulfil)
 
+        throw new NotImplementedException();
+    }
+
+    public async Task<int> CountCreatedInPast30Days(CancellationToken cancellationToken)
+    {
         var now = DateTimeOffset.UtcNow;
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.FloodEvents
