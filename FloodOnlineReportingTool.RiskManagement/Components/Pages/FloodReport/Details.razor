@@ -133,10 +133,9 @@
                     </dl>
                 </GdsGridColumn>
 
-                @* TODO - add geometry to minimap *@
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
                     <div style="height:300px;" class="govuk-!-margin-bottom-2">
-                        <MiniMap></MiniMap>
+                        <MiniMap Geometry="@firstSource?.Geom"></MiniMap>
                     </div>
                 </GdsGridColumn>
 
