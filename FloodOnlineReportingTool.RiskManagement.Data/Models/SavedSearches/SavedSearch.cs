@@ -30,8 +30,8 @@ public record SavedSearch
     public ICollection<Guid> FloodSources { get; init; } = []; //FloodReportSources
     public long? UPRN { get; init; } //FloodReports.UPRN
     public long? USRN { get; init; } //FloodReports.USRN
-    public string Postcode { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY
-    public string ReporterString { get; init; } = string.Empty; //UNUSED
+    public string Postcode { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY TODO: Needs fixing
+    public string ReporterString { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY TODO: Needs fixing
     public MultiPolygon? Geom { get; init; } //FloodReports.Geom
 
     // Result properties

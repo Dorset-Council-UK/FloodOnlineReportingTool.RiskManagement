@@ -140,6 +140,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             LimitByOrganisation = searchCriteria.LimitByOrganisation,
             LimitByStatus = searchCriteria.LimitByStatus,
             ShowResultsAs = searchCriteria.ShowResultsAs,
+            FloodEventId = searchCriteria.FloodEventId ?? existingSearch.FloodEventId,
         };
 
         // Now is when we check if there is a duplicate saved search matching the updated search criteria
