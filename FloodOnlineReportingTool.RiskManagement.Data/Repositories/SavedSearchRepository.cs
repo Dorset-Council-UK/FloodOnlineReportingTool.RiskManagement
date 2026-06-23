@@ -58,12 +58,12 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             .IgnoreAutoIncludes()
             .FirstOrDefaultAsync(s => s.Id == searchCriteria.Id, cancellationToken);
 
-        if (existingSearch is null)
+        if (existingSearch is not null)
         {
             return Result<SavedSearch?>.Failure([$"A saved search with ID '{searchCriteria.Id}' already exists."]);
         }
 
-        var duplicateSavedSearch = await FindDuplicate(context, existingSearch, cancellationToken);
+        var duplicateSavedSearch = await FindDuplicate(context, searchCriteria, cancellationToken);
         if (duplicateSavedSearch is not null)
         {
             var errors = BuildDuplicateErrors(duplicateSavedSearch);
