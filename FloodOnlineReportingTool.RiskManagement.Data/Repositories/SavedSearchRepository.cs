@@ -118,13 +118,6 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             return Result<SavedSearch?>.Failure(["'UpdatedBy' is required to update a saved search."]);
         }
 
-        var duplicateSavedSearch = await FindDuplicate(context, existingSearch, cancellationToken);
-        if (duplicateSavedSearch is not null)
-        {
-            var errors = BuildDuplicateErrors(duplicateSavedSearch);
-            return Result<SavedSearch?>.Failure(errors);
-        }
-
         var updatedSearch = existingSearch with
         {
             // Id
@@ -148,6 +141,14 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             LimitByStatus = searchCriteria.LimitByStatus,
             ShowResultsAs = searchCriteria.ShowResultsAs,
         };
+
+        // Now is when we check if there is a duplicate saved search matching the updated search criteria
+        var duplicateSavedSearch = await FindDuplicate(context, updatedSearch, cancellationToken);
+        if (duplicateSavedSearch is not null)
+        {
+            var errors = BuildDuplicateErrors(duplicateSavedSearch);
+            return Result<SavedSearch?>.Failure(errors);
+        }
 
         context.SavedSearches.Update(updatedSearch);
         await context.SaveChangesAsync(cancellationToken);
@@ -173,58 +174,41 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
     }
 
     /// <summary>
-    /// 
+    /// Tries to find a duplicate saved search based on the provided saved search criteria.
     /// </summary>
-    /// <param name="context"></param>
-    /// <param name="existingSearch"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    private static async Task<SavedSearch?> FindDuplicate(RiskManagementDbContext context, SavedSearch existingSearch, CancellationToken cancellationToken)
+    /// <remarks>
+    ///     <para>Can be used in creating a saved search, and updating a saved search.</para>
+    /// </remarks>
+    /// <returns><see cref="SavedSearch"/> of the duplicate if it is found, otherwise <see langword="null"/></returns>
+    private static async Task<SavedSearch?> FindDuplicate(RiskManagementDbContext context, SavedSearch savedSearch, CancellationToken cancellationToken)
     {
         // SQL query (Multiple Where = AND queries)
-        var results = await context.SavedSearches
+        var query = context.SavedSearches
             .AsNoTracking()
             .IgnoreAutoIncludes()
-            .Where(s => s.Id != existingSearch.Id) // exclude the current saved search from the comparison
-            .Where(s => s.ResultsFrom == existingSearch.ResultsFrom) // same from date
-            .Where(s => s.ResultsTo == existingSearch.ResultsTo) // same to date
-            .Where(s => (s.Geom == null && existingSearch.Geom == null)
-                     || (s.Geom != null && existingSearch.Geom != null && s.Geom.EqualsTopologically(existingSearch.Geom))
-            ) // same geometry (both null or geometries are topologically equal)
-            .ToListAsync(cancellationToken);
+            .Where(s => s.Id != savedSearch.Id) // exclude the current saved search from the comparison
+            .Where(s => s.ResultsFrom == savedSearch.ResultsFrom) // same from date
+            .Where(s => s.ResultsTo == savedSearch.ResultsTo); // same to date
 
-        // client evaluations
-        //var incomingSourceIds = existingSearch.FloodSources.Order().ToList();
+        if (savedSearch.Geom is null)
+        {
+            // no geometry
+            query = query.Where(s => s.Geom == null);
+        }
+        else
+        {
+            // has geometry, check for topological equality
+            query = query.Where(s => s.Geom != null && s.Geom.EqualsTopologically(savedSearch.Geom));
+        }
+
+        var results = await query.ToListAsync(cancellationToken);
+
+        // Client evaluations
         return results.FirstOrDefault(
-            s => s.Postcode.Equals(existingSearch.Postcode, StringComparison.OrdinalIgnoreCase) &&
-            s.FloodSources.Order().SequenceEqual(existingSearch.FloodSources.Order())
+            s => s.Postcode.Equals(savedSearch.Postcode, StringComparison.OrdinalIgnoreCase) &&
+            s.FloodSources.Order().SequenceEqual(savedSearch.FloodSources.Order())
         );
     }
-
-    ///// <summary>
-    /////     <para>Using business logic, is this saved search a duplicate of another saved search?</para>
-    /////     <para>
-    /////         This is used to prevent creating duplicate saved searches.
-    /////         We can use the same logic to check for duplicates when updating a saved search, but we need to exclude the current saved search from the comparison.
-    /////     </para>
-    ///// </summary>
-    ///// <param name="otherSavedSearch">The saved search to compare against.</param>
-    ///// <returns><see langword="true" /> if this saved search is considered a duplicate of <paramref name="otherSavedSearch"/></returns>
-    //private SavedSearchDuplicateCheck IsDuplicateOf(SavedSearch otherSavedSearch)
-    //{
-    //    bool isDuplicate = savedSearch.ResultsFrom == otherSavedSearch.ResultsFrom &&
-    //        savedSearch.ResultsTo == otherSavedSearch.ResultsTo &&
-    //        string.Equals(savedSearch.Postcode, otherSavedSearch.Postcode, StringComparison.OrdinalIgnoreCase) &&
-    //        savedSearch.FloodSources.Count == otherSavedSearch.FloodSources.Count &&
-    //        (
-    //            (savedSearch.Geom == null && otherSavedSearch.Geom == null) ||
-    //            (savedSearch.Geom != null && otherSavedSearch.Geom != null && savedSearch.Geom.EqualsTopologically(otherSavedSearch.Geom))
-    //        );
-
-    //    return isDuplicate
-    //        ? SavedSearchDuplicateCheck.Duplicate(savedSearch)
-    //        : SavedSearchDuplicateCheck.NotDuplicate();
-    //}
 
     public async Task<Result<SearchRedirect?>> FindLocalByReference(string reference, CancellationToken cancellationToken)
     {
