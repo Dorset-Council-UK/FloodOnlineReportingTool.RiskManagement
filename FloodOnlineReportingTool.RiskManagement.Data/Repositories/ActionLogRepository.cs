@@ -2,7 +2,6 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
@@ -169,6 +168,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
 
             actionLog.ActionedBy = currentUserDisplayName;
             actionLog.ActionedAt = DateTimeOffset.UtcNow;
+
             await context.SaveChangesAsync(ct);
         } catch
         {
