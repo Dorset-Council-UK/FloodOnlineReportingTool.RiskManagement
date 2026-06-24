@@ -89,6 +89,31 @@ else
                     </GdsGridColumn>
                 </GdsGridRow>
 
+                @if (_warnings.Length > 0)
+                {
+                    <div class="govuk-!-margin-bottom-6">
+                        <GdsWarning Text="@_warnings[0]" />
+                        @if (_warnings.Length > 1)
+                        {
+                            <ul class="govuk-list">
+                                @for (int i = 1; i < _warnings.Length; i++)
+                                {
+                                    var warning = _warnings[i];
+                                    bool containsBlazorLink = warning.Contains("<a href=\"search/options/");
+                                    if (containsBlazorLink)
+                                    {
+                                        <li>@((MarkupString)warning)</li>
+                                    }
+                                    else
+                                    {
+                                        <li>@warning</li>
+                                    }
+                                }
+                            </ul>
+                        }
+                    </div>
+                }
+
                 <GdsGridRow>
                     <GdsGridColumn Width="GdsGridColumnWidth.Full">
                         <GdsButton IsSubmit PreventDoubleClick Text="Search" disabled="@(!_canEdit)" />

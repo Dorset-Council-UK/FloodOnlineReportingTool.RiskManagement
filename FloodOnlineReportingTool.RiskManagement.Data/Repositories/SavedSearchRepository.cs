@@ -66,8 +66,8 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         var duplicateSavedSearch = await FindDuplicate(context, searchCriteria, cancellationToken);
         if (duplicateSavedSearch is not null)
         {
-            var errors = BuildDuplicateErrors(duplicateSavedSearch);
-            return Result<SavedSearch?>.Failure(errors);
+            var warnings = BuildDuplicateMessages(duplicateSavedSearch);
+            return Result<SavedSearch?>.Failure(ResultSeverity.Warning, warnings);
         }
 
         context.SavedSearches.Add(searchCriteria);
@@ -147,8 +147,8 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         var duplicateSavedSearch = await FindDuplicate(context, updatedSearch, cancellationToken);
         if (duplicateSavedSearch is not null)
         {
-            var errors = BuildDuplicateErrors(duplicateSavedSearch);
-            return Result<SavedSearch?>.Failure(errors);
+            var warnings = BuildDuplicateMessages(duplicateSavedSearch);
+            return Result<SavedSearch?>.Failure(ResultSeverity.Warning, warnings);
         }
 
         context.SavedSearches.Update(updatedSearch);
@@ -157,27 +157,28 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         return Result<SavedSearch?>.Success(updatedSearch);
     }
 
-    private static List<string> BuildDuplicateErrors(SavedSearch duplicateSavedSearch)
+    private static List<string> BuildDuplicateMessages(SavedSearch duplicateSavedSearch)
     {
-        List<string> errors = ["This is a duplicate saved search."];
+        List<string> messages = ["This is a duplicate saved search."];
 
         string? atPart = duplicateSavedSearch.UpdatedAt == null ? null : $" at {duplicateSavedSearch.UpdatedAt.GdsReadable()}";
         string? byPart = string.IsNullOrWhiteSpace(duplicateSavedSearch.UpdatedBy) ? null : $" by {duplicateSavedSearch.UpdatedBy}";
-
         if (atPart != null || byPart != null)
         {
-            errors.Add($"The other saved search was last updated{atPart}{byPart}.");
+            messages.Add($"The other saved search was last updated{atPart}{byPart}.");
         }
 
-        errors.Add($"Update the other saved search, reference {duplicateSavedSearch.Reference}, or change the search criteria.");
+        messages.Add($"You can update the other saved search <a href=\"search/options/{duplicateSavedSearch.Reference}\" class=\"govuk-link govuk-link--no-visited-state\">{duplicateSavedSearch.Reference}</a>");
+        messages.Add($"Or change your search criteria");
 
-        return errors;
+        return messages;
     }
 
     /// <summary>
     /// Tries to find a duplicate saved search based on the provided saved search criteria.
     /// </summary>
     /// <remarks>
+    ///     <para>Uses the existing database context.</para>
     ///     <para>Can be used in creating a saved search, and updating a saved search.</para>
     /// </remarks>
     /// <returns><see cref="SavedSearch"/> of the duplicate if it is found, otherwise <see langword="null"/></returns>

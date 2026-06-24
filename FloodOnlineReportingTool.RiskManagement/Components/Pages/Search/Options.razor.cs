@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -38,6 +39,7 @@ public partial class Options(
     private ValidationMessageStore _messageStore = default!;
     private bool _isLoading = true;
     private bool _canEdit;
+    private string[] _warnings = [];
 
     [Parameter]
     public string? SearchReference { get; set; }
@@ -105,6 +107,7 @@ public partial class Options(
     private async Task OnSubmit()
     {
         _messageStore.Clear();
+        _warnings = [];
 
         if (!_canEdit)
         {
@@ -154,6 +157,14 @@ public partial class Options(
         var updateResult = await savedSearchRepository.Update(Model.SearchReference, savedSearchEntity, _cts.Token);
         if (!updateResult.IsSuccess)
         {
+            if (updateResult.Severity == ResultSeverity.Warning)
+            {
+                logger.LogWarning("Update of saved search {SearchReference} completed with warnings: {Errors}", Model.SearchReference, updateResult.Errors);
+                _warnings = [.. updateResult.Errors];
+                return;
+            }
+
+            logger.LogError("Update of saved search {SearchReference} failed with errors: {Errors}", Model.SearchReference, updateResult.Errors);
             var errorField = EditContext.Field(nameof(Model.SearchReference));
             foreach (var error in updateResult.Errors)
             {
