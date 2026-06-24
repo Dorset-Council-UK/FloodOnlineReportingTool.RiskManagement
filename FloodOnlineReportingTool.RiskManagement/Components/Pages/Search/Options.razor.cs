@@ -140,6 +140,14 @@ public partial class Options(
             var createResult = await savedSearchRepository.Create(savedSearchEntity, _cts.Token);
             if (!createResult.IsSuccess)
             {
+                if (createResult.Severity == ResultSeverity.Warning)
+                {
+                    logger.LogWarning("Create saved search {SearchReference} completed with warnings: {Errors}", Model.SearchReference, createResult.Errors);
+                    _warnings = [.. createResult.Errors];
+                    return;
+                }
+
+                logger.LogError("Create saved search {SearchReference} failed with errors: {Errors}", Model.SearchReference, createResult.Errors);
                 var errorField = EditContext.Field(nameof(Model.SearchReference));
                 foreach (var error in createResult.Errors)
                 {
