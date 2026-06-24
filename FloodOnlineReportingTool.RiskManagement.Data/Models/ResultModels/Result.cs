@@ -9,16 +9,25 @@ public record Result<T>
 
     public T? Value { get; init; }
 
+    public ResultSeverity Severity { get; init; } = ResultSeverity.None;
+
     public ICollection<string> Errors { get; init; } = [];
 
-    private Result(bool isSuccess, T? value, ICollection<string> errors)
+    private Result() { }
+
+    internal static Result<T> Success(T value) => new()
     {
-        IsSuccess = isSuccess;
-        Value = value;
-        Errors = errors;
-    }
+        IsSuccess = true,
+        Value = value,
+    };
 
-    internal static Result<T> Success(T value) => new(isSuccess: true, value, []);
+    internal static Result<T> Failure(ICollection<string> errors) => Failure(ResultSeverity.Error, errors);
 
-    internal static Result<T> Failure(ICollection<string> errors) => new(isSuccess: false, value: default, errors);
+    internal static Result<T> Failure(ResultSeverity severity, ICollection<string> errors) => new()
+    {
+        IsSuccess = false,
+        Value = default,
+        Severity = severity,
+        Errors = errors,
+    };
 }
