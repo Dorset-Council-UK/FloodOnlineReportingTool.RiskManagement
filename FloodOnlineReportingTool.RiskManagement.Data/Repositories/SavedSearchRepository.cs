@@ -168,7 +168,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
             messages.Add($"The other saved search was last updated{atPart}{byPart}.");
         }
 
-        messages.Add($"You can update the other saved search <a href=\"search/options/{duplicateSavedSearch.Reference}\" class=\"govuk-link govuk-link--no-visited-state\">{duplicateSavedSearch.Reference}</a>");
+        messages.Add($"You can update the other saved search <a href=\"search/results/{duplicateSavedSearch.Reference}\" class=\"govuk-link govuk-link--no-visited-state\">{duplicateSavedSearch.Reference}</a>");
         messages.Add($"Or change your search criteria");
 
         return messages;

@@ -17,7 +17,7 @@
                 <InputRadioGroup @bind-Value="_isReferenceKnown">
                     <GdsFieldsetGroup>
                         <Heading>
-                            <h1 class="govuk-fieldset__heading">Do you know the flood report reference or title?</h1>
+                            <h1 class="govuk-fieldset__heading">Do you know a reference number or flood event title?</h1>
                         </Heading>
                         <Content>
                             <GdsHint>Select one option.</GdsHint>
@@ -31,7 +31,7 @@
                                     {
                                         <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
                                             <GdsFormGroup For="@(() => Model.ByReference)">
-                                                <GdsLabel Text="Please provide the flood report reference or title" />
+                                                <GdsLabel Text="Please the search reference or title" />
                                                 <GdsErrorMessage />
                                                 <GdsInputText @bind-Value=Model.ByReference class="govuk-input govuk-input--width-10" />
                                             </GdsFormGroup>

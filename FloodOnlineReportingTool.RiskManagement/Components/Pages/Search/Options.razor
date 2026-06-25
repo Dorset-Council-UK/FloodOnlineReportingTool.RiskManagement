@@ -99,7 +99,7 @@ else
                                 @for (int i = 1; i < _warnings.Length; i++)
                                 {
                                     var warning = _warnings[i];
-                                    bool containsBlazorLink = warning.Contains("<a href=\"search/options/");
+                                    bool containsBlazorLink = warning.Contains("<a href=\"search/results/");
                                     if (containsBlazorLink)
                                     {
                                         <li>@((MarkupString)warning)</li>
