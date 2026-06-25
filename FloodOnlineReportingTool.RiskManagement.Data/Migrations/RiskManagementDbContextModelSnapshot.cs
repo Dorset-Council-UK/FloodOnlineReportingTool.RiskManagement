@@ -37,8 +37,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<DateTimeOffset?>("ActionedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("ActionedByUserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("ActionedBy")
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
