@@ -1,5 +1,3 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
@@ -12,38 +10,34 @@ namespace FloodOnlineReportingTool.RiskManagement.Services;
 /// </summary>
 public class ReferenceSearchService(
     ILogger<ReferenceSearchService> logger,
-    ICommonRepository commonRepository,
-    IReportStatusClient reportStatusClient) : IReferenceSearchService
+    ISavedSearchRepository savedSearchRepository,
+    IReportStatusClient reportStatusClient
+) : IReferenceSearchService
 {
     /// <summary>
     /// Searches all known record sources for a matching reference string and
     /// returns a <see cref="SearchRedirect"/> indicating the matched record type.
     /// Local DB is checked first to avoid unnecessary HTTP calls.
     /// </summary>
-    public async Task<GetResult<SearchRedirect>> FindByReference(string reference, CancellationToken ct)
+    public async Task<SearchRedirect?> FindByReference(string reference, CancellationToken ct)
     {
         logger.LogInformation("Searching all sources for reference");
 
         // Local first
-        var localResult = await commonRepository.FindLocalByReference(reference, ct);
-        if (localResult.IsSuccess)
+        var findLocalResult = await savedSearchRepository.FindLocalByReference(reference, ct);
+        if (findLocalResult.IsSuccess)
         {
-            return localResult;
+            return findLocalResult.Value;
         }
 
         // Fall through to remote API if not found locally
-        var reportResult = await reportStatusClient.FindFloodReportByReference(reference, ct);
-        if (reportResult.IsSuccess)
+        var searchRedirect = await reportStatusClient.FindFloodReportByReference(reference, ct);
+        if (searchRedirect is not null)
         {
-            return GetResult<SearchRedirect>.Success(new SearchRedirect
-            {
-                Id = reportResult.ResultModel?.Id ?? null,
-                Reference = reference,
-                RedirectType = RecordTypes.Report
-            });
+            return searchRedirect;
         }
 
         logger.LogWarning("Reference {Reference} was not found in any source", reference);
-        return GetResult<SearchRedirect>.Failure([$"No record found for reference '{reference}'."]);
+        return null;
     }
 }

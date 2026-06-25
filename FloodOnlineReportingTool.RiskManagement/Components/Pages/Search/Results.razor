@@ -9,7 +9,8 @@
 
 <GdsBackLink Href="@($"{SearchPages.Options.Url}/{SearchReference}")"></GdsBackLink>
 
-<h1 class="govuk-heading-l">Search Results</h1>
+<h1 class="govuk-heading-l">Results for Search @SearchReference</h1>
+<p>You can use the reference to get straight back to these results at any time.</p>
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>

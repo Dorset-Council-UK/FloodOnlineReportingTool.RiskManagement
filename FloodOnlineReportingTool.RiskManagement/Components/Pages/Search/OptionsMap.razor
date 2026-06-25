@@ -1,35 +1,47 @@
-﻿@page "/search/options-map"
+﻿@page "/search/options-map/{SearchReference}"
+@page "/search/options-map"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
-@using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums
-@using FloodOnlineReportingTool.RiskManagement.Models.Order
-@using FloodOnlineReportingTool.RiskManagement.Models.Search
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>@Title</PageTitle>
 
 <GdsBreadcrumbs Items="Breadcrumbs" />
-<GdsBackLink Href="@SearchPages.Options.Url"></GdsBackLink>
+<GdsBackLink Href="@PreviousPageUrl"></GdsBackLink>
 
-<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
-    <Authorized>
-        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+@if (_isLoading)
+{
+    <GdsSpinner Show ShowMessage />
+}
+else
+{
+    <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+        <Authorized>
 
-        <div class="govuk-form-group">
-            <fieldset class="govuk-fieldset">
-                <div class="govuk-grid-row">
-                    <div class="govuk-grid-column-one-third-from-desktop">
+            <div class="govuk-form-group">
+                @if (!_canEdit)
+                {
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.Full">
+                            <GdsWarning Text="This search is locked and cannot be modified" />
+                        </GdsGridColumn>
+                    </GdsGridRow>
+                }
+
+                <GdsGridRow>
+                    <GdsGridColumn Width="GdsGridColumnWidth.OneThirdFromDesktop">
                         <EditForm EditContext="regionContext" OnSubmit="OnSearch" FormName="RegionForm">
                             <FluentValidationValidator />
                             <GdsErrorSummary />
-                            <h2>Add by region</h2>
+
+                            <GdsHeading Level="2" Size="GdsSize.Medium">Add by region</GdsHeading>
 
                             <GdsFormGroup For="() => _searchTerm">
                                 <GdsLabel Text="Search for regions (i.e. parish/ward)" />
                                 <GdsErrorMessage />
-                                <GdsInputText @bind-Value="_searchTerm"  class="govuk-input govuk-input--width-15" />
+                                <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-15" disabled="@(!_canEdit)" />
                             </GdsFormGroup>
                             <div class="govuk-!-margin-top-3">
-                                <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit="true" Text="Search for regions" />
+                                <GdsButton id="btn-search-area" AdditionalCssClasses="govuk-button--secondary" IsSubmit PreventDoubleClick Text="Search for regions" disabled="@(!_canEdit)" />
                             </div>
                             @if (_isSearching)
                             {
@@ -46,9 +58,9 @@
                             @if (_parishResults.Any() && _parishResults.Count >= 1)
                             {
                                 <div class="govuk-form-group">
-                                    <label class="govuk-label">Select a parish</label>
+                                    <GdsLabel Text="Select a parish" />
 
-                                    <GdsSelect @key="_parishSelectKey" T="string" @bind-Value="_selectedParish" @bind-Value:after="@OnParishSelected">
+                                    <GdsSelect @key="_parishSelectKey" T="string" @bind-Value="_selectedParish" @bind-Value:after="@OnParishSelected" disabled="@(!_canEdit)">
                                         <option value=""></option>
                                         @foreach (var option in _parishResults)
                                         {
@@ -61,9 +73,9 @@
                             @if (_wardResults.Any() && _wardResults.Count >= 1)
                             {
                                 <div class="govuk-form-group">
-                                    <label class="govuk-label">Select a ward</label>
+                                    <GdsLabel Text="Select a ward" />
 
-                                    <GdsSelect @key="_wardSelectKey" T="string" @bind-Value="_selectedWard" @bind-Value:after="@OnWardSelected">
+                                    <GdsSelect @key="_wardSelectKey" T="string" @bind-Value="_selectedWard" @bind-Value:after="@OnWardSelected" disabled="@(!_canEdit)">
                                         <option value=""></option>
                                         @foreach (var option in _wardResults)
                                         {
@@ -74,7 +86,8 @@
                             }
 
                         </EditForm>
-@*                         <EditForm EditContext="digitisingContext" FormName="DigitisingForm">
+                        @*
+                        <EditForm EditContext="digitisingContext" FormName="DigitisingForm">
                             <FluentValidationValidator />
                             <GdsErrorSummary />
                             <h2>Add by location</h2>
@@ -84,43 +97,39 @@
                                 <GdsErrorMessage />
                                 <GdsInputNumber @bind-Value="Model.BufferText" @bind-NumberValue="Model.Buffer" class="govuk-input govuk-input--width-4" />
                             </GdsFormGroup>
-                        </EditForm> *@
-                    </div>
+                        </EditForm>
+                        *@
+                    </GdsGridColumn>
 
-                    <div class="govuk-grid-column-two-thirds-from-desktop">
+                    <GdsGridColumn Width="GdsGridColumnWidth.TwoThirdsFromDesktop">
                         <div style="height:400px" class="govuk-!-margin-bottom-2">
                             <MiniMap Geometry="Model.ByPolygon"></MiniMap>
                         </div>
                         @if (Model.ByPolygon != null)
                         {
-                            <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" OnClick="@ResetGeom" Text="Reset Search Geometry" />
+                            <GdsButton AdditionalCssClasses="govuk-button--secondary" IsSubmit="false" PreventDoubleClick OnClick="@ResetGeom" Text="Reset Search Geometry" disabled="@(!_canEdit)" />
                         }
-                                    
-                    </div>
-                </div>
-            </fieldset>
-        </div>
-
-        <EditForm EditContext="EditContext" FormName="CreateSearchOptions">
-            <FluentValidationValidator />
-            <GdsErrorSummary />
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
-                            @if (!_isLoading)
-                            {
-                                <GdsButton IsSubmit="false" OnClick="@SaveAndReturn" Text="Save area" />
-                            }
-                        </div>
-                    </div>
-                </fieldset>
+                    </GdsGridColumn>
+                </GdsGridRow>
             </div>
-        </EditForm>
 
-    </Authorized>
+            <EditForm EditContext="EditContext" FormName="CreateSearchOptions">
+                <FluentValidationValidator />
+                <GdsErrorSummary />
+                <div class="govuk-form-group">
+                    <fieldset class="govuk-fieldset">
+                        <GdsGridRow>
+                            <GdsGridColumn Width="GdsGridColumnWidth.Full">
+                                <GdsButton IsSubmit="false" PreventDoubleClick OnClick="@SaveAndReturn" Text="Save area" disabled="@(!_canEdit)" />
+                            </GdsGridColumn>
+                        </GdsGridRow>
+                    </fieldset>
+                </div>
+            </EditForm>
+        </Authorized>
 
-    <NotAuthorized>
-        <GdsWarning Text="You do not have sufficient permissions." />
-    </NotAuthorized>
-</AuthorizeView>
+        <NotAuthorized>
+            <GdsWarning Text="You do not have sufficient permissions." />
+        </NotAuthorized>
+    </AuthorizeView>
+}

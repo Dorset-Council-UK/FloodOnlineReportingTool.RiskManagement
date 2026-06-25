@@ -34,6 +34,7 @@ internal static class DatabaseExtensions
             builder.Services.AddScoped<IActionLogRepository, ActionLogRepository>();
             builder.Services.AddScoped<IEventLogRepository, EventLogRepository>();
             builder.Services.AddScoped<IFloodEventRepository, FloodEventRepository>();
+            builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
 
             return builder;
         }

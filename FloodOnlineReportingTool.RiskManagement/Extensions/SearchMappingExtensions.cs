@@ -3,8 +3,6 @@ using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
-using GdsBlazorComponents;
-using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Extensions;
 
@@ -53,7 +51,7 @@ internal static class SearchMappingExtensions
             Longitude = sr.Longitude,
             ImpactStartUtc = sr.ImpactStartUtc,
             Causes = sr.Causes,
-            Organisations = sr.Organisations
+            Organisations = sr.Organisations,
         });
     }
 
@@ -97,12 +95,16 @@ internal static class SearchMappingExtensions
     /// </summary>
     internal static SavedSearch OptionsViewToSavedSearch(this SearchOptionsViewModel viewModel, string? searchTitle)
     {
-        return new SavedSearch
+        var savedSearch = new SavedSearch
         {
+            // Id
+            // CreatedAt
+            // UpdatedAt
+            // UpdatedBy
             SearchTitle = searchTitle ?? string.Empty,
-            ResultsFrom = ConvertToDateTimeOffset(viewModel.FromDate),
-            ResultsTo = ConvertToDateTimeOffset(viewModel.ToDate),
-            FloodSources = viewModel.ByFloodSource ?? [],
+            ResultsFrom = viewModel.FromDate.DateUtc,
+            ResultsTo = viewModel.ToDate.DateUtc,
+            FloodSources = viewModel.ByFloodSource,
             UPRN = null,
             USRN = null,
             Postcode = viewModel.ByPostcode ?? string.Empty,
@@ -112,8 +114,15 @@ internal static class SearchMappingExtensions
             SortBy = string.Empty,
             SortOrder = SortOptions.Ascending,
             LimitByOrganisation = [],
-            LimitByStatus = []
+            LimitByStatus = [],
         };
+
+        if (!string.IsNullOrWhiteSpace(viewModel.SearchReference))
+        {
+            savedSearch.Reference = viewModel.SearchReference.Trim().ToUpperInvariant();
+        }
+
+        return savedSearch;
     }
 
     /// <summary>
@@ -124,9 +133,9 @@ internal static class SearchMappingExtensions
         var savedSearch = new SavedSearch
         {
             SearchTitle = viewModel.SearchTitle,
-            ResultsFrom = ConvertToDateTimeOffset(viewModel.FromDate),
-            ResultsTo= ConvertToDateTimeOffset(viewModel.ToDate),
-            FloodSources = viewModel.ByFloodSource ?? [],
+            ResultsFrom = viewModel.FromDate.DateUtc,
+            ResultsTo= viewModel.ToDate.DateUtc,
+            FloodSources = viewModel.ByFloodSource,
             UPRN = null,
             USRN = null,
             Postcode = viewModel.ByPostcode ?? string.Empty,
@@ -135,88 +144,16 @@ internal static class SearchMappingExtensions
             PagingSize = null,
             SortBy = viewModel.SortBy,
             SortOrder = viewModel.SortOrder,
-            LimitByOrganisation= viewModel.LimitByOrganisation ?? [],
-            LimitByStatus = viewModel.LimitByStatus ?? [],
-            ShowResultsAs = viewModel.ShowResultsAs
+            LimitByOrganisation= viewModel.LimitByOrganisation,
+            LimitByStatus = viewModel.LimitByStatus,
+            ShowResultsAs = viewModel.ShowResultsAs,
         };
 
-        if (!string.IsNullOrWhiteSpace(viewModel.ByReference))
+        if (!string.IsNullOrWhiteSpace(viewModel.SearchReference))
         {
-            savedSearch.Reference = viewModel.ByReference.Trim().ToUpperInvariant();
+            savedSearch.Reference = viewModel.SearchReference.Trim().ToUpperInvariant();
         }
 
         return savedSearch;
-    }
-
-    /// <summary>
-    /// Maps SavedSearch entity to SearchOptionsViewModel.
-    /// </summary>
-    internal static SearchOptionsViewModel SavedSearchToOptionsView(this SavedSearch savedSearch)
-    {
-        return new SearchOptionsViewModel
-        {
-            FromDate = ConvertToGdsDate(savedSearch.ResultsFrom),
-            ToDate = ConvertToGdsDate(savedSearch.ResultsTo),
-            ByFloodSource = savedSearch.FloodSources.ToList(),
-            ByPostcode = savedSearch.Postcode,
-            ByPersonsName = savedSearch.ReporterString,
-            ByPolygon = savedSearch.Geom
-        };
-    }
-
-    /// <summary>
-    /// Maps SavedSearch entity to SearchResultsViewModel.
-    /// </summary>
-    internal static SearchResultsViewModel SavedSearchToResultsView(this SavedSearch savedSearch)
-    {
-        return new SearchResultsViewModel {
-            Id = savedSearch.Id,
-            SearchTitle = savedSearch.SearchTitle,
-            ByReference = savedSearch.Reference,
-            FromDate = ConvertToGdsDate(savedSearch.ResultsFrom),
-            ToDate = ConvertToGdsDate(savedSearch.ResultsTo),
-            ByFloodSource = savedSearch.FloodSources.ToList(),
-            ByPostcode = savedSearch.Postcode,
-            ByPersonsName = savedSearch.ReporterString,
-            ByPolygon = savedSearch.Geom,
-            ShowResultsAs= savedSearch.ShowResultsAs,
-            PagingSize = savedSearch.PagingSize ?? 10,
-            SortBy = savedSearch.SortBy,
-            SortOrder = savedSearch.SortOrder,
-            LimitByOrganisation = savedSearch.LimitByOrganisation,
-            LimitByStatus = savedSearch.LimitByStatus,
-        };
-    }
-
-    private static DateTimeOffset? ConvertToDateTimeOffset(GdsDate gdsDate)
-    {
-        if (int.TryParse(gdsDate.YearText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int year) &&
-            int.TryParse(gdsDate.MonthText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int month) &&
-            int.TryParse(gdsDate.DayText, NumberStyles.Integer, CultureInfo.InvariantCulture, out int day))
-        {
-            try
-            {
-                return new DateTimeOffset(year, month, day, 0, 0, 0, TimeSpan.Zero);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        return null;
-    }
-
-    private static GdsDate ConvertToGdsDate(DateTimeOffset? dateTimeOffset)
-    {
-        if (dateTimeOffset == null) return new GdsDate();
-
-        var dt = dateTimeOffset.Value;
-        return new GdsDate
-        {
-            DayText = dt.Day.ToString(CultureInfo.InvariantCulture),
-            MonthText = dt.Month.ToString(CultureInfo.InvariantCulture),
-            YearText = dt.Year.ToString(CultureInfo.InvariantCulture)
-        };
     }
 }

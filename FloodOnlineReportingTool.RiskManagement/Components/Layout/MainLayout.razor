@@ -16,15 +16,26 @@
     </NavLinks>
 </GdsHeader>
 
-<div class="govuk-width-container">
+<GdsContainer>
     <GdsPhaseBanner Phase="@_phase" FeedbackLink="_feedbackUri" />
 
     <SectionOutlet SectionName="Layout.GdsBreadcrumbs" />
 
-    <main class="govuk-main-wrapper govuk-body" id="main-content" role="main">
-        @Body
-    </main>
-</div>
+    <GdsMainWrapper AdditionalCssClasses="govuk-body" id="main-content">
+        @if (Env.IsProduction())
+        {
+            <GdsErrorBoundary>
+                @Body
+            </GdsErrorBoundary>
+        }
+        else
+        {
+            <GdsErrorBoundary ShowErrorMessage ShowHelpLink ShowRetryButton>
+                @Body
+            </GdsErrorBoundary>
+        }
+    </GdsMainWrapper>
+</GdsContainer>
 
 <GdsFooter />
 

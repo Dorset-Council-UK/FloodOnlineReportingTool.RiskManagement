@@ -6,5 +6,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public interface IEventLogRepository
 {
-    Task<CreateOrUpdateResult<EventLog>> CreateEventLog(Guid savedSearchId, ActionEventTypes eventLogType, CancellationToken ct);
+    /// <summary>
+    /// Create an event log for a saved search.
+    /// </summary>
+    Task<Result<EventLog>> CreateEventLog(Guid savedSearchId, ActionEventTypes eventLogType, CancellationToken ct);
+
+    /// <summary>
+    /// Create an event log for a flood event.
+    /// </summary>
+    Task<Result<EventLog>> CreateEventLogForFloodEvent(Guid floodEventId, ActionEventTypes eventLogType, CancellationToken cancellationToken);
 }

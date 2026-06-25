@@ -11,33 +11,46 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public class EventLogRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory
-    ) : IEventLogRepository
+) : IEventLogRepository
 {
     private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
 
-    public async Task<CreateOrUpdateResult<EventLog>> CreateEventLog(Guid savedSearchId, ActionEventTypes eventLogType, CancellationToken ct)
+    public async Task<Result<EventLog>> CreateEventLog(Guid savedSearchId, ActionEventTypes eventLogType, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
-        var savedSearch = await context.SavedSearches.AsNoTracking().FirstOrDefaultAsync(ss => ss.Id == savedSearchId, ct);
-
+        var savedSearch = await context.SavedSearches
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ss => ss.Id == savedSearchId, ct);
         if (savedSearch is null)
         {
-            return CreateOrUpdateResult<EventLog>.Failure(["Saved search not found"]);
+            return Result<EventLog>.Failure(["Saved search not found"]);
         }
-        var floodEventId = savedSearch.FloodEventId;
 
-        var existingRecord = await context.EventLogs.AsNoTracking().AnyAsync(el => el.FloodEventId == floodEventId && el.EventAction == eventLogType, ct);
-
-        if (existingRecord)
+        if (savedSearch.FloodEventId is null || savedSearch.FloodEventId == Guid.Empty)
         {
-            return CreateOrUpdateResult<EventLog>.Failure(["Already has a record, don't add a second"]);
+            return Result<EventLog>.Failure(["Saved search does not have a flood event associated with it"]);
         }
 
-        var floodEvent = await context.FloodEvents.FirstOrDefaultAsync(fe => fe.Id == floodEventId, ct);
+        return await CreateEventLogForFloodEvent(savedSearch.FloodEventId.Value, eventLogType, ct);
+    }
+
+    public async Task<Result<EventLog>> CreateEventLogForFloodEvent(Guid floodEventId, ActionEventTypes eventLogType, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var eventlogExists = await context.EventLogs
+            .AsNoTracking()
+            .AnyAsync(el => el.FloodEventId == floodEventId && el.EventAction == eventLogType, cancellationToken);
+        if (eventlogExists)
+        {
+            return Result<EventLog>.Failure(["Already has an event log, don't add a second"]);
+        }
+
+        var floodEvent = await context.FloodEvents.FindAsync([floodEventId], cancellationToken);
         if (floodEvent is null)
         {
-            return CreateOrUpdateResult<EventLog>.Failure(["Flood event not found"]);
+            return Result<EventLog>.Failure(["Flood event not found"]);
         }
 
         // TODO: add the user requesting to the log
@@ -46,7 +59,7 @@ public class EventLogRepository(
             FloodEventId = floodEvent.Id,
             FloodEvent = floodEvent,
             ActionedRequestByUserId = null,
-            EventAction = eventLogType
+            EventAction = eventLogType,
         };
 
         switch (eventLogType)
@@ -54,8 +67,8 @@ public class EventLogRepository(
             case ActionEventTypes.TriggerInvestigation:
                 // Send a message to trigger the investigation
                 var outMessage = new InvestigationTriggered(
-                    floodEvent.Id, 
-                    floodEvent.Reference, 
+                    floodEvent.Id,
+                    floodEvent.Reference,
                     DateTimeOffset.UtcNow);
                 OutboxMessage outboxMessage = new()
                 {
@@ -69,8 +82,9 @@ public class EventLogRepository(
                 break;
         }
         context.EventLogs.Add(newAction);
-        await context.SaveChangesAsync(ct);
-        return CreateOrUpdateResult<EventLog>.Success(newAction);
+        await context.SaveChangesAsync(cancellationToken);
+
+        return Result<EventLog>.Success(newAction);
     }
 
     // TODO: Add filter by user functions. This should include filtering by:
@@ -87,6 +101,6 @@ public class EventLogRepository(
             .Where(el => el.Id == eventLogId)
             .FirstOrDefaultAsync(ct);
 
-        return eventLog is not null ? GetResult<EventLog>.Success(eventLog) : GetResult<EventLog>.Failure(new[] { "Event log not found" });
+        return eventLog is not null ? GetResult<EventLog>.Success(eventLog) : GetResult<EventLog>.Failure(["Event log not found"]);
     }
 }

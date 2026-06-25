@@ -10,13 +10,18 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : IActionLogRepository
 {
-    public async Task<CreateOrUpdateResult<ActionLog>> CreateActionLog(FloodReportCreated incomingAction, CancellationToken ct)
+    public async Task<Result<ActionLog>> CreateActionLog(FloodReportCreated incomingAction, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
         // Look up the 'ReportNew' action definition seeded into the database
         var actionDefinition = await context.ActionDefinitions
-            .FirstAsync(a => a.Name == "ReportNew", ct);
+            .FirstOrDefaultAsync(a => a.Name == "ReportNew", ct);
+
+        if (actionDefinition == null)
+        {
+            return Result<ActionLog>.Failure(["Action definition 'ReportNew' not found"]);
+        }
 
         var newAction = new ActionLog
         {
@@ -33,7 +38,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         context.ActionLogs.Add(newAction);
         await context.SaveChangesAsync(ct);
 
-        return CreateOrUpdateResult<ActionLog>.Success(newAction);
+        return Result<ActionLog>.Success(newAction);
     }
 
     // TODO: Add filter by user functions. This should include filtering by:
