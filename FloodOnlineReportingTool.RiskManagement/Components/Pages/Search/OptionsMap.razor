@@ -117,13 +117,13 @@ else
                 <FluentValidationValidator />
                 <GdsErrorSummary />
                 <div class="govuk-form-group">
-                    <GdsFieldsetGroup>
+                    <fieldset class="govuk-fieldset">
                         <GdsGridRow>
                             <GdsGridColumn Width="GdsGridColumnWidth.Full">
                                 <GdsButton IsSubmit="false" PreventDoubleClick OnClick="@SaveAndReturn" Text="Save area" disabled="@(!_canEdit)" />
                             </GdsGridColumn>
                         </GdsGridRow>
-                    </GdsFieldsetGroup>
+                    </fieldset>
                 </div>
             </EditForm>
         </Authorized>
