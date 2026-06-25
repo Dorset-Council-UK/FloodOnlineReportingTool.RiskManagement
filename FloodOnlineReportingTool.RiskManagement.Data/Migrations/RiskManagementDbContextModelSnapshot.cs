@@ -176,6 +176,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Reference")
+                        .IsUnique();
+
                     b.ToTable("FloodEvents", "fortriskmanagement");
                 });
 
@@ -1055,8 +1058,12 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.SavedSearch", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValue(new DateTimeOffset(new DateTime(2026, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)));
 
                     b.Property<Guid?>("FloodEventId")
                         .HasColumnType("uuid");
@@ -1085,7 +1092,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.Property<string>("Reference")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("ReporterString")
                         .IsRequired()
@@ -1117,9 +1125,18 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<long?>("USRN")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FloodEventId");
+
+                    b.HasIndex("Reference")
+                        .IsUnique();
 
                     b.ToTable("SavedSearches", "fortriskmanagement");
                 });

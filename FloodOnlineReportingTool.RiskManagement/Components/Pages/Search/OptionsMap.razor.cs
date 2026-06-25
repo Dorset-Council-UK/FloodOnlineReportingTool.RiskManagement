@@ -1,3 +1,4 @@
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -7,15 +8,15 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using NetTopologySuite.Geometries;
-using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
 public partial class OptionsMap(
     ILogger<OptionsMap> logger,
     IGeoServerClient geoServerClient,
-    NavigationManager navigationManager,
-    ISearchOptionsState searchOptionsState
+    ISavedSearchRepository savedSearchRepository,
+    ISearchOptionsState searchOptionsState,
+    NavigationManager navigationManager
 ) : IPageOrder, IAsyncDisposable
 {
     public string Title { get; set; } = SearchPages.OptionsMap.Title;
@@ -26,6 +27,10 @@ public partial class OptionsMap(
         SearchPages.Options.ToGdsBreadcrumb(),
     ];
 
+    [Parameter]
+    public string? SearchReference { get; set; }
+    private string PreviousPageUrl => SearchReference is null ? SearchPages.Options.Url : $"{SearchPages.Options.Url}/{SearchReference}";
+
     private SearchOptionsViewModel Model { get; set; } = default!;
 
     private EditContext EditContext = default!;
@@ -33,6 +38,7 @@ public partial class OptionsMap(
     private EditContext digitisingContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
+    private bool _canEdit;
 
     private string _searchTerm = string.Empty;
     private bool _isSearching = false;
@@ -42,6 +48,7 @@ public partial class OptionsMap(
     private string _selectedWard = string.Empty;
     private string _regionSearchErrorMessage = string.Empty;
     private CancellationTokenSource? _searchCts;
+    private ValidationMessageStore _messageStore = default!;
 
     private Guid _wardSelectKey = Guid.NewGuid();
     private Guid _parishSelectKey = Guid.NewGuid();
@@ -55,6 +62,8 @@ public partial class OptionsMap(
         Model ??= new();
         EditContext = new EditContext(Model);
         EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _messageStore = new(EditContext);
+
         // Reuse the same EditContext instance for all sections to keep validation state consistent
         regionContext = EditContext;
         digitisingContext = EditContext;
@@ -64,28 +73,27 @@ public partial class OptionsMap(
     {
         if (firstRender)
         {
-            var options = searchOptionsState.Options;
-            // GdsInputDate caches the GdsDate object reference on first render, so the existing
-            // objects must be mutated in-place rather than replaced to keep the component in sync.
-            if (options is not null)
+            // 1. data from repository
+            bool hasReferenceChanged = SearchReference is not null && !string.Equals(searchOptionsState.Options?.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase);
+            if (hasReferenceChanged)
             {
-                Model = options;
-                EditContext = new EditContext(Model);
-                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-                // Reuse the same EditContext instance for all sections to keep validation state consistent
-                regionContext = EditContext;
-                digitisingContext = EditContext;
-                Model.FromDate.DayText = options.FromDate.DayText;
-                Model.FromDate.MonthText = options.FromDate.MonthText;
-                Model.FromDate.YearText = options.FromDate.YearText;
-                Model.ToDate.DayText = options.ToDate.DayText;
-                Model.ToDate.MonthText = options.ToDate.MonthText;
-                Model.ToDate.YearText = options.ToDate.YearText;
-                Model.ByPostcode = options.ByPostcode;
-                Model.ByPersonsName = options.ByPersonsName;
-                Model.ByFloodSource = options.ByFloodSource;
-                Model.ByPolygon = options.ByPolygon;
+                var savedSearch = await savedSearchRepository.Get(SearchReference!, _cts.Token);
+                if (savedSearch is not null)
+                {
+                    Model.CopyFrom(savedSearch);
+                    searchOptionsState.SetOptions(Model);
+                }
             }
+
+            // 2. State - for example returning from the options map page
+            if (!hasReferenceChanged && searchOptionsState.Options is not null)
+            {
+                Model.CopyFrom(searchOptionsState.Options);
+            }
+
+            // 3. Page parameters
+            Model.SearchReference = SearchReference;
+            _canEdit = Model.OverrideLock || !Model.IsSavedSearchLocked;
 
             _isLoading = false;
             StateHasChanged();
@@ -105,24 +113,32 @@ public partial class OptionsMap(
                 _searchCts.Dispose();
             }
         }
-        catch (OperationCanceledException)
-        {
-            // Expected during normal cancellation; no action required.
-        }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "An unexpected error occurred while disposing {ComponentName}.", nameof(OptionsMap));
         }
+
+        GC.SuppressFinalize(this);
     }
 
     private void SaveAndReturn()
     {
         searchOptionsState.SetOptions(Model);
-        navigationManager.NavigateTo(SearchPages.Options.Url);
+        navigationManager.NavigateTo(PreviousPageUrl);
     }
 
     private async Task OnSearch()
     {
+        _messageStore.Clear();
+
+        if (!_canEdit)
+        {
+            var errorField = EditContext.Field(nameof(Model.SearchReference));
+            _messageStore.Add(errorField, "This search is locked and cannot be modified");
+            EditContext.NotifyValidationStateChanged();
+            return;
+        }
+
         _regionSearchErrorMessage = string.Empty;
         // Clear results if search term is too short
         if (string.IsNullOrWhiteSpace(_searchTerm) || _searchTerm.Length < 3)
@@ -140,7 +156,10 @@ public partial class OptionsMap(
     private async Task SearchAsync(string searchTerm)
     {
         // Cancel any pending search
-        _searchCts?.Cancel();
+        if (_searchCts != null)
+        {
+            await _searchCts.CancelAsync();
+        }
         _searchCts = new CancellationTokenSource();
         
         try

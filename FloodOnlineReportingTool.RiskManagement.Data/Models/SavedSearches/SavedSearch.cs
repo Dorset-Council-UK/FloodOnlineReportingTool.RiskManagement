@@ -19,6 +19,9 @@ public record SavedSearch
     public Guid Id { get; init; } = Guid.CreateVersion7();
     public string Reference { get; set; } = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
     public string SearchTitle { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? UpdatedAt { get; init; }
+    public string? UpdatedBy { get; set; }
 
     // Search parameters
 
@@ -27,8 +30,8 @@ public record SavedSearch
     public ICollection<Guid> FloodSources { get; init; } = []; //FloodReportSources
     public long? UPRN { get; init; } //FloodReports.UPRN
     public long? USRN { get; init; } //FloodReports.USRN
-    public string Postcode { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY
-    public string ReporterString { get; init; } = string.Empty; //UNUSED
+    public string Postcode { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY TODO: Needs fixing
+    public string ReporterString { get; init; } = string.Empty; //DO NOT IMPLEMENT INITIALLY TODO: Needs fixing
     public MultiPolygon? Geom { get; init; } //FloodReports.Geom
 
     // Result properties

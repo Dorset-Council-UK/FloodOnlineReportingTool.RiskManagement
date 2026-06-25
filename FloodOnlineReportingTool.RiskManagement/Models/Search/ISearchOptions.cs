@@ -1,5 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using GdsBlazorComponents;
+﻿using GdsBlazorComponents;
 using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Search;
@@ -13,4 +12,6 @@ public interface ISearchOptions
     public string? ByPostcode { get; set; }
     public string? ByPersonsName { get; set; }
     public MultiPolygon? ByPolygon { get; set; }
+    bool IsSavedSearchLocked { get; set; }
+    bool OverrideLock { get; set; }
 }

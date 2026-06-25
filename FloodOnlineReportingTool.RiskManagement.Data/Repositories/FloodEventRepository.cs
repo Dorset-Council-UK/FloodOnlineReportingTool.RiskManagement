@@ -2,7 +2,7 @@
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
@@ -10,101 +10,129 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
     IEventLogRepository eventLogRepository
-    ) : IFloodEventRepository
+) : IFloodEventRepository
 {
-    public async Task<SavedSearch?> CreateOrUpdateFloodEvent(Guid savedSearchId, FloodEvent floodEvent, CancellationToken ct)
+    public async Task<int> Count(CancellationToken cancellationToken)
     {
-        await using var context = await contextFactory.CreateDbContextAsync(ct);
-        SavedSearch? existingSearch;
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.FloodEvents.CountAsync(cancellationToken);
+    }
 
-        // Get the saved search
-        if (savedSearchId == Guid.Empty)
+    public async Task<int> Count(string userId, CancellationToken cancellationToken)
+    {
+        // TODO: Add filter by user functions. This should include filtering by:
+        // - Organisation of the user
+        // - User range assigned to the user
+        // - The users permission level (e.g. only show actions that the user has permissions to fulfil)
+
+        throw new NotImplementedException();
+    }
+
+    public async Task<int> CountCreatedInPast30Days(CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.FloodEvents
+            .Where(fe => fe.CreatedAt >= now.AddDays(-30) && fe.CreatedAt <= now)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<bool> Exists(Guid floodEventId, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .AnyAsync(fe => fe.Id == floodEventId, cancellationToken);
+    }
+
+    public async Task<Result<FloodEvent?>> Create(FloodEvent floodEvent, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var exists = await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .AnyAsync(fe => fe.Id == floodEvent.Id, cancellationToken);
+
+        if (exists)
         {
-            return null;
+            return Result<FloodEvent?>.Failure([$"A flood event with ID '{floodEvent.Id}' already exists."]);
         }
 
-        existingSearch = await context.SavedSearches
-                .Where(s => s.Id == savedSearchId)
-                .Include (s => s.FloodEvent)
-                .FirstOrDefaultAsync(ct);
-
-        if (existingSearch == null)
-        {
-            return null;
-        }
-
-        if (existingSearch.FloodEvent == null)
-        {
-            context.FloodEvents.Add(floodEvent);
-            existingSearch.FloodEvent = floodEvent;
-        } else
-        {
-            // Update existing flood event with new values (except Id)
-            var existingEvent = existingSearch.FloodEvent;
-            var updatedEvent = existingEvent with
-            {
-                Id = existingEvent.Id, 
-                MitigationTaken = floodEvent.MitigationTaken,
-                RecordStatus = floodEvent.RecordStatus,
-                FloodStatus = floodEvent.FloodStatus,
-                InvestigationStatus = floodEvent.InvestigationStatus,
-                EstimatedVulnerable = floodEvent.EstimatedVulnerable,
-                EstimatedUninhabitable = floodEvent.EstimatedUninhabitable,
-                EstimatedNoElectric = floodEvent.EstimatedNoElectric,
-                EstimatedNoGas = floodEvent.EstimatedNoGas,
-                EstimatedNoFoul = floodEvent.EstimatedNoFoul,
-                EstimatedNoWaterSupply = floodEvent.EstimatedNoWaterSupply,
-                EstimatedDisruptedUtilities = floodEvent.EstimatedDisruptedUtilities,
-                EstimatedResidentialAffected = floodEvent.EstimatedResidentialAffected,
-                EstimatedResidentialFlooded = floodEvent.EstimatedResidentialFlooded,
-                EstimatedResidentialOther = floodEvent.EstimatedResidentialOther,
-                EstimatedCommercialAffected = floodEvent.EstimatedCommercialAffected,
-                EstimatedCommercialFlooded = floodEvent.EstimatedCommercialFlooded,
-                EstimatedCommercialOther = floodEvent.EstimatedCommercialOther,
-                EstimatedTotalExternalOnly = floodEvent.EstimatedTotalExternalOnly,
-                EstimatedTotalInternallyFlooded = floodEvent.EstimatedTotalInternallyFlooded,
-                StatusNote = floodEvent.StatusNote,
-                FloodExtentConfidence = floodEvent.FloodExtentConfidence
-            };
-            context.Entry(existingEvent).State = EntityState.Detached;
-            context.Entry(updatedEvent).State = EntityState.Modified;
-            existingSearch.FloodEvent = updatedEvent;
-        }
-        
-        await context.SaveChangesAsync(ct);
+        context.FloodEvents.Add(floodEvent);
+        await context.SaveChangesAsync(cancellationToken);
 
         if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
         {
             // Trigger an investigation request if not already done.
-            await eventLogRepository.CreateEventLog(savedSearchId, Models.Enums.ActionEventTypes.TriggerInvestigation, ct);
+            var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(floodEvent.Id, Models.Enums.ActionEventTypes.TriggerInvestigation, cancellationToken);
+            if (!createEventLogResult.IsSuccess)
+            {
+                return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
+            }
         }
 
-        return existingSearch;
+        return Result<FloodEvent?>.Success(floodEvent);
     }
 
-    public async Task<IList<EventStatus>> GetEventStatuses(CancellationToken ct)
+    public async Task<Result<FloodEvent?>> Update(Guid floodEventId, FloodEvent floodEvent, CancellationToken cancellationToken)
     {
-        await using var context = await contextFactory.CreateDbContextAsync(ct);
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent is null)
+        {
+            return Result<FloodEvent?>.Failure([$"No flood event found with ID '{floodEventId}'."]);
+        }
+
+        var updatedFloodEvent = existingFloodEvent with
+        {
+            // Id
+            // Reference
+            // CreatedAt
+
+            EstimatedCommercialAffected = floodEvent.EstimatedCommercialAffected,
+            EstimatedCommercialFlooded = floodEvent.EstimatedCommercialFlooded,
+            EstimatedCommercialOther = floodEvent.EstimatedCommercialOther,
+            EstimatedDisruptedUtilities = floodEvent.EstimatedDisruptedUtilities,
+            EstimatedNoElectric = floodEvent.EstimatedNoElectric,
+            EstimatedNoFoul = floodEvent.EstimatedNoFoul,
+            EstimatedNoGas = floodEvent.EstimatedNoGas,
+            EstimatedNoWaterSupply = floodEvent.EstimatedNoWaterSupply,
+            EstimatedResidentialAffected = floodEvent.EstimatedResidentialAffected,
+            EstimatedResidentialFlooded = floodEvent.EstimatedResidentialFlooded,
+            EstimatedResidentialOther = floodEvent.EstimatedResidentialOther,
+            EstimatedTotalExternalOnly = floodEvent.EstimatedTotalExternalOnly,
+            EstimatedTotalInternallyFlooded = floodEvent.EstimatedTotalInternallyFlooded,
+            EstimatedUninhabitable = floodEvent.EstimatedUninhabitable,
+            EstimatedVulnerable = floodEvent.EstimatedVulnerable,
+            FloodExtentConfidence = floodEvent.FloodExtentConfidence,
+            FloodStatus = floodEvent.FloodStatus,
+            InvestigationStatus = floodEvent.InvestigationStatus,
+            MitigationTaken = floodEvent.MitigationTaken,
+            RecordStatus = floodEvent.RecordStatus,
+            StatusNote = floodEvent.StatusNote,
+        };
+
+        context.FloodEvents.Update(updatedFloodEvent);
+        await context.SaveChangesAsync(cancellationToken);
+
+        // update event log?
+
+        return Result<FloodEvent?>.Success(updatedFloodEvent);
+    }
+
+    public async Task<IList<EventStatus>> GetEventStatuses(CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.EventStatuses
             .AsNoTracking()
-            .OrderBy(o => o.Order)
-            .ToListAsync(ct);
+            .OrderBy(es => es.Order)
+            .ToListAsync(cancellationToken);
     }
-
-    // TODO: Add filter by user functions. This should include filtering by:
-    // - Organisation of the user
-    // - User range assigned to the user
-    // - The users permission level (e.g. only show actions that the user has permissions to fulfil)
-
-    public async Task<int> GetEventCountForUser(CancellationToken ct)
-    {
-        await using var context = await contextFactory.CreateDbContextAsync(ct);
-
-        // TODO insert user filter
-        var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30);
-        return await context.FloodEvents
-            .Where(fe => fe.CreatedAt >= thirtyDaysAgo && fe.CreatedAt <= DateTimeOffset.UtcNow)
-            .CountAsync(ct);
-    }
-
 }
