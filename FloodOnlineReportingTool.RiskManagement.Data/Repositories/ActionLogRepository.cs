@@ -151,7 +151,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             return null;
         }
         var action =  await context.ActionLogs
-            .Where(a => a.ReportId == Id && a.ActionId == actionDefinition.Id && a.ActionedAt == null)
+            .Where(a => a.ReportId == reportId && a.ActionId == actionDefinition.Id && a.ActionedAt == null)
             .FirstOrDefaultAsync(ct);
 
         if (action is null)
