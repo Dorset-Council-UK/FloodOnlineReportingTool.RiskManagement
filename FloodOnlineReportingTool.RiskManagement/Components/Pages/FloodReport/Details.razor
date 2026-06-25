@@ -59,7 +59,7 @@
                                 Reported on
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @(firstSource?.CreatedUtc.ToString() ?? "Unknown date")
+@(firstSource is not null ? firstSource.CreatedUtc.GdsReadable() : "Unknown date")
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
