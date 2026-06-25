@@ -45,16 +45,21 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
     // - Organisation of the user
     // - User range assigned to the user
     // - The users permission level (e.g. only show actions that the user has permissions to fulfil)
-
+    /// <summary>
+    /// Counts are filtered for actions that need an action to be completed. 
+    /// </summary>
     public async Task<int> GetActionCountForUser(CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
         // TODO insert user filter
 
-        return await context.ActionLogs.CountAsync(ct);
+        return await context.ActionLogs.Where(a => a.ActionedAt == null).CountAsync(ct);
     }
 
+    /// <summary>
+    /// Counts are filtered for actions that need an action to be completed and within the last 30 days. 
+    /// </summary>
     public async Task<int> GetPropertyCountForUser(CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
@@ -64,6 +69,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         return await context.ActionLogs
             .Where(a => a.Action.Name == "ReportNew")
             .Where(a => a.LoggedAt >= thirtyDaysAgo && a.LoggedAt <= DateTimeOffset.UtcNow)
+            .Where(a => a.ActionedAt == null)
             .CountAsync(ct);
 
     }
@@ -131,5 +137,58 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             .FirstOrDefaultAsync(ct);
 
         return actionLog is not null ? GetResult<ActionLog>.Success(actionLog) : GetResult<ActionLog>.Failure(new[] { "Action log not found" });
+    }
+
+    public async Task<Guid?> GetAcknowledgeActionByReport(Guid reportId, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+        var actionDefinition = await context.ActionDefinitions
+            .FirstOrDefaultAsync(a => a.Name == "ReportNew", ct);
+
+        if (actionDefinition is null)
+        {
+            return null;
+        }
+        var action =  await context.ActionLogs
+            .Where(a => a.ReportId == reportId && a.ActionId == actionDefinition.Id && a.ActionedAt == null)
+            .FirstOrDefaultAsync(ct);
+
+        if (action is null)
+        {
+            return null;
+        }
+
+        return action.Id;
+    }
+
+    public async Task<bool> AcknowledgeReport(Guid actionId, string currentUserDisplayName, CancellationToken ct)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(ct);
+
+        try
+        {
+            var actionLog = await context.ActionLogs
+                .FirstOrDefaultAsync(a => a.Id == actionId && a.ActionedAt == null, ct);
+
+            if (actionLog is null)
+            {
+                return false;
+            }
+
+            actionLog.ActionedBy = currentUserDisplayName;
+            actionLog.ActionedAt = DateTimeOffset.UtcNow;
+
+            await context.SaveChangesAsync(ct);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

@@ -30,10 +30,17 @@
 
                     @* TODO - add action buttons functionality once decided *@
                     <div class="govuk-button-group">
-                        <GdsButton Text="Action 1" AdditionalCssClasses="govuk-button--secondary" />
-                        <GdsButton Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
-                        <GdsButton Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
-                        <GdsButton Text="Action 4" AdditionalCssClasses="govuk-button--secondary" />
+                        <EditForm EditContext="_actionsEditContext">
+                            <GdsErrorSummary />
+                
+                            @if (AcknowledgeAction is not null)
+                            {
+                                <GdsButton IsSubmit="false" PreventDoubleClick AdditionalCssClasses="govuk-button--secondary" Text="Acknowledge Report" OnClick="@AcknowledgeAsync" />
+                            }
+                            <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
+                            <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
+                            <GdsButton IsSubmit="false" Text="Action 4" AdditionalCssClasses="govuk-button--secondary" />
+                        </EditForm>
                     </div>
 
                     <GdsHeading Level="3">Basic details</GdsHeading>
@@ -138,7 +145,6 @@
                         <MiniMap Geometry="@firstSource?.Geom"></MiniMap>
                     </div>
                 </GdsGridColumn>
-
             </GdsGridRow>
         }
 

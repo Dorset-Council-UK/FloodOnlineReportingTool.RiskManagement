@@ -21,4 +21,8 @@ public interface IActionLogRepository
     Task<PagedResult<ActionLog>> GetPagedActionLogsForUser(int pageNumber = 1, int pageSize = 10, string? sortColumn = null, bool ascending = true, CancellationToken ct = default);
 
     Task<GetResult<ActionLog>> GetActionLogById(Guid actionId, CancellationToken ct);
+
+    Task<Guid?> GetAcknowledgeActionByReport(Guid reportId, CancellationToken ct);
+
+    Task<bool> AcknowledgeReport(Guid actionId, string currentUserDisplayName, CancellationToken ct);
 }

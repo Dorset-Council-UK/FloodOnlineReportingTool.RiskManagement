@@ -22,9 +22,9 @@ public record ActionLog
     // App defined properties
     public DateTimeOffset LoggedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ActionedAt { get; set; }
-    public Guid? ActionedByUserId { get; set; }
+    public string? ActionedBy { get; set; }
     public string? Note { get; init; } // This will be used to describe unusual resolutions such as closing without completion by an admin. 
 
     public required Guid ActionId { get; init; }
-    public required ActionDefinition Action { get; init; }
+    public required ActionDefinition Action { get; init; } 
 }
