@@ -35,11 +35,11 @@
                 
                             @if (AcknowledgeAction is not null)
                             {
-                                <GdsButton IsSubmit=false AdditionalCssClasses="govuk-button--secondary" Text="Acknowledge Report" OnClick="AcknowledgeAsync"  />
+                                <GdsButton IsSubmit="false" PreventDoubleClick AdditionalCssClasses="govuk-button--secondary" Text="Acknowledge Report" OnClick="@AcknowledgeAsync" />
                             }
-                            <GdsButton Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
-                            <GdsButton Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
-                            <GdsButton Text="Action 4" AdditionalCssClasses="govuk-button--secondary" />
+                            <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
+                            <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
+                            <GdsButton IsSubmit="false" Text="Action 4" AdditionalCssClasses="govuk-button--secondary" />
                         </EditForm>
                     </div>
 

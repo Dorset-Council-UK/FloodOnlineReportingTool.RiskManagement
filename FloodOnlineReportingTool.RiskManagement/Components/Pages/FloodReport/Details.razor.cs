@@ -30,7 +30,7 @@ public partial class Details(
     private string ReportStatus { get; set; }
     private Guid? AcknowledgeAction { get; set; }
 
-    // Shared EditContext for all action buttons on the page — errors from any action
+    // Shared EditContext for all action buttons on the page - errors from any action
     // are pushed here and rendered once by a single GdsErrorSummary.
     private readonly object _actionsModel = new();
     private EditContext? _actionsEditContext;
@@ -131,7 +131,15 @@ public partial class Details(
             return;
         }
 
-        await actionLogRepository.AcknowledgeReport(acknowledgeAction, currentUserDisplayName, _cts.Token);
+        var acknowledged = await actionLogRepository.AcknowledgeReport(acknowledgeAction, currentUserDisplayName, _cts.Token);
+        if (!acknowledged)
+        {
+            _actionsMessageStore.Add(new FieldIdentifier(_actionsModel, string.Empty),
+                "Unable to acknowledge the report at this time. Please try again.");
+            _actionsEditContext!.NotifyValidationStateChanged();
+            return;
+        }
+
         AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Id, _cts.Token);
     }
 }

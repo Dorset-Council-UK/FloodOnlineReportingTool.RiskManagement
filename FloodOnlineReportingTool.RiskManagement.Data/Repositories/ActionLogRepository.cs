@@ -139,13 +139,17 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         return actionLog is not null ? GetResult<ActionLog>.Success(actionLog) : GetResult<ActionLog>.Failure(new[] { "Action log not found" });
     }
 
-    public async Task<Guid?> GetAcknowledgeActionByReport(Guid Id, CancellationToken ct)
+    public async Task<Guid?> GetAcknowledgeActionByReport(Guid reportId, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
         var actionDefinition = await context.ActionDefinitions
-            .FirstAsync(a => a.Name == "ReportNew", ct);
+            .FirstOrDefaultAsync(a => a.Name == "ReportNew", ct);
 
+        if (actionDefinition is null)
+        {
+            return null;
+        }
         var action =  await context.ActionLogs
             .Where(a => a.ReportId == Id && a.ActionId == actionDefinition.Id && a.ActionedAt == null)
             .FirstOrDefaultAsync(ct);
@@ -161,11 +165,12 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
     public async Task<bool> AcknowledgeReport(Guid actionId, string currentUserDisplayName, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
+
         try
         {
             var actionLog = await context.ActionLogs
-                        .Where(a => a.Id == actionId)
-                        .FirstOrDefaultAsync(ct);
+                .FirstOrDefaultAsync(a => a.Id == actionId && a.ActionedAt == null, ct);
+
             if (actionLog is null)
             {
                 return false;
@@ -175,11 +180,15 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             actionLog.ActionedAt = DateTimeOffset.UtcNow;
 
             await context.SaveChangesAsync(ct);
-        } catch
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
         {
             return false;
         }
-        
-        return true;
     }
 }
