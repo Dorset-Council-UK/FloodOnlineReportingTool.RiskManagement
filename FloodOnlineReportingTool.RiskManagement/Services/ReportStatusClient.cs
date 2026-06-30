@@ -443,7 +443,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         if (pagedResults is null)
         {
             logger.LogWarning("No flood reports found");
-            return new([], 0, pageSize, pageNumber, 0, 0);
+            return new([], 0, 0, pageSize, pageNumber, 0);
         }
 
         logger.LogInformation("Successfully retrieved {TotalCount} flood reports", pagedResults.TotalCount);

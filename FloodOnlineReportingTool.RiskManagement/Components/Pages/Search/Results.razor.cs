@@ -13,7 +13,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Identity.Web;
 using System.Text;
 
