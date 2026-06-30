@@ -13,6 +13,7 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Identity.Web;
 using System.Text;
 
@@ -42,7 +43,7 @@ public partial class Results(
     public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
-    public PagedResult<FloodReportTableRow>? SearchResultsGrouped { get; private set; }
+    public SearchFloodReportPagedResult<FloodReportTableRow>? SearchResultsGrouped { get; private set; }
 
     private MiniMap? _miniMapRef;
     private bool _isLoadingMapData;
@@ -161,7 +162,7 @@ public partial class Results(
         try
         {
             var pageNumber = SearchResultsViewModel.PageNumber ?? 1;
-            var rawResult = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
+            SearchResults = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
                                                                         SearchResultsViewModel.ToDate.DateUtc,
                                                                         SearchResultsViewModel.ByFloodSource,
                                                                         null,
@@ -170,8 +171,7 @@ public partial class Results(
                                                                         SearchResultsViewModel.ByPolygon,
                                                                         pageNumber,
                                                                         ct: _cts.Token);
-            SearchResults = rawResult.ToFloodResultItem(_reportStatuses);
-            SearchResultsGrouped = rawResult.ToFloodReportTableRows(_reportStatuses);
+            SearchResultsGrouped = SearchResults.ToFloodReportTableRows(_reportStatuses);
 
             _searchState = SearchResults is null || SearchResults.TotalCount == 0
                 ? SearchState.NoResults
@@ -244,7 +244,7 @@ public partial class Results(
 
             for (var page = 1; page <= totalPages; page++)
             {
-                var rawResult = await reportStatusClient.SearchFloodReports(
+                var rawRresult = await reportStatusClient.SearchFloodReports(
                     SearchResultsViewModel.FromDate.DateUtc,
                     SearchResultsViewModel.ToDate.DateUtc,
                     SearchResultsViewModel.ByFloodSource,
@@ -253,8 +253,7 @@ public partial class Results(
                     SearchResultsViewModel.ByPolygon,
                     page, pageSize,
                     _cts.Token);
-
-                var result = rawResult.ToFloodResultItem(_reportStatuses);
+                var result = rawRresult.ToFloodResultItem(_reportStatuses);
 
                 if (result?.Results is not null)
                 {

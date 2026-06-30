@@ -60,11 +60,11 @@ internal static class SearchMappingExtensions
     /// <see cref="SearchResultFloodReport"/>, preserving the source records collection
     /// for display in an expandable table.
     /// </summary>
-    internal static PagedResult<FloodReportTableRow> ToFloodReportTableRows(this PagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
+    internal static SearchFloodReportPagedResult<FloodReportTableRow> ToFloodReportTableRows(this SearchFloodReportPagedResult<SearchResultFloodReport>? source, IList<ReportStatus> reportStatuses)
     {
         if (source is null)
         {
-            return new PagedResult<FloodReportTableRow>([], 0, 0, 0, 0);
+            return new SearchFloodReportPagedResult<FloodReportTableRow>([], 0, 0, 0, 0, 0);
         }
 
         var statusById = reportStatuses
@@ -86,7 +86,7 @@ internal static class SearchMappingExtensions
             })
             .ToList();
 
-        return new PagedResult<FloodReportTableRow>(items, source.TotalCount, source.PageSize, source.CurrentPage, source.TotalPages);
+        return new SearchFloodReportPagedResult<FloodReportTableRow>(items, source.TotalCount, source.TotalFloodSourceCount, source.PageSize, source.CurrentPage, source.TotalPages);
     }
 
 
