@@ -244,7 +244,7 @@ public partial class Results(
 
             for (var page = 1; page <= totalPages; page++)
             {
-                var rawRresult = await reportStatusClient.SearchFloodReports(
+                var rawResult = await reportStatusClient.SearchFloodReports(
                     SearchResultsViewModel.FromDate.DateUtc,
                     SearchResultsViewModel.ToDate.DateUtc,
                     SearchResultsViewModel.ByFloodSource,
@@ -253,7 +253,7 @@ public partial class Results(
                     SearchResultsViewModel.ByPolygon,
                     page, pageSize,
                     _cts.Token);
-                var result = rawRresult.ToFloodResultItem(_reportStatuses);
+                var result = rawResult.ToFloodResultItem(_reportStatuses);
 
                 if (result?.Results is not null)
                 {
