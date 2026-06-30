@@ -34,7 +34,7 @@ public partial class Results(
     private ValidationMessageStore _messageStore = default!;
     private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel SearchResultsViewModel { get; set; } = default!;
-    public PagedResult<FloodResultItem> SearchResults { get; set; } = default!;
+    public SearchFloodReportPagedResult<SearchResultFloodReport> SearchResults { get; set; } = default!;
     private SearchState? _searchState;
     private IList<ReportStatus> _reportStatuses = [];
 
