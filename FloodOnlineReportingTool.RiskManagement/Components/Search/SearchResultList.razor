@@ -1,7 +1,3 @@
-@using FloodOnlineReportingTool.RiskManagement.Authorization
-@using FloodOnlineReportingTool.RiskManagement.Models.Search
-@using Microsoft.AspNetCore.Components.Authorization
-
 @if (SearchResults is not null)
 {
     <div class="govuk-grid-row border-bottom">
@@ -13,7 +9,7 @@
         </div>
 
         <div class="govuk-grid-column-two-thirds">
-            <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.Results.Sum(r => r.SourceRecords.Count) sources</div>
+            <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.TotalFloodSourceCount sources</div>
             @foreach (var result in SearchResults!.Results)
             {
                 <FloodInformation SearchResult="result" />

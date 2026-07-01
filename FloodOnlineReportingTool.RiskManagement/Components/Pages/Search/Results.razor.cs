@@ -34,7 +34,7 @@ public partial class Results(
     private ValidationMessageStore _messageStore = default!;
     private readonly CancellationTokenSource _cts = new();
     private SearchResultsViewModel SearchResultsViewModel { get; set; } = default!;
-    public PagedResult<FloodResultItem> SearchResults { get; set; } = default!;
+    public SearchFloodReportPagedResult<SearchResultFloodReport> SearchResults { get; set; } = default!;
     private SearchState? _searchState;
     private IList<ReportStatus> _reportStatuses = [];
 
@@ -42,7 +42,7 @@ public partial class Results(
     public string? SearchReference { get; set; }
 
     private bool _isLoading = true;
-    public PagedResult<FloodReportTableRow>? SearchResultsGrouped { get; private set; }
+    public SearchFloodReportPagedResult<FloodReportTableRow>? SearchResultsGrouped { get; private set; }
 
     private MiniMap? _miniMapRef;
     private bool _isLoadingMapData;
@@ -161,7 +161,7 @@ public partial class Results(
         try
         {
             var pageNumber = SearchResultsViewModel.PageNumber ?? 1;
-            var rawResult = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
+            SearchResults = await reportStatusClient.SearchFloodReports(SearchResultsViewModel.FromDate.DateUtc,
                                                                         SearchResultsViewModel.ToDate.DateUtc,
                                                                         SearchResultsViewModel.ByFloodSource,
                                                                         null,
@@ -170,8 +170,7 @@ public partial class Results(
                                                                         SearchResultsViewModel.ByPolygon,
                                                                         pageNumber,
                                                                         ct: _cts.Token);
-            SearchResults = rawResult.ToFloodResultItem(_reportStatuses);
-            SearchResultsGrouped = rawResult.ToFloodReportTableRows(_reportStatuses);
+            SearchResultsGrouped = SearchResults.ToFloodReportTableRows(_reportStatuses);
 
             _searchState = SearchResults is null || SearchResults.TotalCount == 0
                 ? SearchState.NoResults
@@ -253,7 +252,6 @@ public partial class Results(
                     SearchResultsViewModel.ByPolygon,
                     page, pageSize,
                     _cts.Token);
-
                 var result = rawResult.ToFloodResultItem(_reportStatuses);
 
                 if (result?.Results is not null)

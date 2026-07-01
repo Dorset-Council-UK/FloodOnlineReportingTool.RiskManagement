@@ -6,7 +6,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Search;
 
 public partial class SearchResultList() {
     [Parameter]
-    public PagedResult<FloodReportTableRow>? SearchResults { get; set; }
+    public SearchFloodReportPagedResult<FloodReportTableRow>? SearchResults { get; set; }
 
     [Parameter]
     public EventCallback<int> OnPageChanged { get; set; }
