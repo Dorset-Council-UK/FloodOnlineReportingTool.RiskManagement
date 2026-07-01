@@ -1,7 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Topics;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using Messaging.Consumers;
 using System.Diagnostics;
 using System.Text.Json;
