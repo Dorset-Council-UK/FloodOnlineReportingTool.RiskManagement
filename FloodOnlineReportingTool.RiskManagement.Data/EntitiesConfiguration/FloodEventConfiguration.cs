@@ -19,6 +19,8 @@ internal sealed class FloodEventConfiguration : IEntityTypeConfiguration<FloodEv
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Navigation(f => f.SavedSearch).AutoInclude();
+
         builder.HasIndex(f => f.SavedSearchId)
             .IsUnique();
 
