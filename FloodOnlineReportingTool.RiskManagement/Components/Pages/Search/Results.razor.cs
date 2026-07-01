@@ -121,7 +121,7 @@ public partial class Results(
                     }
                     else if (searchRedirect.RedirectType == RecordTypes.Event)
                     {
-                        var nextPage = $"{EventPages.Details.Url}/{searchRedirect.Reference}";
+                        var nextPage = $"{EventPages.View.Url}/{searchRedirect.Reference}";
                         navigationManager.NavigateTo(nextPage);
                         return;
                     }

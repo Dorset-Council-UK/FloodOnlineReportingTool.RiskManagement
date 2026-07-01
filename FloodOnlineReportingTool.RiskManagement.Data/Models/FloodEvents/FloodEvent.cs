@@ -1,11 +1,19 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 
 public record FloodEvent
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();
+    // Always exactly one linked saved search.
+    public Guid SavedSearchId { get; init; }
+    public SavedSearch SavedSearch { get; init; } = null!;
+
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+    public string Reference => SavedSearch.Reference; // Allows direct searching by saved search reference
+
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     public ConditionalOptions MitigationTaken { get; init; } = ConditionalOptions.No;
