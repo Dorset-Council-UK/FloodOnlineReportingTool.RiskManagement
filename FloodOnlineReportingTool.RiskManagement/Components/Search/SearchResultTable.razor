@@ -5,7 +5,7 @@
     <button type="button" class="govuk-button @(!_showGrouped ? "" : "govuk-button--secondary")" @onclick="() => _showGrouped = false">Flat</button>
 </div>
 
-<div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.Results.Sum(r => r.SourceRecords.Count) sources</div>
+<div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.TotalFloodSourceCount sources</div>
 
 <div class="grid">
     @if (_showGrouped)
