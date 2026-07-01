@@ -407,7 +407,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         return pagedResults;
     }
 
-    public async Task<PagedResult<SearchResultFloodReport>> SearchFloodReports(DateTimeOffset? resultsFrom, DateTimeOffset? resultsTo, ICollection<Guid> floodSources, long? uprn, long? usrn, string? postcode, MultiPolygon? geom, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
+    public async Task<SearchFloodReportPagedResult<SearchResultFloodReport>> SearchFloodReports(DateTimeOffset? resultsFrom, DateTimeOffset? resultsTo, ICollection<Guid> floodSources, long? uprn, long? usrn, string? postcode, MultiPolygon? geom, int pageNumber = 1, int pageSize = 10, CancellationToken ct = default)
     {
         logger.LogInformation("Searching flood reports: PageNumber={PageNumber}, PageSize={PageSize}", pageNumber, pageSize);
 
@@ -423,7 +423,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         };
 
         var relativePath = string.Create(CultureInfo.InvariantCulture, $"/api/search/floodreports/search?pageNumber={pageNumber}&pageSize={pageSize}");
-        var pagedResults = await downstreamApi.CallApiForUserAsync<object, PagedResult<SearchResultFloodReport>>(
+        var pagedResults = await downstreamApi.CallApiForUserAsync<object, SearchFloodReportPagedResult<SearchResultFloodReport>>(
             RiskManagementOptions.ReportStatusApi,
             request,
             options =>
@@ -435,7 +435,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
                 {
                     if (content is null) return null;
                     var stream = content.ReadAsStream(ct);
-                    return JsonSerializer.Deserialize<PagedResult<SearchResultFloodReport>>(stream, _jsonSerializerOptions);
+                    return JsonSerializer.Deserialize<SearchFloodReportPagedResult<SearchResultFloodReport>>(stream, _jsonSerializerOptions);
                 };
             },
             cancellationToken: ct);
@@ -443,7 +443,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         if (pagedResults is null)
         {
             logger.LogWarning("No flood reports found");
-            return new([], 0, pageSize, pageNumber, 0);
+            return new([], 0, 0, pageSize, pageNumber, 0);
         }
 
         logger.LogInformation("Successfully retrieved {TotalCount} flood reports", pagedResults.TotalCount);
