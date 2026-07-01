@@ -66,13 +66,13 @@ public class EventLogRepository(
         {
             case ActionEventTypes.TriggerInvestigation:
                 // Send a message to trigger the investigation
-                var outMessage = new InvestigationTriggered(
+                var outMessage = new FloodEventS19Triggered(
                     floodEvent.Id,
                     floodEvent.Reference,
                     DateTimeOffset.UtcNow);
                 OutboxMessage outboxMessage = new()
                 {
-                    MessageType = nameof(InvestigationTriggered),
+                    MessageType = nameof(FloodEventS19Triggered),
                     Message = JsonSerializer.Serialize(outMessage, _jsonOptions),
                     Status = MessageStatus.Pending,
                 };
