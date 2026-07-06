@@ -25,12 +25,8 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
 
         var newAction = new ActionLog
         {
-            Id = Guid.NewGuid(),
-            ReportId = incomingAction.Id,
             ReportReference = incomingAction.Reference,
-            CreatedAt = incomingAction.CreatedUtc,
             PointGeom = new Point(incomingAction.Easting, incomingAction.Northing),
-            LoggedAt = DateTimeOffset.UtcNow,
             ActionId = actionDefinition.Id,
             Action = actionDefinition,
         };
@@ -105,8 +101,6 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             ("Action", false)                   => query.OrderByDescending(a => a.Action.Name),
             ("Flood Report Reference", true)    => query.OrderBy(a => a.ReportReference),
             ("Flood Report Reference", false)   => query.OrderByDescending(a => a.ReportReference),
-            ("Created On", true)                => query.OrderBy(a => a.CreatedAt),
-            ("Created On", false)               => query.OrderByDescending(a => a.CreatedAt),
             ("Logged On", true)                 => query.OrderBy(a => a.LoggedAt),
             ("Logged On", false)                => query.OrderByDescending(a => a.LoggedAt),
             ("Notes", true)                     => query.OrderBy(a => a.Note),
@@ -139,7 +133,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         return actionLog is not null ? GetResult<ActionLog>.Success(actionLog) : GetResult<ActionLog>.Failure(new[] { "Action log not found" });
     }
 
-    public async Task<Guid?> GetAcknowledgeActionByReport(Guid reportId, CancellationToken ct)
+    public async Task<Guid?> GetAcknowledgeActionByReport(string reportRef, CancellationToken ct)
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
@@ -151,7 +145,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             return null;
         }
         var action =  await context.ActionLogs
-            .Where(a => a.ReportId == reportId && a.ActionId == actionDefinition.Id && a.ActionedAt == null)
+            .Where(a => a.ReportReference == reportRef && a.ActionId == actionDefinition.Id && a.ActionedAt == null)
             .FirstOrDefaultAsync(ct);
 
         if (action is null)

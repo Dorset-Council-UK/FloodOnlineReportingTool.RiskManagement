@@ -79,7 +79,7 @@ public partial class Details(
                 ViewModel = reportResult.ResultModel;
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? "";
 
-                AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Id, _cts.Token);
+                AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
                 logger.LogInformation("Flood report detail loaded successfully for reference");
             }
             else
@@ -140,6 +140,6 @@ public partial class Details(
             return;
         }
 
-        AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Id, _cts.Token);
+        AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Reference, _cts.Token);
     }
 }

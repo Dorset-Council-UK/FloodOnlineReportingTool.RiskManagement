@@ -67,7 +67,6 @@ public class EventLogRepository(
             case ActionEventTypes.TriggerInvestigation:
                 // Send a message to trigger the investigation
                 var outMessage = new FloodEventS19Triggered(
-                    floodEvent.Id,
                     floodEvent.Reference,
                     DateTimeOffset.UtcNow);
                 OutboxMessage outboxMessage = new()

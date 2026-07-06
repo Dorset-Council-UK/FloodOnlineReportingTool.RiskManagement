@@ -5,8 +5,8 @@
 
 <div class="grid">
     <QuickGrid @ref="_grid" ItemsProvider="ItemsProvider" Pagination="_pagination" class="govuk-table quickgrid-hide-empty-rows">
-        <TemplateColumn Title="Created On" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.CreatedAt)">
-            @context.CreatedAt.GdsReadable()
+        <TemplateColumn Title="Created On" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.LoggedAt)">
+            @context.LoggedAt.GdsReadable()
         </TemplateColumn>
         <TemplateColumn Title="Action" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Action.Description)">
             @context.Action.Description
