@@ -154,6 +154,33 @@ public class FloodEventRepository(
         context.FloodEvents.Update(updatedFloodEvent);
         await context.SaveChangesAsync(cancellationToken);
 
+        var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
+        if (linkedSavedSearch is not null && linkedSavedSearch.ResultsFrom is not null && linkedSavedSearch.ResultsTo is not null)
+        {
+            // Send a message to trigger the FloodEventUpdated message
+            var outMessage = new FloodEventUpdated(
+                linkedSavedSearch.Reference,
+                linkedSavedSearch.SearchTitle,
+                floodEvent.RecordStatus,
+                floodEvent.FloodStatus,
+                floodEvent.InvestigationStatus,
+                (DateTimeOffset)linkedSavedSearch.ResultsFrom,
+                (DateTimeOffset)linkedSavedSearch.ResultsTo,
+                (IReadOnlyCollection<Guid>)linkedSavedSearch.FloodSources,
+                (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByOrganisation,
+                (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByStatus,
+                [],
+                null
+             );
+            OutboxMessage outboxMessage = new()
+            {
+                MessageType = nameof(FloodEventUpdated),
+                Message = JsonSerializer.Serialize(outMessage, _jsonOptions),
+                Status = MessageStatus.Pending,
+            };
+            context.OutboxMessages.Add(outboxMessage);
+        }
+
         // update event log?
 
         return Result<FloodEvent?>.Success(updatedFloodEvent);
