@@ -125,6 +125,8 @@ public sealed class OutboxWorker(
         var topicName = messageType switch
         {
             nameof(FloodEventS19Triggered) => TopicNames.FloodEventS19Triggered,
+            nameof(FloodEventCreated) => TopicNames.FloodEventCreated,
+            nameof(FloodEventUpdated) => TopicNames.FloodEventUpdated,
             nameof(FloodEventActionRequest) => TopicNames.FloodEventActionRequest,
             nameof(FloodReportSourceVerifyContact) => TopicNames.FloodReportSourceVerifyContact,
             _ => throw new NotSupportedException($"Message type {messageType} is not supported."),

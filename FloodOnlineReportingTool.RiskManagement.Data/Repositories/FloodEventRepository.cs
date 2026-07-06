@@ -1,17 +1,23 @@
-﻿using FloodOnlineReportingTool.Contracts.Shared;
+﻿using FloodOnlineReportingTool.Contracts;
+using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
 using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
-    IEventLogRepository eventLogRepository
+    IEventLogRepository eventLogRepository,
+    ISavedSearchRepository savedSearchRepository
 ) : IFloodEventRepository
 {
+    private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
+
     public async Task<int> Count(CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
@@ -61,6 +67,32 @@ public class FloodEventRepository(
         }
 
         context.FloodEvents.Add(floodEvent);
+        await context.SaveChangesAsync(cancellationToken);
+        var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
+        if (linkedSavedSearch is not null && linkedSavedSearch.ResultsFrom is not null && linkedSavedSearch.ResultsTo is not null)
+        {
+            // Send a message to trigger the FloodEventCreated message
+            var outMessage = new FloodEventCreated(
+            linkedSavedSearch.Reference,
+            linkedSavedSearch.SearchTitle,
+            floodEvent.RecordStatus,
+            floodEvent.FloodStatus,
+            floodEvent.InvestigationStatus,
+            (DateTimeOffset)linkedSavedSearch.ResultsFrom,
+            (DateTimeOffset)linkedSavedSearch.ResultsTo,
+            (IReadOnlyCollection<Guid>)linkedSavedSearch.FloodSources,
+            (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByOrganisation,
+            (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByStatus,
+            []
+            );
+            OutboxMessage outboxMessage = new()
+            {
+                MessageType = nameof(FloodEventCreated),
+                Message = JsonSerializer.Serialize(outMessage, _jsonOptions),
+                Status = MessageStatus.Pending,
+            };
+            context.OutboxMessages.Add(outboxMessage);
+        }
         await context.SaveChangesAsync(cancellationToken);
 
         if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
