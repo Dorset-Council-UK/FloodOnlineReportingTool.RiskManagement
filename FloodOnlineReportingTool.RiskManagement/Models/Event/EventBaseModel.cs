@@ -21,10 +21,24 @@ public abstract class EventBaseModel
     public int EstimatedTotalInternallyFlooded { get; set; } = 0;
     public int EstimatedDisruptedUtilities { get; set; } = 0;
 
-    public FloodEvent ToFloodEvent(EventDetailsViewModel details, EventEstimatesViewModel? estimates)
+    /// <summary>
+    /// Maps event view models to a <see cref="FloodEvent"/> and binds it to its owning saved search.
+    /// </summary>
+    /// <param name="savedSearchId">The parent saved search ID used as the required foreign key.</param>
+    /// <param name="details">The event details model.</param>
+    /// <param name="estimates">The optional event estimates model.</param>
+    /// <returns>A fully populated <see cref="FloodEvent"/> ready for persistence.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="savedSearchId"/> is <see cref="Guid.Empty"/>.</exception>
+    public FloodEvent ToFloodEvent(Guid savedSearchId, EventDetailsViewModel details, EventEstimatesViewModel? estimates)
     {
+        if (savedSearchId == Guid.Empty)
+        {
+            throw new ArgumentException("SavedSearchId must be a non-empty GUID.", nameof(savedSearchId));
+        }
+
         return new FloodEvent
         {
+            SavedSearchId = savedSearchId,
             MitigationTaken = ConditionalOptions.No,
             RecordStatus = details.RecordStatus,
             FloodStatus = details.FloodStatus,
@@ -46,7 +60,6 @@ public abstract class EventBaseModel
             EstimatedCommercialAffected = estimates?.EstimatedCommercialAffected ?? 0,
             EstimatedCommercialFlooded = estimates?.EstimatedCommercialFlooded ?? 0,
             EstimatedCommercialOther = estimates?.EstimatedCommercialOther ?? 0
-            
         };
-    } 
+    }
 }

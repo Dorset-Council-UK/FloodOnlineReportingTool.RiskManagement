@@ -37,7 +37,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.SavedSearches
             .AsNoTracking()
-            .Include(s => s.FloodEvent)
+            .IgnoreAutoIncludes()
             .FirstOrDefaultAsync(s => s.Id == savedSearchId, cancellationToken);
     }
 
@@ -46,7 +46,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         return await context.SavedSearches
             .AsNoTracking()
-            .Include(s => s.FloodEvent)
+            .IgnoreAutoIncludes()
             .FirstOrDefaultAsync(s => s.Reference == reference, cancellationToken);
     }
 
@@ -216,6 +216,24 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
 
+        // If there is a flood event we go there first. 
+        var floodEventId = await context.FloodEvents
+            .AsNoTracking()
+            .Where(f => f.SavedSearch.Reference == reference)
+            .Select(f => f.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (floodEventId != Guid.Empty)
+        {
+            return Result<SearchRedirect?>.Success(new SearchRedirect
+            {
+                Id = floodEventId,
+                Reference = reference,
+                RedirectType = RecordTypes.Event,
+            });
+        }
+
+        // No flood event with the reference, check for a saved search with the reference
         var savedSearchId = await context.SavedSearches
             .AsNoTracking()
             .IgnoreAutoIncludes()
@@ -230,23 +248,6 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
                 Id = savedSearchId,
                 Reference = reference,
                 RedirectType = RecordTypes.Search,
-            });
-        }
-
-        var floodEventId = await context.FloodEvents
-            .AsNoTracking()
-            .IgnoreAutoIncludes()
-            .Where(f => f.Reference == reference)
-            .Select(f => f.Id)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (floodEventId != Guid.Empty)
-        {
-            return Result<SearchRedirect?>.Success(new SearchRedirect
-            {
-                Id = floodEventId,
-                Reference = reference,
-                RedirectType = RecordTypes.Event,
             });
         }
 
