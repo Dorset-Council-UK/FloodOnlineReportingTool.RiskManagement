@@ -1,0 +1,62 @@
+﻿@using FloodOnlineReportingTool.RiskManagement.Models
+@using FloodOnlineReportingTool.RiskManagement.Services
+@using Humanizer
+
+@inject ILogger<RecentWorkList> logger
+@inject ISettingsService settingsService
+
+@if (ErrorMessage is not null)
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+@if (RecentWork is not null && RecentWork.Count != 0)
+{
+    <ul class="govuk-list govuk-list--bullet">
+        @foreach (RecentWork work in RecentWork.Reverse())
+        {
+            <li>
+                <a class="govuk-link" href="@work.URL">
+                    @($"{work.EntityId} ({work.EntityType}) - {work.EntityDescription?.ReplaceLineEndings(" ")}")
+                </a>
+                <small>@(work.VisitTime.Humanize())</small>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <div class="alert alert-info">You haven't viewed any reports recently</div>
+}
+
+@code {
+    private bool IsBusy { get; set; }
+    private string? ErrorMessage { get; set; } = null;
+    private IList<RecentWork>? RecentWork { get; set; }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            IsBusy = true;
+            StateHasChanged();
+            ErrorMessage = null;
+
+            try
+            {
+                RecentWork = await settingsService.GetRecentWork();
+
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "An error occurred loading your recently visited reports";
+                logger.LogError(ex, "An error occurred loading a user's recent work in the card component");
+            }
+            finally
+            {
+                IsBusy = false;
+                StateHasChanged();
+            }
+        }
+    }
+
+
+}

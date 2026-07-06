@@ -15,6 +15,7 @@ public partial class Details(
     IReportStatusClient reportStatusClient,
     ICommonRepository commonRepository,
     IActionLogRepository actionLogRepository,
+    ISettingsService settingsService,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
@@ -97,6 +98,16 @@ public partial class Details(
             consentHandler.HandleException(ex);
         }
         _isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (ViewModel is not null)
+        {
+            //add to recent work store
+            await settingsService.AddRecentWork($"{Reference}", "Flood Report", ViewModel.Id.ToString(), $"/report/details/{Reference}");
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     /// <summary>

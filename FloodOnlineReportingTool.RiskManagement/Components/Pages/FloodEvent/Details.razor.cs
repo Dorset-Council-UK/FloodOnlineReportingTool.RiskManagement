@@ -5,6 +5,7 @@ using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -24,7 +26,8 @@ public partial class Details(
     IFloodEventState floodEventState,
     ISavedSearchRepository savedSearchRepository,
     ISearchResultsState searchResultsState,
-    IAuthorizationService authorizationService
+    IAuthorizationService authorizationService,
+    ISettingsService settingsService
 ) : IAsyncDisposable
 {
     [Parameter]
@@ -90,6 +93,16 @@ public partial class Details(
             _eventStatuses = await floodEventRepository.GetEventStatuses(_cts.Token);
             _investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Model is not null)
+        {
+            //add to recent work store
+            await settingsService.AddRecentWork($"{SearchReference}", "Flood Event", Model.SearchTitle, $"/event/details/{SearchReference}");
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task<EventDetailsViewModel> GetModel()
