@@ -100,7 +100,7 @@ public partial class Details(
         if (Model is not null)
         {
             //add to recent work store
-            await settingsService.AddRecentWork($"{SearchReference}", "Flood Event", Model.SearchTitle, $"/event/details/{SearchReference}");
+            await settingsService.AddRecentWork($"{SearchReference}", "Flood Event", Model.SearchTitle, $"event/{SearchReference}");
         }
         await base.OnAfterRenderAsync(firstRender);
     }

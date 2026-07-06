@@ -105,7 +105,7 @@ public partial class Details(
         if (ViewModel is not null)
         {
             //add to recent work store
-            await settingsService.AddRecentWork($"{Reference}", "Flood Report", ViewModel.Id.ToString(), $"/report/details/{Reference}");
+            await settingsService.AddRecentWork($"{Reference}", "Flood Report", "", $"report/details/{Reference}");
         }
         await base.OnAfterRenderAsync(firstRender);
     }
