@@ -40,9 +40,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<string>("ActionedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<DateTimeOffset>("LoggedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -54,9 +51,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.Property<MultiPolygon>("PolygonGeom")
                         .HasColumnType("geometry(multipolygon, 27700)");
-
-                    b.Property<Guid>("ReportId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("ReportReference")
                         .IsRequired()
