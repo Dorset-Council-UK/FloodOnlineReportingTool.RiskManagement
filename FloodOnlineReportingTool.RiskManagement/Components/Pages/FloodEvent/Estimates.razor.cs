@@ -126,7 +126,7 @@ public partial class Estimates(
             return;
         }
 
-        var floodEvent = Model.ToFloodEvent(eventDetails, Model);
+        var floodEvent = Model.ToFloodEvent(savedSearch.Id, eventDetails, Model);
         var createFloodEventResult = await floodEventRepository.Create(floodEvent, _cts.Token);
         if (!createFloodEventResult.IsSuccess)
         {

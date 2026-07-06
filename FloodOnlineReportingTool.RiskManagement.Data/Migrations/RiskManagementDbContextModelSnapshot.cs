@@ -100,7 +100,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -166,9 +165,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Property<Guid>("RecordStatus")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("SavedSearchId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("StatusNote")
                         .IsRequired()
@@ -176,7 +174,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Reference")
+                    b.HasIndex("SavedSearchId")
                         .IsUnique();
 
                     b.ToTable("FloodEvents", "fortriskmanagement");
@@ -1092,8 +1090,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.Property<string>("Reference")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
 
                     b.Property<string>("ReporterString")
                         .IsRequired()
@@ -1133,8 +1131,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FloodEventId");
-
                     b.HasIndex("Reference")
                         .IsUnique();
 
@@ -1163,6 +1159,17 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.Navigation("FloodEvent");
                 });
 
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", b =>
+                {
+                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.SavedSearch", "SavedSearch")
+                        .WithOne("FloodEvent")
+                        .HasForeignKey("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", "SavedSearchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SavedSearch");
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEventComment", b =>
                 {
                     b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", "FloodEvent")
@@ -1176,10 +1183,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.SavedSearch", b =>
                 {
-                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", "FloodEvent")
-                        .WithMany()
-                        .HasForeignKey("FloodEventId");
-
                     b.Navigation("FloodEvent");
                 });
 #pragma warning restore 612, 618

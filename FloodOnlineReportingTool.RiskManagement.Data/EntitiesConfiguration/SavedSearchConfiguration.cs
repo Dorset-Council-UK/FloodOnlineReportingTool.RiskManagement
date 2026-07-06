@@ -29,7 +29,7 @@ internal class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
         builder
             .Property(s => s.Reference)
             .IsRequired()
-            .HasMaxLength(10);
+            .HasMaxLength(15);
 
         // Store enums as integers in the database
         builder

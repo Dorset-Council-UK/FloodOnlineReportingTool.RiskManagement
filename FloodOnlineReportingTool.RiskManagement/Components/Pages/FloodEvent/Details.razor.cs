@@ -162,7 +162,7 @@ public partial class Details(
             return;
         }
 
-        var newFloodEvent = Model.ToFloodEvent(Model, floodEventState.Estimates);
+        var newFloodEvent = Model.ToFloodEvent(savedSearch.Id, Model, floodEventState.Estimates);
         var createdFloodEventResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
         if (!createdFloodEventResult.IsSuccess)
         {
