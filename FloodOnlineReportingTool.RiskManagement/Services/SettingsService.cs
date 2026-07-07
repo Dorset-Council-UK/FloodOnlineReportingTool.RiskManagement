@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
-public class SettingsService(ProtectedLocalStorage ProtectedLocalStore, ILogger<SettingsService> logger) : ISettingsService
+public class SettingsService(ProtectedLocalStorage protectedLocalStore, ILogger<SettingsService> logger) : ISettingsService
 {
     private const string RecentWorkKey = "fort.recentWork";
     public async Task<IList<RecentWork>> GetRecentWork()
     {
         try
         {
-            var data = await ProtectedLocalStore.GetAsync<IList<RecentWork>>(RecentWorkKey).ConfigureAwait(false);
+            var data = await protectedLocalStore.GetAsync<IList<RecentWork>>(RecentWorkKey).ConfigureAwait(false);
             if (data.Success && data.Value is not null)
             {
                 return data.Value;
@@ -20,7 +20,7 @@ public class SettingsService(ProtectedLocalStorage ProtectedLocalStore, ILogger<
             //ignore
         }catch(Exception ex) { 
             logger.LogWarning(ex, "Recent Work localStorage item could not be fetched. Deleting storage item in case of corrupt data");
-            await ProtectedLocalStore.DeleteAsync(RecentWorkKey).ConfigureAwait(false);
+            await protectedLocalStore.DeleteAsync(RecentWorkKey).ConfigureAwait(false);
         }
         return [];
     }
@@ -45,7 +45,7 @@ public class SettingsService(ProtectedLocalStorage ProtectedLocalStore, ILogger<
                 recentWork = [.. recentWork.TakeLast(5)];
             }
 
-            await ProtectedLocalStore.SetAsync(RecentWorkKey, recentWork).ConfigureAwait(false);
+            await protectedLocalStore.SetAsync(RecentWorkKey, recentWork).ConfigureAwait(false);
         }
         catch (InvalidOperationException)
         {
