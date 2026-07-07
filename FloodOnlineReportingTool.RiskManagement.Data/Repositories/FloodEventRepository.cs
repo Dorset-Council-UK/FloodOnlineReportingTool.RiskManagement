@@ -181,6 +181,8 @@ public class FloodEventRepository(
             context.OutboxMessages.Add(outboxMessage);
         }
 
+        await context.SaveChangesAsync(cancellationToken);
+
         // update event log?
 
         return Result<FloodEvent?>.Success(updatedFloodEvent);
