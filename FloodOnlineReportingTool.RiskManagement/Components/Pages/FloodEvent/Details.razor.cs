@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using System.Globalization;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
