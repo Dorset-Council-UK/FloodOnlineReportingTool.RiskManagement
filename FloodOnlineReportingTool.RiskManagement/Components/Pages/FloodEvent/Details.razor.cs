@@ -95,16 +95,6 @@ public partial class Details(
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (Model is not null)
-        {
-            //add to recent work store
-            await settingsService.AddRecentWork($"{SearchReference}", "Flood Event", Model.SearchTitle, $"event/{SearchReference}");
-        }
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
     private async Task<EventDetailsViewModel> GetModel()
     {
         // SearchReference is needed for model state and saved search
