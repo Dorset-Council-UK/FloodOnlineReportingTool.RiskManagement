@@ -25,8 +25,7 @@ public partial class Details(
     IFloodEventState floodEventState,
     ISavedSearchRepository savedSearchRepository,
     ISearchResultsState searchResultsState,
-    IAuthorizationService authorizationService,
-    ISettingsService settingsService
+    IAuthorizationService authorizationService
 ) : IAsyncDisposable
 {
     [Parameter]
