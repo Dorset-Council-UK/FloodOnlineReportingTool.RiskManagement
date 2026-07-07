@@ -102,11 +102,12 @@ public partial class Details(
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (ViewModel is not null)
+        if (firstRender && ViewModel is not null)
         {
-            //add to recent work store
+            // add to recent work store (only once per page load)
             await settingsService.AddRecentWork($"{Reference}", "Flood Report", "", $"report/details/{Reference}");
         }
+
         await base.OnAfterRenderAsync(firstRender);
     }
 
