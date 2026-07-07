@@ -22,7 +22,7 @@ public class SettingsService(ProtectedLocalStorage protectedLocalStore, ILogger<
             logger.LogWarning(ex, "Recent Work localStorage item could not be fetched. Deleting storage item in case of corrupt data");
             await protectedLocalStore.DeleteAsync(RecentWorkKey).ConfigureAwait(false);
         }
-        return [];
+        return new List<RecentWork>();
     }
     public async Task AddRecentWork(string entityId, string entityType, string entityDescription, string url)
     {
@@ -42,7 +42,7 @@ public class SettingsService(ProtectedLocalStorage protectedLocalStore, ILogger<
             recentWork.Add(new RecentWork(entityId, entityType, entityDescription, url, DateTime.UtcNow));
             if (recentWork.Count > 5)
             {
-                recentWork = [.. recentWork.TakeLast(5)];
+                recentWork = recentWork.TakeLast(5).ToList();
             }
 
             await protectedLocalStore.SetAsync(RecentWorkKey, recentWork).ConfigureAwait(false);
