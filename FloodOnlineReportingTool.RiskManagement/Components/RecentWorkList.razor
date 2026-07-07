@@ -16,7 +16,7 @@ else if (RecentWork is not null && RecentWork.Count != 0)
         {
             <li>
                 <a class="govuk-link" href="@work.URL">
-                    @($"{work.EntityId} ({work.EntityType}) {work.EntityDescription?.ReplaceLineEndings(\" \")}")
+                    @($"{work.EntityId} ({work.EntityType}) {work.EntityDescription?.ReplaceLineEndings(" ")}")
                 </a>
                 <small>@(work.VisitTime.Humanize())</small>
             </li>
