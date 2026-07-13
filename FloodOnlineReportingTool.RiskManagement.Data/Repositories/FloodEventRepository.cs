@@ -66,11 +66,14 @@ public class FloodEventRepository(
             return Result<FloodEvent?>.Failure([$"A flood event with ID '{floodEvent.Id}' already exists."]);
         }
 
-        context.FloodEvents.Add(floodEvent);
-        await context.SaveChangesAsync(cancellationToken);
         var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
-        if (linkedSavedSearch is not null && linkedSavedSearch.ResultsFrom is not null && linkedSavedSearch.ResultsTo is not null)
+        if (linkedSavedSearch is not null 
+            && linkedSavedSearch.ResultsFrom is not null 
+            && linkedSavedSearch.ResultsTo is not null
+            && linkedSavedSearch.FloodSources.Count > 0)
         {
+            context.FloodEvents.Add(floodEvent);
+
             // Send a message to trigger the FloodEventCreated message
             var outMessage = new FloodEventCreated(
             linkedSavedSearch.Reference,
@@ -92,17 +95,20 @@ public class FloodEventRepository(
                 Status = MessageStatus.Pending,
             };
             context.OutboxMessages.Add(outboxMessage);
-        }
-        await context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
 
-        if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
-        {
-            // Trigger an investigation request if not already done.
-            var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(floodEvent.Id, Models.Enums.ActionEventTypes.TriggerInvestigation, cancellationToken);
-            if (!createEventLogResult.IsSuccess)
+            if (floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
             {
-                return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
+                // Trigger an investigation request if not already done.
+                var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(floodEvent.Id, Models.Enums.ActionEventTypes.TriggerInvestigation, cancellationToken);
+                if (!createEventLogResult.IsSuccess)
+                {
+                    return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
+                }
             }
+        } else
+        {
+            return Result<FloodEvent?>.Failure([$"A flood event must have a start / end date and at least one source of flooding."]);
         }
 
         return Result<FloodEvent?>.Success(floodEvent);
@@ -121,42 +127,45 @@ public class FloodEventRepository(
         {
             return Result<FloodEvent?>.Failure([$"No flood event found with ID '{floodEventId}'."]);
         }
-
-        var updatedFloodEvent = existingFloodEvent with
-        {
-            // Id
-            // Reference
-            // CreatedAt
-
-            EstimatedCommercialAffected = floodEvent.EstimatedCommercialAffected,
-            EstimatedCommercialFlooded = floodEvent.EstimatedCommercialFlooded,
-            EstimatedCommercialOther = floodEvent.EstimatedCommercialOther,
-            EstimatedDisruptedUtilities = floodEvent.EstimatedDisruptedUtilities,
-            EstimatedNoElectric = floodEvent.EstimatedNoElectric,
-            EstimatedNoFoul = floodEvent.EstimatedNoFoul,
-            EstimatedNoGas = floodEvent.EstimatedNoGas,
-            EstimatedNoWaterSupply = floodEvent.EstimatedNoWaterSupply,
-            EstimatedResidentialAffected = floodEvent.EstimatedResidentialAffected,
-            EstimatedResidentialFlooded = floodEvent.EstimatedResidentialFlooded,
-            EstimatedResidentialOther = floodEvent.EstimatedResidentialOther,
-            EstimatedTotalExternalOnly = floodEvent.EstimatedTotalExternalOnly,
-            EstimatedTotalInternallyFlooded = floodEvent.EstimatedTotalInternallyFlooded,
-            EstimatedUninhabitable = floodEvent.EstimatedUninhabitable,
-            EstimatedVulnerable = floodEvent.EstimatedVulnerable,
-            FloodExtentConfidence = floodEvent.FloodExtentConfidence,
-            FloodStatus = floodEvent.FloodStatus,
-            InvestigationStatus = floodEvent.InvestigationStatus,
-            MitigationTaken = floodEvent.MitigationTaken,
-            RecordStatus = floodEvent.RecordStatus,
-            StatusNote = floodEvent.StatusNote,
-        };
-
-        context.FloodEvents.Update(updatedFloodEvent);
-        await context.SaveChangesAsync(cancellationToken);
-
+        FloodEvent? updatedFloodEvent = null;
         var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
-        if (linkedSavedSearch is not null && linkedSavedSearch.ResultsFrom is not null && linkedSavedSearch.ResultsTo is not null)
+        if (linkedSavedSearch is not null 
+            && linkedSavedSearch.ResultsFrom is not null 
+            && linkedSavedSearch.ResultsTo is not null
+            && linkedSavedSearch.FloodSources.Count > 0
+            )
         {
+            updatedFloodEvent = existingFloodEvent with
+            {
+                // Id
+                // Reference
+                // CreatedAt
+
+                EstimatedCommercialAffected = floodEvent.EstimatedCommercialAffected,
+                EstimatedCommercialFlooded = floodEvent.EstimatedCommercialFlooded,
+                EstimatedCommercialOther = floodEvent.EstimatedCommercialOther,
+                EstimatedDisruptedUtilities = floodEvent.EstimatedDisruptedUtilities,
+                EstimatedNoElectric = floodEvent.EstimatedNoElectric,
+                EstimatedNoFoul = floodEvent.EstimatedNoFoul,
+                EstimatedNoGas = floodEvent.EstimatedNoGas,
+                EstimatedNoWaterSupply = floodEvent.EstimatedNoWaterSupply,
+                EstimatedResidentialAffected = floodEvent.EstimatedResidentialAffected,
+                EstimatedResidentialFlooded = floodEvent.EstimatedResidentialFlooded,
+                EstimatedResidentialOther = floodEvent.EstimatedResidentialOther,
+                EstimatedTotalExternalOnly = floodEvent.EstimatedTotalExternalOnly,
+                EstimatedTotalInternallyFlooded = floodEvent.EstimatedTotalInternallyFlooded,
+                EstimatedUninhabitable = floodEvent.EstimatedUninhabitable,
+                EstimatedVulnerable = floodEvent.EstimatedVulnerable,
+                FloodExtentConfidence = floodEvent.FloodExtentConfidence,
+                FloodStatus = floodEvent.FloodStatus,
+                InvestigationStatus = floodEvent.InvestigationStatus,
+                MitigationTaken = floodEvent.MitigationTaken,
+                RecordStatus = floodEvent.RecordStatus,
+                StatusNote = floodEvent.StatusNote,
+            };
+
+            context.FloodEvents.Update(updatedFloodEvent);
+        
             // Send a message to trigger the FloodEventUpdated message
             var outMessage = new FloodEventUpdated(
                 linkedSavedSearch.Reference,
@@ -179,12 +188,13 @@ public class FloodEventRepository(
                 Status = MessageStatus.Pending,
             };
             context.OutboxMessages.Add(outboxMessage);
+            await context.SaveChangesAsync(cancellationToken);
+        } else
+        {
+            return Result<FloodEvent?>.Failure([$"A flood event must have a start / end date and at least one source of flooding."]);
         }
 
-        await context.SaveChangesAsync(cancellationToken);
-
         // update event log?
-
         return Result<FloodEvent?>.Success(updatedFloodEvent);
     }
 
