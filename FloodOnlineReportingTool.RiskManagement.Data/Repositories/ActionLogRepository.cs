@@ -101,8 +101,8 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
             ("Action", false)                   => query.OrderByDescending(a => a.Action.Name),
             ("Flood Report Reference", true)    => query.OrderBy(a => a.ReportReference),
             ("Flood Report Reference", false)   => query.OrderByDescending(a => a.ReportReference),
-            ("Logged On", true)                 => query.OrderBy(a => a.LoggedAt),
-            ("Logged On", false)                => query.OrderByDescending(a => a.LoggedAt),
+            ("Logged At", true)                 => query.OrderBy(a => a.LoggedAt),
+            ("Logged At", false)                => query.OrderByDescending(a => a.LoggedAt),
             ("Notes", true)                     => query.OrderBy(a => a.Note),
             ("Notes", false)                    => query.OrderByDescending(a => a.Note),
             _                                   => query.OrderByDescending(a => a.LoggedAt)
