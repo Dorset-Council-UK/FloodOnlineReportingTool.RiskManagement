@@ -13,14 +13,12 @@ public record ActionLog
     public Guid Id { get; init; } = Guid.CreateVersion7();
 
     // Taken from incoming messages
-    public required Guid ReportId { get; init; }
     public required string ReportReference { get; init; }
-    public required DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset LoggedAt { get; init; } = DateTimeOffset.UtcNow;
     public MultiPolygon? PolygonGeom { get; init; }
     public Point? PointGeom { get; init; }
 
     // App defined properties
-    public DateTimeOffset LoggedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? ActionedAt { get; set; }
     public string? ActionedBy { get; set; }
     public string? Note { get; init; } // This will be used to describe unusual resolutions such as closing without completion by an admin. 

@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="6.1.0" />
+    <PackageReference Include="Dorset-Council-UK.FloodOnlineReportingTool.Contracts" Version="6.4.0" />
     <PackageReference Include="Meziantou.Analyzer" Version="3.0.43">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -2,13 +2,15 @@
 using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
 using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using Messaging;
+using Messaging.Consumers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services
-    .AddScoped<IActionLogRepository, ActionLogRepository>();
+    .AddScoped<IActionLogRepository, ActionLogRepository>()
+    .AddScoped<FloodReportCreatedConsumer>();
 
 builder.Services.AddHostedService<OutboxWorker>();
 builder.Services.AddHostedService<InboxWorker>();
