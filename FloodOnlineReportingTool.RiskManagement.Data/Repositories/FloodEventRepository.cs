@@ -81,11 +81,11 @@ public class FloodEventRepository(
             floodEvent.RecordStatus,
             floodEvent.FloodStatus,
             floodEvent.InvestigationStatus,
-            (DateTimeOffset)linkedSavedSearch.ResultsFrom,
-            (DateTimeOffset)linkedSavedSearch.ResultsTo,
-            (IReadOnlyCollection<Guid>)linkedSavedSearch.FloodSources,
-            (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByOrganisation,
-            (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByStatus,
+            linkedSavedSearch.ResultsFrom.Value,
+            linkedSavedSearch.ResultsTo.Value,
+            [..linkedSavedSearch.FloodSources],
+            [..linkedSavedSearch.LimitByOrganisation],
+            [..linkedSavedSearch.LimitByStatus],
             []
             );
             OutboxMessage outboxMessage = new()
@@ -173,11 +173,11 @@ public class FloodEventRepository(
                 floodEvent.RecordStatus,
                 floodEvent.FloodStatus,
                 floodEvent.InvestigationStatus,
-                (DateTimeOffset)linkedSavedSearch.ResultsFrom,
-                (DateTimeOffset)linkedSavedSearch.ResultsTo,
-                (IReadOnlyCollection<Guid>)linkedSavedSearch.FloodSources,
-                (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByOrganisation,
-                (IReadOnlyCollection<Guid>)linkedSavedSearch.LimitByStatus,
+                linkedSavedSearch.ResultsFrom.Value,
+                linkedSavedSearch.ResultsTo.Value,
+                [.. linkedSavedSearch.FloodSources],
+                [.. linkedSavedSearch.LimitByOrganisation],
+                [.. linkedSavedSearch.LimitByStatus],
                 [],
                 null
              );
