@@ -66,20 +66,23 @@ public partial class Media(
     private readonly List<RejectedFile> _rejectedFiles = [];
     private string? _uploadLimitError;
 
-    //private Models.FloodReport.Create.MediaItem? _renamingFile;
+    private Models.Event.MediaItem? _renamingFile;
     private string _renameText = string.Empty;
     private string? _renameError;
 
-    //private Models.FloodReport.Create.Media Model { get; set; } = default!;
+    private string previousPage = $"event/details/";
+
+    private Models.Event.Media Model { get; set; } = default!;
 
     protected override void OnInitialized()
     {
         // Setup model and edit context
-        //Model ??= new();
-        //_editContext = new(Model);
-        //_editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-        //_validationMessageStore = new(_editContext);
-        //_fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
+        Model ??= new();
+        _editContext = new(Model);
+        _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _validationMessageStore = new(_editContext);
+        _fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
+        previousPage = $"event/details/{SearchReference}";
 
     }
 
@@ -119,7 +122,7 @@ public partial class Media(
 
         var mediaItems = await mediaItemRepository.GetByReport(_floodReportId, _cts.Token);
         Model.UploadedFiles = mediaItems
-            .Select(mediaItem => new Models.FloodReport.Create.MediaItem
+            .Select(mediaItem => new Models.Event.MediaItem
             {
                 Id = mediaItem.Id,
                 Name = mediaItem.Title ?? Path.GetFileName(mediaItem.URL),
@@ -180,7 +183,7 @@ public partial class Media(
 
             if (!string.IsNullOrWhiteSpace(blobUrl))
             {
-                Model.UploadedFiles.Add(new Models.FloodReport.Create.MediaItem
+                Model.UploadedFiles.Add(new Models.Event.MediaItem
                 {
                     Name = Path.GetFileNameWithoutExtension(file.Name),
                     Url = blobUrl,
@@ -218,7 +221,7 @@ public partial class Media(
             : string.Empty;
     }
 
-    private void StartRename(Models.FloodReport.Create.MediaItem file)
+    private void StartRename(Models.Event.MediaItem file)
     {
         _renamingFile = file;
         _renameText = file.Name;
@@ -234,7 +237,7 @@ public partial class Media(
 
     private const int MaxRenameTitleLength = 255;
 
-    private async Task SaveRename(Models.FloodReport.Create.MediaItem file)
+    private async Task SaveRename(Models.Event.MediaItem file)
     {
         _renameError = null;
 
@@ -265,7 +268,7 @@ public partial class Media(
         _renameText = string.Empty;
     }
 
-    private async Task DeleteUploadedFile(Models.FloodReport.Create.MediaItem file)
+    private async Task DeleteUploadedFile(Models.Event.MediaItem file)
     {
         //confirm
         bool confirmDelete = await JS.InvokeAsync<bool>("confirm", _cts.Token, "Are you sure you want to delete this file?");
@@ -375,13 +378,13 @@ public partial class Media(
 
         if (Model.UploadedFiles.Count == 0)
         {
-            navigationManager.NavigateTo(PreviousPage.Url);
+            navigationManager.NavigateTo(previousPage);
             return;
         }
 
         var mediaItems = Model.UploadedFiles
             .Where(file => !file.Id.HasValue)
-            .Select(file => new Database.Models.MediaItem
+            .Select(file => new Data.Models.MediaItem
             {
                 UploadDateUtc = DateTimeOffset.UtcNow,
                 URL = file.Url,
@@ -391,7 +394,7 @@ public partial class Media(
 
         if (mediaItems.Count == 0)
         {
-            navigationManager.NavigateTo(PreviousPage.Url);
+            navigationManager.NavigateTo(previousPage);
             return;
         }
 
@@ -408,6 +411,6 @@ public partial class Media(
             return;
         }
 
-        navigationManager.NavigateTo(PreviousPage.Url);
+        navigationManager.NavigateTo(previousPage);
     }
 }
