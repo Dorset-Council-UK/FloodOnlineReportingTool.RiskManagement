@@ -15,6 +15,7 @@ public partial class Details(
     IReportStatusClient reportStatusClient,
     ICommonRepository commonRepository,
     IActionLogRepository actionLogRepository,
+    ISettingsService settingsService,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
@@ -79,7 +80,7 @@ public partial class Details(
                 ViewModel = reportResult.ResultModel;
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? "";
 
-                AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Id, _cts.Token);
+                AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
                 logger.LogInformation("Flood report detail loaded successfully for reference");
             }
             else
@@ -97,6 +98,17 @@ public partial class Details(
             consentHandler.HandleException(ex);
         }
         _isLoading = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (ViewModel is not null)
+        {
+            // add to recent work store (only once per page load)
+            await settingsService.AddRecentWork($"{Reference}", "Flood Report", "", $"report/details/{Reference}");
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     /// <summary>
@@ -140,6 +152,6 @@ public partial class Details(
             return;
         }
 
-        AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Id, _cts.Token);
+        AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Reference, _cts.Token);
     }
 }

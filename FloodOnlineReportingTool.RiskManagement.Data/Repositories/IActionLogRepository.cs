@@ -22,7 +22,7 @@ public interface IActionLogRepository
 
     Task<GetResult<ActionLog>> GetActionLogById(Guid actionId, CancellationToken ct);
 
-    Task<Guid?> GetAcknowledgeActionByReport(Guid reportId, CancellationToken ct);
+    Task<Guid?> GetAcknowledgeActionByReport(string reportRef, CancellationToken ct);
 
     Task<bool> AcknowledgeReport(Guid actionId, string currentUserDisplayName, CancellationToken ct);
 }
