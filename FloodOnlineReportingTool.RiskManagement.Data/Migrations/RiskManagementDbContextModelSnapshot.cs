@@ -19,7 +19,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("fortriskmanagement")
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
@@ -1013,6 +1013,32 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.MediaItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FloodEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("text");
+
+                    b.Property<string>("URL")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("UploadDateUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FloodEventId");
+
+                    b.ToTable("MediaItems", "fortriskmanagement");
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1173,6 +1199,19 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("FloodEvent");
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.MediaItem", b =>
+                {
+                    b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", null)
+                        .WithMany("MediaItems")
+                        .HasForeignKey("FloodEventId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", b =>
+                {
+                    b.Navigation("MediaItems");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches.SavedSearch", b =>

@@ -6,5 +6,8 @@
         public DateTimeOffset? UploadDateUtc { get; set; }
         public required string URL { get; set; }
         public string? Title { get; set; }
+
+        // Foreign key
+        public Guid? FloodEventId { get; set; }
     }
 }
