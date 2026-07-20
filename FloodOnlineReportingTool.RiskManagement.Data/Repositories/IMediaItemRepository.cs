@@ -12,17 +12,17 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories
         /// Gets a count of all media items associated with a flood report.
         /// </summary>
         /// <returns>Integer indicating total number of media items</returns>
-        Task<int> GetCountByReport(Guid floodReportId, CancellationToken cancellationToken);
+        Task<int> GetCountByEvent(Guid floodEventId, CancellationToken cancellationToken);
         /// <summary>
-        /// Get all media items associated with a flood report.
+        /// Get all media items associated with a flood event.
         /// </summary>
-        Task<IReadOnlyCollection<MediaItem>> GetByReport(Guid floodReportId, CancellationToken cancellationToken);
+        Task<IReadOnlyCollection<MediaItem>> GetByEvent(Guid floodEventId, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Create media items and associate them with a flood report.
+        /// Create media items and associate them with a flood event.
         /// </summary>
         /// <returns>A result pattern with the created media items, or a list of errors.</returns>
-        Task<Result<IReadOnlyCollection<MediaItem>>> Create(Guid floodReportId, IReadOnlyCollection<MediaItem> mediaItems, CancellationToken cancellationToken);
+        Task<Result<IReadOnlyCollection<MediaItem>>> Create(Guid floodEventId, IReadOnlyCollection<MediaItem> mediaItems, CancellationToken cancellationToken);
 
         /// <summary>
         /// Update the title of a media item.

@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Components;
+using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using FluentValidation;
@@ -22,6 +23,8 @@ builder.Services.AddScoped<ISearchOptionsState, SearchOptionsState>();
 builder.Services.AddScoped<ISearchResultsState, SearchResultsState>();
 builder.Services.AddScoped<IFloodEventState, FloodEventState>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
+builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+builder.Services.AddScoped<IMediaItemRepository, MediaItemRepository>();
 
 // Add Blazor services
 builder.Services
