@@ -16,7 +16,8 @@ public partial class Media(
     NavigationManager navigationManager,
     IJSRuntime JS,
     IBlobStorageService blobStorageService,
-    IMediaItemRepository mediaItemRepository
+    IMediaItemRepository mediaItemRepository,
+    IFloodEventRepository floodEventRepository
 ) : IAsyncDisposable
 {
     // Page order properties
@@ -25,8 +26,8 @@ public partial class Media(
     [Parameter]
     public string? SearchReference { get; set; }
 
-    private const int MaxNumFiles = 10;
-    private const int MaxFileSizeMB = 20;
+    private const int MaxNumFiles = 50;
+    private const int MaxFileSizeMB = 100;
     private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
 
     private int RemainingSlots => MaxNumFiles - Model.UploadedFiles.Count;
@@ -42,7 +43,10 @@ public partial class Media(
         "video/ogg",
     ];
     private static readonly string[] DocumentFileTypes = [
-        "application/pdf"
+        "application/pdf",
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
     private static readonly string[] AllowedFileTypes = [
         .. ImageFileTypes,
@@ -51,7 +55,7 @@ public partial class Media(
     ];
 
     private static readonly string[] FriendlyFileTypes = [
-        "JPG", "PNG", "GIF", "MP4", "WEBM", "OGG", "PDF",
+        "JPG", "PNG", "GIF", "MP4", "WEBM", "OGG", "PDF", "DOCX", "CSV", "XLSX",
     ];
 
     private readonly CancellationTokenSource _cts = new();
@@ -59,7 +63,7 @@ public partial class Media(
     private ValidationMessageStore _validationMessageStore = default!;
     private FieldIdentifier _fieldIdentifier;
 
-    private Guid _floodReportId;
+    private Guid _floodEventId;
     private bool _isLoading = true;
 
     private readonly List<IBrowserFile> _uploadingFiles = [];
@@ -70,7 +74,7 @@ public partial class Media(
     private string _renameText = string.Empty;
     private string? _renameError;
 
-    private string previousPage = $"event/details/";
+    private string previousPage = $"event";
 
     private Models.Event.Media Model { get; set; } = default!;
 
@@ -82,7 +86,7 @@ public partial class Media(
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _validationMessageStore = new(_editContext);
         _fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
-        previousPage = $"event/details/{SearchReference}";
+        previousPage = $"event/{SearchReference}";
 
     }
 
@@ -105,6 +109,14 @@ public partial class Media(
     {
         if (firstRender)
         {
+            //get flood event ID by search reference
+            var floodEvent = await floodEventRepository.GetBySearchReference(SearchReference, _cts.Token);
+            if (floodEvent is null)
+            {
+                logger.LogWarning("Flood event could not be found by search reference when loading media items");
+                return;
+            }
+            _floodEventId = floodEvent.Id;
             await LoadExistingMediaItems();
 
             _isLoading = false;
@@ -114,13 +126,13 @@ public partial class Media(
 
     private async Task LoadExistingMediaItems()
     {
-        if (_floodReportId == Guid.Empty)
+        if (_floodEventId == Guid.Empty)
         {
-            logger.LogWarning("Flood report ID was not available when loading media items");
+            logger.LogWarning("Flood event ID was not available when loading media items");
             return;
         }
 
-        var mediaItems = await mediaItemRepository.GetByReport(_floodReportId, _cts.Token);
+        var mediaItems = await mediaItemRepository.GetByEvent(_floodEventId, _cts.Token);
         Model.UploadedFiles = mediaItems
             .Select(mediaItem => new Models.Event.MediaItem
             {
@@ -211,6 +223,9 @@ public partial class Media(
         { ".webm", "video/webm" },
         { ".ogg",  "video/ogg" },
         { ".pdf",  "application/pdf" },
+        { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+        { ".csv",  "text/csv" },
+        { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
     };
 
     private static string GetContentTypeFromUrl(string url)
@@ -368,9 +383,9 @@ public partial class Media(
         _validationMessageStore.Clear();
         _editContext.NotifyValidationStateChanged();
 
-        if (_floodReportId == Guid.Empty)
+        if (_floodEventId == Guid.Empty)
         {
-            logger.LogWarning("Flood report ID was not available when saving media items");
+            logger.LogWarning("Flood event ID was not available when saving media items");
             _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
             _editContext.NotifyValidationStateChanged();
             return;
@@ -398,7 +413,7 @@ public partial class Media(
             return;
         }
 
-        var createMediaItems = await mediaItemRepository.Create(_floodReportId, mediaItems, _cts.Token);
+        var createMediaItems = await mediaItemRepository.Create(_floodEventId, mediaItems, _cts.Token);
         if (!createMediaItems.IsSuccess)
         {
             foreach (var error in createMediaItems.Errors)
