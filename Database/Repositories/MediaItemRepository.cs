@@ -1,14 +1,10 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
-using FloodOnlineReportingTool.RiskManagement.Data.Models;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+﻿using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Models.Media;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories
+namespace FloodOnlineReportingTool.Database.Repositories
 {
     public class MediaItemRepository(
         ILogger<MediaItemRepository> logger,

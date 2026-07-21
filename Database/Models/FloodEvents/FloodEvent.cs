@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.Contracts.Shared;
+﻿using FloodOnlineReportingTool.Database.Models.Media;
+using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
 

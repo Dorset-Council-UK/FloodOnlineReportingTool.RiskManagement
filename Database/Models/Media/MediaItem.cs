@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models
+﻿namespace FloodOnlineReportingTool.Database.Models.Media
 {
     public class MediaItem
     {

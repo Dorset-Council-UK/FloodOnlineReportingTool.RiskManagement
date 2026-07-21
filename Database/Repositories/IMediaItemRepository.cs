@@ -1,10 +1,7 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using FloodOnlineReportingTool.Database.Models.Media;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories
+namespace FloodOnlineReportingTool.Database.Repositories
 {
     public interface IMediaItemRepository
     {

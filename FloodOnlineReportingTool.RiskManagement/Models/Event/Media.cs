@@ -1,4 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models;
+﻿using FloodOnlineReportingTool.Database.Models;
 using GdsBlazorComponents;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event

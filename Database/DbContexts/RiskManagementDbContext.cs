@@ -2,6 +2,7 @@
 using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Imports;
 using FloodOnlineReportingTool.Database.Models.Lookups;
+using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
