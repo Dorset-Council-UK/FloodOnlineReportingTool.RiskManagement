@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
 {
     [DbContext(typeof(RiskManagementDbContext))]
-    [Migration("20260720123438_AddMediaToFloodEvent")]
+    [Migration("20260721094331_AddMediaToFloodEvent")]
     partial class AddMediaToFloodEvent
     {
         /// <inheritdoc />
@@ -1022,7 +1022,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("FloodEventId")
+                    b.Property<Guid>("FloodEventId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Title")
@@ -1208,7 +1208,9 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                 {
                     b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", null)
                         .WithMany("MediaItems")
-                        .HasForeignKey("FloodEventId");
+                        .HasForeignKey("FloodEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", b =>

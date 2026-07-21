@@ -1019,7 +1019,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("FloodEventId")
+                    b.Property<Guid>("FloodEventId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Title")
@@ -1206,7 +1206,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     b.HasOne("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", null)
                         .WithMany("MediaItems")
                         .HasForeignKey("FloodEventId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents.FloodEvent", b =>

@@ -20,7 +20,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                     UploadDateUtc = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     URL = table.Column<string>(type: "text", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: true),
-                    FloodEventId = table.Column<Guid>(type: "uuid", nullable: true)
+                    FloodEventId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,7 +30,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
                         column: x => x.FloodEventId,
                         principalSchema: "fortriskmanagement",
                         principalTable: "FloodEvents",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

@@ -8,6 +8,6 @@
         public string? Title { get; set; }
 
         // Foreign key
-        public Guid? FloodEventId { get; set; }
+        public Guid FloodEventId { get; set; }
     }
 }
