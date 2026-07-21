@@ -107,18 +107,33 @@ public partial class Media(
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(SearchReference))
+        {
+            navigationManager.NavigateTo("not-found");
+            return;
+        }
+
+        try
         {
             //get flood event ID by search reference
             var floodEvent = await floodEventRepository.GetBySearchReference(SearchReference, _cts.Token);
             if (floodEvent is null)
             {
                 logger.LogWarning("Flood event could not be found by search reference when loading media items");
+                navigationManager.NavigateTo("not-found");
                 return;
             }
+
             _floodEventId = floodEvent.Id;
             await LoadExistingMediaItems();
-
+        }
+        finally
+        {
             _isLoading = false;
             StateHasChanged();
         }
@@ -303,6 +318,9 @@ public partial class Media(
                     _editContext.NotifyValidationStateChanged();
                     return;
                 }
+
+                //remove from list
+                Model.UploadedFiles.Remove(file);
             }
 
             //delete from storage
@@ -310,8 +328,7 @@ public partial class Media(
             {
                 logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
             }
-            //remove from list
-            Model.UploadedFiles.Remove(file);
+
             CheckValidationStateOfFileUploads();
             StateHasChanged();
         }
@@ -328,9 +345,9 @@ public partial class Media(
     {
         _uploadLimitError = null;
 
-        if (files is null || files.Count > MaxNumFiles)
+        if (files is null || files.Count == 0)
         {
-            _uploadLimitError = string.Format(CultureInfo.CurrentCulture, ErrorMessageConstants.TooManyFiles, MaxNumFiles);
+            _uploadLimitError = ErrorMessageConstants.NoFileSelected;
             return false;
         }
 
