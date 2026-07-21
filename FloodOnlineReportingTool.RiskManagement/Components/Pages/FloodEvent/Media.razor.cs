@@ -1,5 +1,6 @@
 using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Models.Media;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
