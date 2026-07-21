@@ -218,6 +218,25 @@ namespace FloodOnlineReportingTool.Database.Migrations
                     b.ToTable("FloodEventComments", "fortriskmanagement");
                 });
 
+            modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.Imports.FailedImports", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FailedImports", "fortriskmanagement");
+                });
+
             modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.Lookups.ActionDefinition", b =>
                 {
                     b.Property<Guid>("Id")

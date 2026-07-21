@@ -40,9 +40,9 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
     ```shell
     dotnet ef database update --project "Database" --startup-project "FloodOnlineReportingTool.RiskManagement"
     ```
-    or if using the Package Manager Console in Visual Studio, set the default project to Database and run:
+    or if using the Package Manager Console in Visual Studio and run:
     ```powershell
-    Update-Database -StartupProject FloodOnlineReportingTool.RiskManagement
+    Update-Database -Project Database -StartupProject FloodOnlineReportingTool.RiskManagement
     ```
 
 ## Update standards module
