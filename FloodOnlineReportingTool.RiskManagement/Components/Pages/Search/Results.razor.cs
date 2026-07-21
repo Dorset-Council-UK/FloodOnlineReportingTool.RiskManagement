@@ -8,7 +8,6 @@ using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
-using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -24,7 +23,6 @@ public partial class Results(
     IReportStatusClient reportStatusClient,
     IReferenceSearchService referenceSearchService,
     ISavedSearchRepository savedSearchRepository,
-    ISearchResultsState searchResultsState,
     IWebHostEnvironment environment,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     NavigationManager navigationManager
@@ -87,57 +85,51 @@ public partial class Results(
             return;
         }
 
-        var options = searchResultsState.Options;
-        if (options is null || !string.Equals(options.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        // Always load the search parameters fresh from the saved search database,
+        // which is the source of truth. This avoids showing stale parameters when an
+        // existing saved search is edited and re-run under the same reference.
+        try
         {
-            try
-            {
-                _gettingToken = false;
-                var searchRedirect = await referenceSearchService.FindByReference(SearchReference, _cts.Token);
+            _gettingToken = false;
+            var searchRedirect = await referenceSearchService.FindByReference(SearchReference, _cts.Token);
 
-                if (searchRedirect is null)
+            if (searchRedirect is null)
+            {
+                _isLoading = false;
+                StateHasChanged();
+                return;
+            }
+
+            if (searchRedirect.RedirectType == RecordTypes.Search && searchRedirect.Id.HasValue)
+            {
+                Guid savedSearchId = searchRedirect.Id.Value;
+                var savedSearch = await savedSearchRepository.Get(savedSearchId, _cts.Token);
+                SearchResultsViewModel = savedSearch?.ToSearchResultsViewModel() ?? new SearchResultsViewModel();
+                SearchResultsViewModel.SearchReference = SearchReference;
+            }
+            else
+            {
+                // handle other redirect types
+                if (searchRedirect.RedirectType == RecordTypes.Report)
                 {
-                    _isLoading = false;
-                    StateHasChanged();
+                    var nextPage = $"{ReportPages.Details.Url}/{searchRedirect.Reference}";
+                    navigationManager.NavigateTo(nextPage);
                     return;
                 }
-
-                if (searchRedirect.RedirectType == RecordTypes.Search && searchRedirect.Id.HasValue)
+                else if (searchRedirect.RedirectType == RecordTypes.Event)
                 {
-                    Guid savedSearchId = searchRedirect.Id.Value;
-                    var savedSearch = await savedSearchRepository.Get(savedSearchId, _cts.Token);
-                    SearchResultsViewModel = savedSearch?.ToSearchResultsViewModel() ?? new SearchResultsViewModel();
-                    SearchResultsViewModel.SearchReference = SearchReference;
-                    searchResultsState.SetResultOptions(SearchResultsViewModel);
+                    var nextPage = $"{EventPages.View.Url}/{searchRedirect.Reference}";
+                    navigationManager.NavigateTo(nextPage);
+                    return;
                 }
-                else
-                {
-                    // handle other redirect types
-                    if (searchRedirect.RedirectType == RecordTypes.Report)
-                    {
-                        var nextPage = $"{ReportPages.Details.Url}/{searchRedirect.Reference}";
-                        navigationManager.NavigateTo(nextPage);
-                        return;
-                    }
-                    else if (searchRedirect.RedirectType == RecordTypes.Event)
-                    {
-                        var nextPage = $"{EventPages.View.Url}/{searchRedirect.Reference}";
-                        navigationManager.NavigateTo(nextPage);
-                        return;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handles MsalUiRequiredException / MicrosoftIdentityWebChallengeUserException.
-                // consentHandler.HandleException will trigger a redirect to re-authenticate
-                // or prompt for incremental consent, then return the user to this page.
-                consentHandler.HandleException(ex);
             }
         }
-        else
+        catch (Exception ex)
         {
-            SearchResultsViewModel = options;
+            // Handles MsalUiRequiredException / MicrosoftIdentityWebChallengeUserException.
+            // consentHandler.HandleException will trigger a redirect to re-authenticate
+            // or prompt for incremental consent, then return the user to this page.
+            consentHandler.HandleException(ex);
         }
 
         // Ensure the context is linked to the (possibly new) view model and messages cleared
