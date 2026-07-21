@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.Database.Models.Media
+﻿namespace FloodOnlineReportingTool.RiskManagement.Models.Media
 {
     public enum FileRejectionReason
     {
