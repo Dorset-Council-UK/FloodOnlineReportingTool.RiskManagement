@@ -261,10 +261,9 @@ public partial class Details(
     }
 
     /// <summary>
-    ///     <para>Try to get the parts needed for the title from the search results state</para>
+    ///     <para>Try to get the parts needed for the title from the saved search</para>
     ///     <para>The parts needed are from date, to date and flood sources</para>
-    ///     <para>If not available then try to get them from the saved search in the database</para>
-    ///     <para>If neither are available return nulls and an empty collection</para>
+    ///     <para>If nothing is available return nulls and an empty collection</para>
     /// </summary>
     private async Task<(DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
     {
