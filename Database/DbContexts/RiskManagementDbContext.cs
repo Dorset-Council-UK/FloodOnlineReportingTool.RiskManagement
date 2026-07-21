@@ -25,7 +25,7 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<ReportStatus> ReportStatuses { get; set; }
     public DbSet<DownstreamApiLayer> DownstreamApiLayers { get; set; }
 
-    public virtual DbSet<FailedImports> FailedImports { get; set; }
+    public virtual DbSet<FailedImport> FailedImports { get; set; }
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 
