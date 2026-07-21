@@ -6,8 +6,8 @@
     "sourceMap": true,
     "target": "ES2022",
     "allowSyntheticDefaultImports": true,
+    "moduleResolution": "bundler",
     "noUnusedLocals": true,
-    "moduleResolution": "Node",
     "skipLibCheck": true,
     "strict": true
   },

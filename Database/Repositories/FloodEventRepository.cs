@@ -206,4 +206,14 @@ public class FloodEventRepository(
             .OrderBy(es => es.Order)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<FloodEvent?> GetBySearchReference(string searchReference, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.FloodEvents
+            .AsNoTracking()
+            .Where(e => e.SavedSearch.Reference == searchReference)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    }
 }

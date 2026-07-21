@@ -26,6 +26,12 @@ internal static class OptionsExtensions
         builder.Services.Configure<MiniMapOptions>(section);
     }
 
+    internal static void AddAzureBlobStorageOptions<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
+    {
+        var section = builder.Configuration.GetSection(AzureBlobStorageOptions.SectionName);
+        builder.Services.Configure<AzureBlobStorageOptions>(section);
+    }
+
     /// <summary>
     /// Configures proxy options for the application and optionally sets up forwarded headers middleware.
     /// </summary>

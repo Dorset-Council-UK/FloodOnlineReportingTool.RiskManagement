@@ -24,6 +24,12 @@ internal sealed class FloodEventConfiguration : IEntityTypeConfiguration<FloodEv
         builder.HasIndex(f => f.SavedSearchId)
             .IsUnique();
 
+        // Configure MediaItems relationship
+        builder.HasMany(f => f.MediaItems)
+            .WithOne()
+            .HasForeignKey(m => m.FloodEventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Store enums as integers in the database
         builder
             .Property(fe => fe.MitigationTaken)

@@ -83,6 +83,7 @@ internal static class WebApplicationBuilderExtension
             var riskManagementOptions = builder.AddProjectOptions();
             var proxyOptions = builder.AddProxyOptions();
             builder.AddMiniMapOptions();
+            builder.AddAzureBlobStorageOptions();
 
             return (riskManagementOptions, proxyOptions);
         }

@@ -49,4 +49,9 @@ public record FloodEvent
     // Later properties - not currently in use
     public ConfidenceOptions? FloodExtentConfidence { get; init; }
 
+    /// <summary>
+    /// All media items associated with the flood report.
+    /// </summary>
+    public ICollection<MediaItem> MediaItems { get; set; } = [];
+
 }
