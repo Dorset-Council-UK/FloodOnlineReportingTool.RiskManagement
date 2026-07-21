@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
+﻿namespace FloodOnlineReportingTool.Database.Models.Messaging;
 
 public enum MessagePriority
 {

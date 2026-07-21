@@ -34,7 +34,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\FloodOnlineReportingTool.RiskManagement.Data\FloodOnlineReportingTool.RiskManagement.Data.csproj" />
+		<ProjectReference Include="..\FloodOnlineReportingTool.RiskManagement.Data\Database.csproj" />
 	</ItemGroup>
 	
 </Project>

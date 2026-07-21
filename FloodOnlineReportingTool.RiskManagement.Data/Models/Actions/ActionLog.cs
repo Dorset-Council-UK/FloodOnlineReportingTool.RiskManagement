@@ -1,8 +1,8 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.Lookups;
 using NetTopologySuite.Geometries;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+namespace FloodOnlineReportingTool.Database.Models.Actions;
 
 /// <summary>
 /// Logs actions from incoming and outgoing messages. This is used to track the history of actions taken on a report and to provide an audit trail for the report.

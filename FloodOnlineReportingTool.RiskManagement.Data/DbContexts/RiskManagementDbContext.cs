@@ -1,11 +1,12 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+﻿using FloodOnlineReportingTool.Database.Models.Actions;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
+using FloodOnlineReportingTool.Database.Models.Imports;
+using FloodOnlineReportingTool.Database.Models.Lookups;
+using FloodOnlineReportingTool.Database.Models.Messaging;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
+namespace FloodOnlineReportingTool.Database.DbContexts;
 
 public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> options) : DbContext(options)
 {
@@ -23,6 +24,8 @@ public class RiskManagementDbContext(DbContextOptions<RiskManagementDbContext> o
     public DbSet<FloodProblem> FloodProblems { get; set; }
     public DbSet<ReportStatus> ReportStatuses { get; set; }
     public DbSet<DownstreamApiLayer> DownstreamApiLayers { get; set; }
+
+    public virtual DbSet<FailedImports> FailedImports { get; set; }
 
     public virtual DbSet<OutboxMessage> OutboxMessages { get; set; }
 

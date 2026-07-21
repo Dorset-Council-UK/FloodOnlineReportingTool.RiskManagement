@@ -1,14 +1,14 @@
 ﻿using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Messaging;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
+using FloodOnlineReportingTool.Database.Models.Lookups;
+using FloodOnlineReportingTool.Database.Models.Messaging;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+namespace FloodOnlineReportingTool.Database.Repositories;
 
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,

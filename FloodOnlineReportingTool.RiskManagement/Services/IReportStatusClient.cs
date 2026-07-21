@@ -1,7 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Models;
 using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using NetTopologySuite.Geometries;
 

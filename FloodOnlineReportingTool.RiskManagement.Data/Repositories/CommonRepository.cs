@@ -1,8 +1,8 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Models.Lookups;
 using Microsoft.EntityFrameworkCore;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+namespace FloodOnlineReportingTool.Database.Repositories;
 
 public class CommonRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : ICommonRepository
 {

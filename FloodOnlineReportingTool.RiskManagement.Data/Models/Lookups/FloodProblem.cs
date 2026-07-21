@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿namespace FloodOnlineReportingTool.Database.Models.Lookups;
 
 /// <summary>
 /// Represents specific problems caused by a flood, such as structural damage, water contamination, etc.

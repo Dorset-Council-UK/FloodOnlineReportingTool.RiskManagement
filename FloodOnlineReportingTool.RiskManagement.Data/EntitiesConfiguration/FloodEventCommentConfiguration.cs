@@ -1,8 +1,8 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
+namespace FloodOnlineReportingTool.Database.EntitiesConfiguration;
 
 internal class FloodEventCommentConfiguration : IEntityTypeConfiguration<FloodEventComment>
 {

@@ -1,5 +1,5 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Converters;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using GdsBlazorComponents;
 using NetTopologySuite.Geometries;
 using System.Text.Json.Serialization;

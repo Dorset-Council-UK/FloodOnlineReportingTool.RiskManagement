@@ -1,8 +1,8 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+﻿using FloodOnlineReportingTool.Database.Models.Actions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
+namespace FloodOnlineReportingTool.Database.EntitiesConfiguration;
 
 internal class ActionLogConfiguration : IEntityTypeConfiguration<ActionLog>
 {

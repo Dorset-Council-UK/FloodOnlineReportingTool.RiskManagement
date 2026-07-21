@@ -1,5 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+namespace FloodOnlineReportingTool.Database.Models.FloodEvents;
 
 public record FloodEventComment
 {

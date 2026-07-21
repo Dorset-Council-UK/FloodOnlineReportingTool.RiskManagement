@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+﻿namespace FloodOnlineReportingTool.Database.Models.Enums;
 
 // Only use this for flood extents now. It was used for everything but the 
 // main polygons are always search areas. They don't represent the actual flood extent. 

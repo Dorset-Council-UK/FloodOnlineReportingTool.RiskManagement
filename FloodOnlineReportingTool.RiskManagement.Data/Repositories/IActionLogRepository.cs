@@ -1,9 +1,9 @@
 ﻿using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Models.Actions;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+namespace FloodOnlineReportingTool.Database.Repositories;
 
 public interface IActionLogRepository
 {

@@ -1,6 +1,6 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using System.Globalization;
 

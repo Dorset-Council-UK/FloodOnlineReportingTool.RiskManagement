@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+﻿namespace FloodOnlineReportingTool.Database.Models.ResultModels;
 
 public record GetResult<T>(bool IsSuccess, T? ResultModel, ICollection<string> Errors)
 {

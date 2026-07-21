@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+namespace FloodOnlineReportingTool.Database.Models.ResultModels;
 
 public record Result<T>
 {

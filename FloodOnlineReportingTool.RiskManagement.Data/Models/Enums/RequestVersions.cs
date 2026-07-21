@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+﻿namespace FloodOnlineReportingTool.Database.Models.Enums;
 
 public enum RequestVersions
 {

@@ -1,10 +1,10 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+﻿using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+namespace FloodOnlineReportingTool.Database.Repositories;
 
 public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : ISavedSearchRepository
 {

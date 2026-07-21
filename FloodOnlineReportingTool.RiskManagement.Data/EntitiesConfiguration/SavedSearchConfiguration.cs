@@ -1,8 +1,8 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+﻿using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
+namespace FloodOnlineReportingTool.Database.EntitiesConfiguration;
 
 internal class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
 {

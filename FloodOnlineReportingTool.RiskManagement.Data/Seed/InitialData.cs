@@ -1,9 +1,9 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+using FloodOnlineReportingTool.Database.Models.Lookups;
 using RecordStatusIds = FloodOnlineReportingTool.Contracts.Shared.RecordStatusIds;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.Enums;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Seed;
+namespace FloodOnlineReportingTool.Database.Seed;
 
 /// <summary>
 ///     <para>The initial data to seed the database with. This is applied in the migration.</para>

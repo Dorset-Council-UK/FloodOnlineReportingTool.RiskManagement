@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Helpers;
+﻿namespace FloodOnlineReportingTool.Database.Models.Helpers;
 
 public interface IOption
 {

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
+namespace FloodOnlineReportingTool.Database.Migrations
 {
     /// <inheritdoc />
     public partial class AddReferenceColumn : Migration

@@ -1,12 +1,12 @@
 ﻿using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
+using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Models.Actions;
+using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
 using NetTopologySuite.Geometries;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+namespace FloodOnlineReportingTool.Database.Repositories;
 
 public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> contextFactory) : IActionLogRepository
 {

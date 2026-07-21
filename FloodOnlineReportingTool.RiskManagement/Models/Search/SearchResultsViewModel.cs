@@ -1,4 +1,4 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+﻿using FloodOnlineReportingTool.Database.Models.Enums;
 using GdsBlazorComponents;
 using NetTopologySuite.Geometries;
 

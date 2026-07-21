@@ -1,5 +1,5 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.Database.Models.Actions;
+using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -45,7 +45,7 @@ public partial class ActionDetail(
             if (action.ResultModel is not null)
             {
                 actionLog = action.ResultModel;
-                if(actionLog.Action.ActionType == Data.Models.Enums.ActionTypes.Redirect)
+                if(actionLog.Action.ActionType == Database.Models.Enums.ActionTypes.Redirect)
                 {
                     // We always just pass this on to the search as a search by ID result
                     var nextPage = $"{SearchPages.Results.Url}/{actionLog.ReportReference}";

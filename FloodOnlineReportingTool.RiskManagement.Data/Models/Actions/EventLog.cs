@@ -1,7 +1,7 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Actions;
+namespace FloodOnlineReportingTool.Database.Models.Actions;
 public record EventLog
 {
     public Guid Id { get; init; } = Guid.CreateVersion7();

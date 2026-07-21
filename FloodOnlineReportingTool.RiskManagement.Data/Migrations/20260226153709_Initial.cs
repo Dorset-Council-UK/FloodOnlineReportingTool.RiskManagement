@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
+namespace FloodOnlineReportingTool.Database.Migrations
 {
     /// <inheritdoc />
     public partial class Initial : Migration

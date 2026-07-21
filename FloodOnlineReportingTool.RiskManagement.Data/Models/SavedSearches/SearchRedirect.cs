@@ -1,6 +1,6 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+﻿using FloodOnlineReportingTool.Database.Models.Enums;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+namespace FloodOnlineReportingTool.Database.Models.SavedSearches;
 
 public record SearchRedirect
 {

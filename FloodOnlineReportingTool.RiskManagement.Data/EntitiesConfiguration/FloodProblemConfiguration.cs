@@ -1,9 +1,9 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Seed;
+﻿using FloodOnlineReportingTool.Database.Models.Lookups;
+using FloodOnlineReportingTool.Database.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.EntitiesConfiguration;
+namespace FloodOnlineReportingTool.Database.EntitiesConfiguration;
 
 internal class FloodProblemConfiguration : IEntityTypeConfiguration<FloodProblem>
 {

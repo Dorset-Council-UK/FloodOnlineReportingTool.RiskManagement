@@ -1,9 +1,9 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
+﻿using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using NetTopologySuite.Geometries;
 using System.Security.Cryptography;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+namespace FloodOnlineReportingTool.Database.Models.SavedSearches;
 /// <summary>
 /// This class allows us to save all the search parameters used to perform a 
 /// flood report search. This excludes searching by report ID as that only returns one report. 

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Migrations
+namespace FloodOnlineReportingTool.Database.Migrations
 {
     /// <inheritdoc />
     public partial class AddActionDefinitions : Migration

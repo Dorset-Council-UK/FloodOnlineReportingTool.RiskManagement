@@ -1,7 +1,7 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.ResultModels;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+﻿using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+namespace FloodOnlineReportingTool.Database.Repositories;
 
 public interface ISavedSearchRepository
 {

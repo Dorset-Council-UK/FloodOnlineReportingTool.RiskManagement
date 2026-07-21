@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+﻿namespace FloodOnlineReportingTool.Database.Models.Lookups;
 
 public record CommentType
 {

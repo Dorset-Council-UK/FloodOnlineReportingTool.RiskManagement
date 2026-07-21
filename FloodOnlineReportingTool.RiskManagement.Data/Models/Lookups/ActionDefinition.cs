@@ -1,6 +1,6 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
+﻿using FloodOnlineReportingTool.Database.Models.Enums;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
+namespace FloodOnlineReportingTool.Database.Models.Lookups;
 
 public record ActionDefinition
 {

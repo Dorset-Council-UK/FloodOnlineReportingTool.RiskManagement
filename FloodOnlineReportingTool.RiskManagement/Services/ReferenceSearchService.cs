@@ -1,5 +1,5 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Repositories;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 

@@ -1,7 +1,7 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.Lookups;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 namespace FloodOnlineReportingTool.RiskManagement.Extensions;
