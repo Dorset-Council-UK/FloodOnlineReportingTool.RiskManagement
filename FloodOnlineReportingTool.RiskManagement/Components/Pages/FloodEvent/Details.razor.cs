@@ -4,7 +4,6 @@ using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
@@ -24,7 +23,6 @@ public partial class Details(
     IFloodEventRepository floodEventRepository,
     IFloodEventState floodEventState,
     ISavedSearchRepository savedSearchRepository,
-    ISearchResultsState searchResultsState,
     IAuthorizationService authorizationService
 ) : IAsyncDisposable
 {
@@ -263,20 +261,12 @@ public partial class Details(
     }
 
     /// <summary>
-    ///     <para>Try to get the parts needed for the title from the search results state</para>
+    ///     <para>Try to get the parts needed for the title from the saved search</para>
     ///     <para>The parts needed are from date, to date and flood sources</para>
-    ///     <para>If not available then try to get them from the saved search in the database</para>
-    ///     <para>If neither are available return nulls and an empty collection</para>
+    ///     <para>If nothing is available return nulls and an empty collection</para>
     /// </summary>
     private async Task<(DateTimeOffset? fromDate, DateTimeOffset? toDate, ICollection<Guid> floodSources)> GetTitleParts()
     {
-        if (searchResultsState.HasOptions && searchResultsState.Options is not null)
-        {
-            // Parts from the search results state
-            SearchResultsViewModel searchResults = searchResultsState.Options;
-            return (searchResults.FromDate.DateUtc, searchResults.ToDate.DateUtc, searchResults.ByFloodSource);
-        }
-
         if (!string.IsNullOrWhiteSpace(SearchReference))
         {
             // Get the saved search from database
