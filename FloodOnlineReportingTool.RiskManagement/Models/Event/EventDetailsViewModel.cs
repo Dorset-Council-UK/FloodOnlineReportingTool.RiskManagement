@@ -1,5 +1,5 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;

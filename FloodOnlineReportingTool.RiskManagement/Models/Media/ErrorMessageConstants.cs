@@ -1,4 +1,4 @@
-﻿namespace FloodOnlineReportingTool.RiskManagement.Data.Models.Media
+﻿namespace FloodOnlineReportingTool.RiskManagement.Models.Media
 {
     public class ErrorMessageConstants
     {

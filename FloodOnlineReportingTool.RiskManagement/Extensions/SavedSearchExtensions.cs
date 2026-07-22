@@ -1,7 +1,7 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using GdsBlazorComponents;
 
-namespace FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+namespace FloodOnlineReportingTool.Database.Models.SavedSearches;
 
 internal static class SavedSearchExtensions
 {

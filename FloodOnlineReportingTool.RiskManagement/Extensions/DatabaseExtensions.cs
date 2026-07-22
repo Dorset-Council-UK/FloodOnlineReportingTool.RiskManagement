@@ -1,5 +1,5 @@
-﻿using FloodOnlineReportingTool.RiskManagement.Data.DbContexts;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+﻿using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Exceptions;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using Microsoft.EntityFrameworkCore;

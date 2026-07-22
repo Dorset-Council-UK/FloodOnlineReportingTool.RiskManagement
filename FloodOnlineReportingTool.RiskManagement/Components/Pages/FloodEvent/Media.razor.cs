@@ -1,5 +1,6 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Media;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.Database.Models.Media;
+using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Models.Media;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
@@ -416,7 +417,7 @@ public partial class Media(
 
         var mediaItems = Model.UploadedFiles
             .Where(file => !file.Id.HasValue)
-            .Select(file => new Data.Models.MediaItem
+            .Select(file => new MediaItem
             {
                 UploadDateUtc = DateTimeOffset.UtcNow,
                 URL = file.Url,
