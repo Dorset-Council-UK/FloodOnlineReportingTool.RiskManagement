@@ -1,5 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Components;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using FluentValidation;

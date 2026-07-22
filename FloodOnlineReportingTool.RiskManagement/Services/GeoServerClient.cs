@@ -1,5 +1,5 @@
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Lookups;
-using FloodOnlineReportingTool.RiskManagement.Data.Repositories;
+using FloodOnlineReportingTool.Database.Models.Lookups;
+using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
 using NetTopologySuite.Features;
@@ -214,7 +214,7 @@ public class GeoServerClient(
         bool limitToIdentifier,
         bool limitToGeometry)
     {
-        if (layerConfig.RequestMethod != Data.Models.Enums.RequestMethods.WFS)
+        if (layerConfig.RequestMethod != Database.Models.Enums.RequestMethods.WFS)
         {
             return string.Empty;
         }
@@ -226,18 +226,18 @@ public class GeoServerClient(
             // where 1.0.0 is GML2 and 1.1.0 is GML3. 
             // Some paging is supported in 1.1.0 but we don't use is for any version 1
             // Input parameters are different for v2.0.0 and paging is supported.
-            Data.Models.Enums.RequestVersions.V1_0_0 or Data.Models.Enums.RequestVersions.V1_1_0 =>
+            Database.Models.Enums.RequestVersions.V1_0_0 or Database.Models.Enums.RequestVersions.V1_1_0 =>
                 new Dictionary<string, string>(StringComparer.Ordinal)
                 {
                     ["service"] = "WFS",
-                    ["version"] = layerConfig.RequestVersion == Data.Models.Enums.RequestVersions.V1_0_0 ? "1.0.0" : "1.1.0",
+                    ["version"] = layerConfig.RequestVersion == Database.Models.Enums.RequestVersions.V1_0_0 ? "1.0.0" : "1.1.0",
                     ["request"] = "GetFeature",
                     ["typeName"] = layerConfig.LayerName,
                     ["outputFormat"] = "application/json",
                     ["maxFeatures"] = maxFeatures.ToString(CultureInfo.InvariantCulture),
                     ["CQL_FILTER"] = cqlFilter
                 },
-            Data.Models.Enums.RequestVersions.V2_0_0 =>
+            Database.Models.Enums.RequestVersions.V2_0_0 =>
                 new Dictionary<string, string>(StringComparer.Ordinal)
                 {
                     ["service"] = "WFS",

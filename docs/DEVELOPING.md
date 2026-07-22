@@ -35,14 +35,14 @@ To run Flood Online Reporting Tool - Risk Management with minimal modification, 
 
 5. **Run migrations and seed the database**:
 
-    The database schema and seed data are handled by the data project.
+    The database schema and seed data are handled by the database project.
     Navigate to the solution folder and run the following command:
     ```shell
-    dotnet ef database update --project "FloodOnlineReportingTool.RiskManagement.Data" --startup-project "FloodOnlineReportingTool.RiskManagement"
+    dotnet ef database update --project "Database" --startup-project "FloodOnlineReportingTool.RiskManagement"
     ```
-    or if using the Package Manager Console in Visual Studio, set the default project to FloodOnlineReportingTool.RiskManagement.Data and run:
+    or if using the Package Manager Console in Visual Studio, run:
     ```powershell
-    Update-Database -StartupProject FloodOnlineReportingTool.RiskManagement
+    Update-Database -Project Database -StartupProject FloodOnlineReportingTool.RiskManagement
     ```
 
 ## Update standards module

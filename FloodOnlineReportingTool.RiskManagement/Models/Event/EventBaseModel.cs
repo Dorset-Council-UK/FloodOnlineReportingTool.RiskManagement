@@ -1,7 +1,7 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.Enums;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.FloodEvents;
-using FloodOnlineReportingTool.RiskManagement.Data.Models.SavedSearches;
+using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Event;
 
