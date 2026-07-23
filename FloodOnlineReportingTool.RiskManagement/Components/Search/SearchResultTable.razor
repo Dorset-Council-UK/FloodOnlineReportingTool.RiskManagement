@@ -14,11 +14,12 @@
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th scope="col" class="govuk-table__header toggle-col"></th>
-                    <th scope="col" class="govuk-table__header">Report</th>
-                    <th scope="col" class="govuk-table__header">Source Reference</th>
-                    <th scope="col" class="govuk-table__header">Impact Start</th>
-                    <th scope="col" class="govuk-table__header">Reported</th>
+                    <th scope="col" class="govuk-table__header">Reference</th>
+                    <th scope="col" class="govuk-table__header">Status</th>
+                    <th scope="col" class="govuk-table__header">Record type</th>
+                    <th scope="col" class="govuk-table__header">Impact start</th>
                     <th scope="col" class="govuk-table__header">Causes</th>
+                    <th scope="col" class="govuk-table__header"></th>
                 </tr>
             </thead>
             <tbody class="govuk-table__body">
@@ -33,20 +34,19 @@
                                 @(isExpanded ? "▼" : "▶")
                             </button>
                         </td>
-                        <td class="govuk-table__cell" colspan="5">
-                            <span class="govuk-!-font-weight-bold">
-                                <button type="button"
-                                        class="report-toggle-link"
-                                        @onclick="() => Toggle(row.Id)"
-                                        aria-expanded="@isExpanded.ToString().ToLowerInvariant()"
-                                        aria-label="@(isExpanded ? "Collapse" : "Expand") sources for @row.Reference">
-                                    @row.Reference
-                                </button>
-                            </span>
-                            <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">@row.RecordStatus</strong>
-                            <span class="govuk-body-s govuk-!-margin-left-2 source-count">
-                                @row.SourceRecords.Count @(row.SourceRecords.Count == 1 ? "source" : "sources")
-                            </span>
+                        <td class="govuk-table__cell">
+                            @row.Reference
+                        </td>
+                        <td class="govuk-table__cell">
+                            @row.RecordStatus
+                        </td>
+                        <td class="govuk-table__cell">
+                            @row.SourceRecords.Count @(row.SourceRecords.Count == 1 ? "source" : "sources")
+                        </td>
+                        <td class="govuk-table__cell"><span class="govuk-visually-hidden">Expand this row to view impact start dates</span></td>
+                        <td class="govuk-table__cell"><span class="govuk-visually-hidden">Expand this row to view flood sources</span></td>
+                        <td class="govuk-table__cell">
+                            <a href="report/details/@row.Reference">View details<span class="govuk-visually-hidden"> for record @row.Reference</span></a>
                         </td>
                     </tr>
                     @if (isExpanded)
@@ -55,14 +55,17 @@
                         {
                             <tr class="govuk-table__row source-row">
                                 <td class="govuk-table__cell"></td>
-                                <td class="govuk-table__cell"></td>
                                 <td class="govuk-table__cell">
-                                    <a href="@source.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">@source.Reference</a>
+                                    @source.Reference
                                 </td>
+                                <td class="govuk-table__cell"></td>
+                                <td class="govuk-table__cell">Source</td>
                                 <td class="govuk-table__cell">@source.ImpactStartUtc.GdsReadable()</td>
-                                <td class="govuk-table__cell">@source.CreatedUtc.GdsReadable()</td>
                                 <td class="govuk-table__cell">
-                                    @(source.Causes.Count > 0 ? string.Join(", ", source.Causes.Select(c => c.Name)) : "No flooding causes identified")
+                                    @(source.Causes.Count == 1 ? source.Causes.First().Name : $"{source.Causes.Count} causes")
+                                </td>
+                                <td class="govuk-table__cell">
+                                    <a href="@source.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">View details<span class="govuk-visually-hidden"> for record @source.Reference</span></a>
                                 </td>
                             </tr>
                         }
@@ -74,15 +77,15 @@
     else
     {
         <QuickGrid Items="FlatItems" class="govuk-table">
-            <PropertyColumn Title="Report" Property="r => r.ReportReference" Sortable="true" />
+            <TemplateColumn Title="Report" SortBy="GridSort<FlatSourceRow>.ByAscending(r => r.ReportReference)" >
+                <a href="report/details/@context.ReportReference" class="govuk-link">@context.ReportReference</a>
+            </TemplateColumn>
+            <PropertyColumn Title="Record Status" Property="r => r.RecordStatus" />
             <TemplateColumn Title="Source Reference" SortBy="GridSort<FlatSourceRow>.ByAscending(r => r.SourceReference)">
                 <a href="@context.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">@context.SourceReference</a>
             </TemplateColumn>
             <TemplateColumn Title="Impact Start" SortBy="GridSort<FlatSourceRow>.ByAscending(r => r.ImpactStartUtc ?? DateTimeOffset.MinValue)">
                 @context.ImpactStartUtc.GdsReadable()
-            </TemplateColumn>
-            <TemplateColumn Title="Reported" SortBy="GridSort<FlatSourceRow>.ByAscending(r => r.CreatedUtc)">
-                @context.CreatedUtc.GdsReadable()
             </TemplateColumn>
             <PropertyColumn Title="Causes" Property="r => r.CausesDisplay" />
         </QuickGrid>

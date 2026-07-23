@@ -25,23 +25,23 @@ public partial class SearchResultTable
 
     private IQueryable<FlatSourceRow> FlatItems =>
         SearchResults.Results
-            .OrderBy(r => r.Reference)
+            .OrderBy(r => r.Reference, StringComparer.OrdinalIgnoreCase)
             .SelectMany(r => r.SourceRecords.Select(s => new FlatSourceRow(
                 r.Reference,
                 s.Reference,
+                r.RecordStatus,
                 s.ViewUri,
                 s.ImpactStartUtc,
-                s.CreatedUtc,
-                s.Causes.Count > 0 ? string.Join(", ", s.Causes.Select(c => c.Name)) : "No flooding causes identified"
+                s.Causes.Count == 1 ? s.Causes.First().Name : $"{s.Causes.Count} causes"
             )))
             .AsQueryable();
 
     private record FlatSourceRow(
         string ReportReference,
         string SourceReference,
+        string RecordStatus,
         Uri ViewUri,
         DateTimeOffset? ImpactStartUtc,
-        DateTimeOffset CreatedUtc,
         string CausesDisplay
     );
 }

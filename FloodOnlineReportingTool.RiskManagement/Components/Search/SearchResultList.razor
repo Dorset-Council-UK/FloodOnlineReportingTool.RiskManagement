@@ -1,20 +1,20 @@
 @if (SearchResults is not null)
 {
-    <div class="govuk-grid-row border-bottom">
-        <div class="govuk-grid-column-one-third">
+    @* <div class="govuk-grid-row border-bottom"> *@
+        @* <div class="govuk-grid-column-one-third">
             <div>
                 <h2 class="govuk-heading-m">Filter</h2>
                 <p>TODO</p>
             </div>
-        </div>
+        </div> *@
 
-        <div class="govuk-grid-column-two-thirds">
+        @* <div class="govuk-grid-column-two-thirds"> *@
             <div class="govuk-!-font-weight-bold govuk-!-margin-bottom-3">@SearchResults.TotalCount flood reports found, with @SearchResults.TotalFloodSourceCount sources</div>
             @foreach (var result in SearchResults!.Results)
             {
                 <FloodInformation SearchResult="result" />
             }
             <PaginationRow CurrentPage="@SearchResults.CurrentPage" LastPage="@SearchResults.TotalPages" OnPageChanged="OnPageChanged" />
-        </div>
-    </div>
+        @* </div> *@
+    @* </div> *@
 }
