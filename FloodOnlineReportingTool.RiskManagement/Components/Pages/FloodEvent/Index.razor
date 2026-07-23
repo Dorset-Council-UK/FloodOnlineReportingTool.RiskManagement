@@ -135,16 +135,15 @@
                             <GdsTableTh>Other</GdsTableTh>
                         </HeaderContent>
                         <RowTemplate Context="property">
-                            <GdsTableTd>Add stuff</GdsTableTd>
-                            <GdsTableTd>Add stuff</GdsTableTd>
-                            <GdsTableTd>Add stuff</GdsTableTd>
-                            <GdsTableTd>Add stuff</GdsTableTd>
+                            <GdsTableTd>@* TODO - add stuff *@</GdsTableTd>
+                            <GdsTableTd></GdsTableTd>
+                            <GdsTableTd></GdsTableTd>
+                            <GdsTableTd></GdsTableTd>
                         </RowTemplate>
                     </GdsTable>
 
                     <p><a href="">Full details for all affected properties</a></p>
 
-                    @* TODO - add geometry to map *@
                     <GdsHeading Level="3">Location</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
@@ -156,6 +155,7 @@
                             </dd>
                         </div>
                     </dl>
+                    @* TODO - add geometry to map *@
                     <div style="height:300px;" class="govuk-!-margin-bottom-2">
                         <MiniMap></MiniMap>
                     </div>
@@ -165,14 +165,11 @@
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
 
                     <GdsHeading Level="4">Further details</GdsHeading>
+                    @* TODO - change these links to use GdsLink once published on Nuget *@
                     <p><a href="">Affected properties</a></p>
                     <p><a href="">Flood impacts</a></p>
                     <p><a href="">Media</a></p>
                     <p><a href="">Comments</a></p>
-                    <br>
-                    
-                    <GdsHeading Level="4">View the data</GdsHeading>
-                    <p><a href="">As a list</a></p>
                     <br>
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
