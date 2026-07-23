@@ -1,5 +1,4 @@
-﻿using FloodOnlineReportingTool.Database.Models.Enums;
-using FloodOnlineReportingTool.Database.Models.Lookups;
+﻿using FloodOnlineReportingTool.Database.Models.Lookups;
 using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.Database.Models.Actions;
