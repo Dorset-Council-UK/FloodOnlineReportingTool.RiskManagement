@@ -1,3 +1,4 @@
+@using FloodOnlineReportingTool.RiskManagement.Components.Pages.Action
 @using Microsoft.AspNetCore.Components.QuickGrid
 
 <div class="govuk-button-group govuk-!-margin-bottom-3">
@@ -14,8 +15,7 @@
             <thead class="govuk-table__head">
                 <tr class="govuk-table__row">
                     <th scope="col" class="govuk-table__header toggle-col"></th>
-                    <th scope="col" class="govuk-table__header">Report</th>
-                    <th scope="col" class="govuk-table__header">Source Reference</th>
+                    <th scope="col" class="govuk-table__header">Reference</th>
                     <th scope="col" class="govuk-table__header">Impact Start</th>
                     <th scope="col" class="govuk-table__header">Reported</th>
                     <th scope="col" class="govuk-table__header">Causes</th>
@@ -33,20 +33,16 @@
                                 @(isExpanded ? "▼" : "▶")
                             </button>
                         </td>
-                        <td class="govuk-table__cell" colspan="5">
-                            <span class="govuk-!-font-weight-bold">
-                                <button type="button"
-                                        class="report-toggle-link"
-                                        @onclick="() => Toggle(row.Id)"
-                                        aria-expanded="@isExpanded.ToString().ToLowerInvariant()"
-                                        aria-label="@(isExpanded ? "Collapse" : "Expand") sources for @row.Reference">
-                                    @row.Reference
-                                </button>
-                            </span>
+                        <td class="govuk-table__cell" colspan="4">
+                            <span class="govuk-body">@row.Reference</span>
                             <strong class="govuk-tag govuk-tag--grey govuk-!-margin-left-2">@row.RecordStatus</strong>
                             <span class="govuk-body-s govuk-!-margin-left-2 source-count">
                                 @row.SourceRecords.Count @(row.SourceRecords.Count == 1 ? "source" : "sources")
                             </span>
+                            <span class="govuk-body-s govuk-!-margin-left-2">
+                                <a href="report/details/@row.Reference" class="govuk-link">View report<span class="govuk-visually-hidden"> for report @row.Reference</span></a>
+                            </span>
+                            
                         </td>
                     </tr>
                     @if (isExpanded)
@@ -54,7 +50,6 @@
                         foreach (var source in row.SourceRecords)
                         {
                             <tr class="govuk-table__row source-row">
-                                <td class="govuk-table__cell"></td>
                                 <td class="govuk-table__cell"></td>
                                 <td class="govuk-table__cell">
                                     <a href="@source.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">@source.Reference</a>
@@ -74,7 +69,9 @@
     else
     {
         <QuickGrid Items="FlatItems" class="govuk-table">
-            <PropertyColumn Title="Report" Property="r => r.ReportReference" Sortable="true" />
+            <TemplateColumn Title="Report" SortBy="GridSort<FlatSourceRow>.ByAscending(r => r.ReportReference)" >
+                <a href="report/details/@context.ReportReference" class="govuk-link">@context.ReportReference</a>
+            </TemplateColumn>
             <TemplateColumn Title="Source Reference" SortBy="GridSort<FlatSourceRow>.ByAscending(r => r.SourceReference)">
                 <a href="@context.ViewUri" target="_blank" rel="noopener noreferrer" class="govuk-link">@context.SourceReference</a>
             </TemplateColumn>
