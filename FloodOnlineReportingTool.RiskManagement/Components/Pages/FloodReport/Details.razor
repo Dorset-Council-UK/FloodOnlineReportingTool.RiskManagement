@@ -55,14 +55,6 @@
                         </div>
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Flood location
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add flood location data *@
-                            </dd>
-                        </div>
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
                                 Reported on
                             </dt>
                             <dd class="govuk-summary-list__value">
@@ -81,6 +73,24 @@
 
                     <GdsHeading Level="3">About the flood</GdsHeading>
                     <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood location
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood location data *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood map
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                <div class="flood-map-container">
+                                    <MiniMap Geometry="@firstSource?.Geom" />
+                                </div>
+                            </dd>
+                        </div>
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
                                 Flood cause
@@ -141,9 +151,7 @@
                 </GdsGridColumn>
 
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
-                    <div style="height:300px;" class="govuk-!-margin-bottom-2">
-                        <MiniMap Geometry="@firstSource?.Geom"></MiniMap>
-                    </div>
+                    
                 </GdsGridColumn>
             </GdsGridRow>
         }
