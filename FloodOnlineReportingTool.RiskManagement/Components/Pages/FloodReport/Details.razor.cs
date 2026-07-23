@@ -1,12 +1,17 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Models.Export;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
+using Microsoft.JSInterop;
+using NetTopologySuite.Geometries;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodReport;
 
@@ -16,6 +21,8 @@ public partial class Details(
     ICommonRepository commonRepository,
     IActionLogRepository actionLogRepository,
     ISettingsService settingsService,
+    NavigationManager navigationManager,
+    IJSRuntime js,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
@@ -28,8 +35,9 @@ public partial class Details(
     private bool _gettingToken;
     private bool _isLoading = true;
     private bool _notFound = false;
-    private string ReportStatus { get; set; }
+    private string ReportStatus { get; set; } = string.Empty;
     private Guid? AcknowledgeAction { get; set; }
+    private string _selfUrl => navigationManager.Uri;
 
     // Shared EditContext for all action buttons on the page - errors from any action
     // are pushed here and rendered once by a single GdsErrorSummary.
@@ -48,7 +56,7 @@ public partial class Details(
         _actionsEditContext = new EditContext(_actionsModel);
         _actionsMessageStore = new ValidationMessageStore(_actionsEditContext);
 
-        // Don't get any data if you don't have permission
+        // Don't get any data if you don't have permission.
         AuthenticationState? authState;
         if (AuthenticationState is null)
         {
@@ -78,7 +86,7 @@ public partial class Details(
             {
                 var reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
                 ViewModel = reportResult.ResultModel;
-                ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? "";
+                ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? string.Empty;
 
                 AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
                 logger.LogInformation("Flood report detail loaded successfully for reference");
@@ -97,6 +105,7 @@ public partial class Details(
             _gettingToken = true;
             consentHandler.HandleException(ex);
         }
+
         _isLoading = false;
     }
 
@@ -104,8 +113,7 @@ public partial class Details(
     {
         if (ViewModel is not null)
         {
-            // add to recent work store (only once per page load)
-            await settingsService.AddRecentWork($"{Reference}", "Flood Report", "", $"report/details/{Reference}");
+            await settingsService.AddRecentWork($"{Reference}", "Flood Report", string.Empty, $"report/details/{Reference}");
         }
 
         await base.OnAfterRenderAsync(firstRender);
@@ -153,5 +161,86 @@ public partial class Details(
         }
 
         AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel!.Reference, _cts.Token);
+    }
+
+    private async Task PrintPageAsync()
+    {
+        await js.InvokeVoidAsync("print");
+    }
+
+    private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
+    private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
+
+    private FloodReportExportDto ToExportDto()
+    {
+        var firstSource = ViewModel?.SourceRecords?.FirstOrDefault();
+        var point = firstSource?.Geom as Point;
+
+        return new FloodReportExportDto
+        {
+            Reference = ViewModel?.Reference ?? string.Empty,
+            ReportedOn = firstSource is not null ? firstSource.CreatedUtc.GdsReadable() : "Unknown date",
+            RecordStatus = ReportStatus,
+            GeometryCoordinates = point is null
+                ? []
+                :
+                [
+                    new FloodReportCoordinateExportDto
+                    {
+                        X = point.X,
+                        Y = point.Y
+                    }
+                ]
+        };
+    }
+
+    private string ExportToJson()
+    {
+        var exportDto = ToExportDto();
+        var point = ViewModel?.SourceRecords?.FirstOrDefault()?.Geom as Point;
+        var feature = new
+        {
+            type = "Feature",
+            geometry = point is null ? null : new
+            {
+                type = "Point",
+                coordinates = new[] { point.X, point.Y }
+            },
+            properties = new
+            {
+                exportDto.Reference,
+                exportDto.ReportedOn,
+                exportDto.RecordStatus
+            }
+        };
+
+        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+        {
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+        });
+
+        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+    }
+
+    private string ExportToCsv()
+    {
+        var exportDto = ToExportDto();
+        var geometryCoordinates = string.Join(" | ", exportDto.GeometryCoordinates.Select(static coordinate => $"{coordinate.X},{coordinate.Y}"));
+        var csv = new StringBuilder()
+            .AppendLine("Reference,ReportedOn,RecordStatus,GeometryCoordinates")
+            .AppendLine(string.Join(',',
+                CsvEscape(exportDto.Reference),
+                CsvEscape(exportDto.ReportedOn),
+                CsvEscape(exportDto.RecordStatus),
+                CsvEscape(geometryCoordinates)));
+
+        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+    }
+
+    private static string CsvEscape(string? value)
+    {
+        return string.IsNullOrEmpty(value)
+            ? string.Empty
+            : $"\"{value.Replace("\"", "\"\"")}\"";
     }
 }

@@ -48,3 +48,28 @@ button.govuk-link {
     padding: 0;
     cursor: pointer;
 }
+
+@media print {
+    /* App chrome */
+    .govuk-header,
+    .govuk-footer,
+    .govuk-phase-banner,
+    .govuk-breadcrumbs {
+        display: none !important;
+    }
+
+    /* Optional: hide non-essential UI */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Expand main content column to printable width */
+    .print-main-column {
+        width: 100% !important;
+        float: none !important;
+    }
+
+    @page {
+        margin: 12mm;
+    }
+}
