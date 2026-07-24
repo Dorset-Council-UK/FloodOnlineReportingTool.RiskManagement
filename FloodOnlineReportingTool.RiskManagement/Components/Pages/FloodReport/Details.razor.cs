@@ -1,11 +1,13 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Export;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using System.Security.Claims;
@@ -170,31 +172,13 @@ public partial class Details(
     private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
     private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
 
-    private FloodReportExportDto? ToExportDto()
-    {
-        var firstSource = ViewModel?.SourceRecords?.FirstOrDefault();
-
-        if (firstSource is null)
-        {
-            // Invalid record
-            return null;
-        }
-
-        return new FloodReportExportDto
-        {
-            Reference = ViewModel?.Reference ?? string.Empty,
-            ReportedOn = firstSource.CreatedUtc.GdsReadable(),
-            RecordStatus = ReportStatus,
-            Easting = Math.Truncate(firstSource.Easting),
-            Northing = Math.Truncate(firstSource.Northing),
-            Y = firstSource.Latitude,
-            X = firstSource.Longitude,
-        };
-    }
-
     private string ExportToJson()
     {
-        var exportDto = ToExportDto();
+        if (ViewModel is not SearchResultFloodReport model)
+        {
+            return string.Empty;
+        }
+        var exportDto = model.ToExportDto(ReportStatus);
         if (exportDto is null)
         {
             // Invalid record
@@ -228,7 +212,11 @@ public partial class Details(
 
     private string ExportToCsv()
     {
-        var exportDto = ToExportDto();
+        if (ViewModel is not SearchResultFloodReport model)
+        {
+            return string.Empty;
+        }
+        var exportDto = model.ToExportDto(ReportStatus);
         if (exportDto is null)
         {
             // Invalid record
