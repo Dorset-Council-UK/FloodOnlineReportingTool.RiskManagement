@@ -6,7 +6,7 @@
 
 <PageTitle>Flood Event Details</PageTitle>
 
-<h1 class="govuk-heading-l">Flood Event Details</h1>
+<GdsHeading Level="2">View flood event summary</GdsHeading>
 
 <AuthorizeView Policy="@PolicyNames.Reader">
     <Authorized>
@@ -16,14 +16,170 @@
         }
         else
         {
-            @if (!string.IsNullOrWhiteSpace(SearchReference))
-            {
-                <p>Event reference: @SearchReference</p>
-            }
+            <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
+                <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds">
 
-            <GdsInsetText Text="TODO: Add a map and summary component to this page" />
+                    @* TODO - add action buttons functionality once decided *@
+                    <div class="govuk-button-group">
+                        <GdsButton IsSubmit="false" Text="Action 1" AdditionalCssClasses="govuk-button--secondary" />
+                        <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
+                        <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
+                    </div>
 
-            <GdsInsetText Text="TODO: We will also need some button controls to trigger actions and access comment / media functionality" />
+                    <GdsHeading Level="3">Basic details</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Reference
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @SearchReference
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Title
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add title data *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Created on
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add created on date *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Updated on
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add updated on date *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Record status
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add record status data *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood status
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood status *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Investigation status
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add investigation status *@
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <GdsHeading Level="3">About the flood</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood cause
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood cause data *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood start date
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood start date *@
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Flood end date
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add flood end date *@
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <GdsHeading Level="3">Organisations</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Lead organisation
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add lead organisation data *@
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <GdsHeading Level="3">Properties overview</GdsHeading>
+                    <GdsTable T="string" FirstCellIsHeader>
+                        <HeaderContent>
+                            <GdsTableTh>Property type</GdsTableTh>
+                            <GdsTableTh>Flooded</GdsTableTh>
+                            <GdsTableTh>Affected</GdsTableTh>
+                            <GdsTableTh>Other</GdsTableTh>
+                        </HeaderContent>
+                        <RowTemplate Context="property">
+                            <GdsTableTd>@* TODO - add stuff *@</GdsTableTd>
+                            <GdsTableTd></GdsTableTd>
+                            <GdsTableTd></GdsTableTd>
+                            <GdsTableTd></GdsTableTd>
+                        </RowTemplate>
+                    </GdsTable>
+
+                    <p><a href="">Full details for all affected properties</a></p>
+
+                    <GdsHeading Level="3">Location</GdsHeading>
+                    <dl class="govuk-summary-list">
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Address
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @* TODO - add address data *@
+                            </dd>
+                        </div>
+                    </dl>
+                    @* TODO - add geometry to map *@
+                    <div style="height:300px;" class="govuk-!-margin-bottom-2">
+                        <MiniMap></MiniMap>
+                    </div>
+
+                </GdsGridColumn>
+
+                <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+
+                    <GdsHeading Level="4">Further details</GdsHeading>
+                    @* TODO - change these links to use GdsLink once published on Nuget *@
+                    <p><a href="">Affected properties</a></p>
+                    <p><a href="">Flood impacts</a></p>
+                    <p><a href="">Media</a></p>
+                    <p><a href="">Comments</a></p>
+                    <hr class="govuk-section-break govuk-section-break--m" />
+
+                    <GdsHeading Level="4">Download the data</GdsHeading>
+                    <p><a href="">CSV</a></p>
+                    <p><a href="">Something else</a></p>
+                    <hr class="govuk-section-break govuk-section-break--m" />
+
+                </GdsGridColumn>
+            </GdsGridRow>
+
         }
     </Authorized>
 
