@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
-using NetTopologySuite.Geometries;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -171,46 +170,51 @@ public partial class Details(
     private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
     private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
 
-    private FloodReportExportDto ToExportDto()
+    private FloodReportExportDto? ToExportDto()
     {
         var firstSource = ViewModel?.SourceRecords?.FirstOrDefault();
-        var point = firstSource?.Geom as Point;
+
+        if (firstSource is null)
+        {
+            // Invalid record
+            return null;
+        }
 
         return new FloodReportExportDto
         {
             Reference = ViewModel?.Reference ?? string.Empty,
-            ReportedOn = firstSource is not null ? firstSource.CreatedUtc.GdsReadable() : "Unknown date",
+            ReportedOn = firstSource.CreatedUtc.GdsReadable(),
             RecordStatus = ReportStatus,
-            GeometryCoordinates = point is null
-                ? []
-                :
-                [
-                    new FloodReportCoordinateExportDto
-                    {
-                        X = point.X,
-                        Y = point.Y
-                    }
-                ]
+            Easting = Math.Truncate(firstSource.Easting),
+            Northing = Math.Truncate(firstSource.Northing),
+            Y = firstSource.Latitude,
+            X = firstSource.Longitude,
         };
     }
 
     private string ExportToJson()
     {
         var exportDto = ToExportDto();
-        var point = ViewModel?.SourceRecords?.FirstOrDefault()?.Geom as Point;
+        if (exportDto is null)
+        {
+            // Invalid record
+            return string.Empty;
+        }
         var feature = new
         {
             type = "Feature",
-            geometry = point is null ? null : new
+            geometry = new
             {
                 type = "Point",
-                coordinates = new[] { point.X, point.Y }
+                coordinates = new[] { exportDto.X, exportDto.Y }
             },
             properties = new
             {
                 exportDto.Reference,
                 exportDto.ReportedOn,
-                exportDto.RecordStatus
+                exportDto.RecordStatus,
+                exportDto.Easting,
+                exportDto.Northing
             }
         };
 
@@ -225,14 +229,19 @@ public partial class Details(
     private string ExportToCsv()
     {
         var exportDto = ToExportDto();
-        var geometryCoordinates = string.Join(" | ", exportDto.GeometryCoordinates.Select(static coordinate => $"{coordinate.X},{coordinate.Y}"));
+        if (exportDto is null)
+        {
+            // Invalid record
+            return string.Empty;
+        }
         var csv = new StringBuilder()
-            .AppendLine("Reference,ReportedOn,RecordStatus,GeometryCoordinates")
+            .AppendLine("Reference,ReportedOn,RecordStatus,Easting,Northing")
             .AppendLine(string.Join(',',
                 CsvEscape(exportDto.Reference),
                 CsvEscape(exportDto.ReportedOn),
                 CsvEscape(exportDto.RecordStatus),
-                CsvEscape(geometryCoordinates)));
+                exportDto.Easting,
+                exportDto.Northing));
 
         return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
     }
