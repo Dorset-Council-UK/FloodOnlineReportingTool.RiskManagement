@@ -1,7 +1,7 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
-using FloodOnlineReportingTool.RiskManagement.Models.Export;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
@@ -26,9 +26,7 @@ public partial class Details(
     IJSRuntime js,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
-    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
-        new("", "Home"),
-    ];
+    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -56,6 +54,8 @@ public partial class Details(
     {
         _actionsEditContext = new EditContext(_actionsModel);
         _actionsMessageStore = new ValidationMessageStore(_actionsEditContext);
+
+        Breadcrumbs = CreateBreadcrumbs();
 
         // Don't get any data if you don't have permission.
         AuthenticationState? authState;
@@ -239,5 +239,14 @@ public partial class Details(
         return string.IsNullOrEmpty(value)
             ? string.Empty
             : $"\"{value.Replace("\"", "\"\"")}\"";
+    }
+
+    private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
+    {
+        return
+        [
+            GeneralPages.Home.ToGdsBreadcrumb(),
+            new ($"{ReportPages.Details.Url}/{Reference}", $"Flood report {Reference}")
+        ];
     }
 }
