@@ -29,7 +29,7 @@ public partial class Comments(
         AuthenticationState? authState;
         if (AuthenticationState is null)
         {
-            logger.LogWarning("Attempt to access flood report details without authentication");
+            logger.LogWarning("Attempt to access flood report comments without authentication");
             return;
         }
         else
@@ -37,7 +37,7 @@ public partial class Comments(
             authState = await AuthenticationState;
             if (!authState.User.IsAuthenticated)
             {
-                logger.LogWarning("Attempt to access flood report details without authentication");
+                logger.LogWarning("Attempt to access flood report comments without authentication");
                 return;
             }
         }
@@ -50,7 +50,8 @@ public partial class Comments(
         return
         [
             GeneralPages.Home.ToGdsBreadcrumb(),
-            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title)
+            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title),
+            new ($"{ReportPages.Comments.Url}/{Reference}", ReportPages.Comments.Title)
         ];
     }
 }

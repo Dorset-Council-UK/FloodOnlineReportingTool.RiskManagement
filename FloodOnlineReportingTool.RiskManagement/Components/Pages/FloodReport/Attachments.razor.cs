@@ -29,7 +29,7 @@ public partial class Attachments(
         AuthenticationState? authState;
         if (AuthenticationState is null)
         {
-            logger.LogWarning("Attempt to access flood report details without authentication");
+            logger.LogWarning("Attempt to access flood report attachments without authentication");
             return;
         }
         else
@@ -37,7 +37,7 @@ public partial class Attachments(
             authState = await AuthenticationState;
             if (!authState.User.IsAuthenticated)
             {
-                logger.LogWarning("Attempt to access flood report details without authentication");
+                logger.LogWarning("Attempt to access flood report attachments without authentication");
                 return;
             }
         }
@@ -50,7 +50,8 @@ public partial class Attachments(
         return
         [
             GeneralPages.Home.ToGdsBreadcrumb(),
-            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title)
+            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title),
+            new ($"{ReportPages.Attachments.Url}/{Reference}", ReportPages.Attachments.Title)
         ];
     }
 }

@@ -26,9 +26,7 @@ public partial class Details(
     IJSRuntime js,
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
-    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [
-        GeneralPages.Home.ToGdsBreadcrumb(),
-    ];
+    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -56,6 +54,8 @@ public partial class Details(
     {
         _actionsEditContext = new EditContext(_actionsModel);
         _actionsMessageStore = new ValidationMessageStore(_actionsEditContext);
+
+        Breadcrumbs = CreateBreadcrumbs();
 
         // Don't get any data if you don't have permission.
         AuthenticationState? authState;
@@ -239,5 +239,14 @@ public partial class Details(
         return string.IsNullOrEmpty(value)
             ? string.Empty
             : $"\"{value.Replace("\"", "\"\"")}\"";
+    }
+
+    private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
+    {
+        return
+        [
+            GeneralPages.Home.ToGdsBreadcrumb(),
+            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title)
+        ];
     }
 }
