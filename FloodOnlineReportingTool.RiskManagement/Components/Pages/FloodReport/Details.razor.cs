@@ -227,8 +227,8 @@ public partial class Details(
                 CsvEscape(exportDto.Reference),
                 CsvEscape(exportDto.ReportedOn),
                 CsvEscape(exportDto.RecordStatus),
-                exportDto.Easting,
-                exportDto.Northing));
+                exportDto.Easting.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                exportDto.Northing.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
         return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
     }
