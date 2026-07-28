@@ -246,7 +246,7 @@ public partial class Details(
         return
         [
             GeneralPages.Home.ToGdsBreadcrumb(),
-            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title)
+            new ($"{ReportPages.Details.Url}/{Reference}", $"Flood report {Reference}")
         ];
     }
 }

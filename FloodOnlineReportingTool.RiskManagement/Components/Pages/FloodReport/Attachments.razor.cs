@@ -50,8 +50,8 @@ public partial class Attachments(
         return
         [
             GeneralPages.Home.ToGdsBreadcrumb(),
-            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title),
-            new ($"{ReportPages.Attachments.Url}/{Reference}", ReportPages.Attachments.Title)
+            new ($"{ReportPages.Details.Url}/{Reference}", $"Flood report {Reference}"),
+            new ($"{ReportPages.Attachments.Url}/{Reference}", "Attachments")
         ];
     }
 }

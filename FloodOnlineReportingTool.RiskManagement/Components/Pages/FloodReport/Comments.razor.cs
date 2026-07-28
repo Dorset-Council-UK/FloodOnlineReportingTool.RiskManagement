@@ -50,8 +50,8 @@ public partial class Comments(
         return
         [
             GeneralPages.Home.ToGdsBreadcrumb(),
-            new ($"{ReportPages.Details.Url}/{Reference}", ReportPages.Details.Title),
-            new ($"{ReportPages.Comments.Url}/{Reference}", ReportPages.Comments.Title)
+            new ($"{ReportPages.Details.Url}/{Reference}", $"Flood report {Reference}"),
+            new ($"{ReportPages.Comments.Url}/{Reference}", "Comments")
         ];
     }
 }
