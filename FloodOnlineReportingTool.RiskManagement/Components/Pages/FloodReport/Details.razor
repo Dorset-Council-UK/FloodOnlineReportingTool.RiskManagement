@@ -23,13 +23,13 @@
             <GdsHeading Level="2">View flood report summary</GdsHeading>
 
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">  
-                <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds">
+                <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds" AdditionalCssClasses="print-main-column">
 
                     @* TODO - add working link to full report to button *@
-                    <GdsButton Text="View the complete report" />
+                    <GdsButton AdditionalCssClasses="no-print" Text="View the complete report" />
 
                     @* TODO - add action buttons functionality once decided *@
-                    <div class="govuk-button-group">
+                    <div class="govuk-button-group no-print">
                         <EditForm EditContext="_actionsEditContext">
                             <GdsErrorSummary />
                 
@@ -150,8 +150,17 @@
                     </dl>
                 </GdsGridColumn>
 
-                <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
-                    
+                <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
+                    <GdsHeading Level="4">Further details</GdsHeading>
+                    <p><a href="">Media</a></p>
+                    <p><a href="">Comments</a></p>
+                    <br>
+
+                    <GdsHeading Level="4">Download the data</GdsHeading>
+                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
+                    <p><a href="@ExportToCsv()" download="@CsvDownloadFileName">CSV</a></p>
+                    <p><a href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</a></p>
+                    <br>
                 </GdsGridColumn>
             </GdsGridRow>
         }
