@@ -2,14 +2,14 @@
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
-<PageTitle>Flood report comments</PageTitle>
+<PageTitle>@Title</PageTitle>
 <GdsBreadcrumbs Items="Breadcrumbs" />
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        <GdsHeading Level="2">View flood report comments</GdsHeading>
+        <GdsHeading Level="2">@Title</GdsHeading>
 
     </Authorized>
     <NotAuthorized>

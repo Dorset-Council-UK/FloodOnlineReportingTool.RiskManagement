@@ -8,10 +8,10 @@ using System.Security.Claims;
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodReport;
 
 public partial class Comments(
-    ILogger<Comments> logger,
-    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
+    ILogger<Comments> logger)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
+    private string Title => ReportPages.Comments.Title;
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }

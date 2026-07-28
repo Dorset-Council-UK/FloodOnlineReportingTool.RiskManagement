@@ -12,6 +12,7 @@ public partial class Attachments(
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
+    private string Title => ReportPages.Attachments.Title;
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }

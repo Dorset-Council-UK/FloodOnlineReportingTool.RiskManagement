@@ -1,5 +1,21 @@
-﻿@page "/event/comments/{SearchReference}"
+﻿@page "/event/comments/{Reference}"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
-<h3>Comments</h3>
+<PageTitle>@Title</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+    <Authorized>
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+        <GdsHeading Level="2">@Title</GdsHeading>
+
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to view flood reports. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>
+
 
 
