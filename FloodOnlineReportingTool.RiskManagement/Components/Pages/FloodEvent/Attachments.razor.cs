@@ -12,8 +12,8 @@ using System.Globalization;
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
 [Authorize]
-public partial class Media(
-    ILogger<Media> logger,
+public partial class Attachments(
+    ILogger<Attachments> logger,
     NavigationManager navigationManager,
     IJSRuntime JS,
     IBlobStorageService blobStorageService,
