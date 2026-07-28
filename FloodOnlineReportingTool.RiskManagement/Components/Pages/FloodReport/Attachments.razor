@@ -1,0 +1,18 @@
+﻿@page "/report/attachments/{Reference}"
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Flood report attachments</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
+    <Authorized>
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+
+        <GdsHeading Level="2">View flood report attachments</GdsHeading>
+
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to view flood reports. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>
