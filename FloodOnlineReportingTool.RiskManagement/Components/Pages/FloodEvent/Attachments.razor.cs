@@ -2,14 +2,13 @@ using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.Identity.Web;
 using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
 public partial class Attachments(
     ILogger<Attachments> logger,
-    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
+    NavigationManager navigationManager)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
     private string Title => EventPages.Attachments.Title;
@@ -54,5 +53,15 @@ public partial class Attachments(
             new ($"{EventPages.View.Url}/{Reference}", $"Flood event {Reference}"),
             new ($"{EventPages.Attachments.Url}/{Reference}", "Attachments")
         ];
+    }
+
+    private void GoToUpload()
+    {
+        if (Reference is null)
+        {
+            navigationManager.NavigateTo($"{EventPages.Attachments.Url}/{Reference}");
+        }
+
+        navigationManager.NavigateTo($"{EventPages.Upload.Url}/{Reference}/true");
     }
 }
