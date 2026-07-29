@@ -1,11 +1,11 @@
-﻿@page "/event/media/{SearchReference}"
+﻿@page "/event/upload/{Reference}"
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Options
 @using RiskManagement.Options
 @inject IOptions<AzureBlobStorageOptions> blobStorageOptions
 <PageTitle>@Title</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
 
-<GdsBackLink Href="@previousPage"></GdsBackLink>
 <AuthorizeView Context="authContext">
     <NotAuthorized>
         <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />

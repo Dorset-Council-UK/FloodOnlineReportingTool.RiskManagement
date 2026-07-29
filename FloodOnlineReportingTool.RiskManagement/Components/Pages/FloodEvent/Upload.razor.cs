@@ -1,6 +1,7 @@
 using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Media;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
@@ -12,8 +13,8 @@ using System.Globalization;
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
 [Authorize]
-public partial class Media(
-    ILogger<Media> logger,
+public partial class Upload(
+    ILogger<Upload> logger,
     NavigationManager navigationManager,
     IJSRuntime JS,
     IBlobStorageService blobStorageService,
@@ -22,10 +23,12 @@ public partial class Media(
 ) : IAsyncDisposable
 {
     // Page order properties
-    public string Title { get; set; } = "Add media to flood event";
+    //public string Title { get; set; } = "Add media to flood event";
+    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
+    private string Title => EventPages.Upload.Title;
 
     [Parameter]
-    public string? SearchReference { get; set; }
+    public string? Reference { get; set; }
 
     private const int MaxNumFiles = 50;
     private const int MaxFileSizeMB = 100;
@@ -75,19 +78,21 @@ public partial class Media(
     private string _renameText = string.Empty;
     private string? _renameError;
 
-    private string previousPage = $"event";
+    private string previousPage = $"event/details";
 
     private Models.Event.Media Model { get; set; } = default!;
 
     protected override void OnInitialized()
     {
+        Breadcrumbs = CreateBreadcrumbs();
+
         // Setup model and edit context
         Model ??= new();
         _editContext = new(Model);
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _validationMessageStore = new(_editContext);
         _fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
-        previousPage = $"event/{SearchReference}";
+        previousPage = $"event/details/{Reference}";
 
     }
 
@@ -113,7 +118,7 @@ public partial class Media(
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(SearchReference))
+        if (string.IsNullOrWhiteSpace(Reference))
         {
             navigationManager.NavigateTo("not-found");
             return;
@@ -122,7 +127,7 @@ public partial class Media(
         try
         {
             //get flood event ID by search reference
-            var floodEvent = await floodEventRepository.GetBySearchReference(SearchReference, _cts.Token);
+            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, _cts.Token);
             if (floodEvent is null)
             {
                 logger.LogWarning("Flood event could not be found by search reference when loading media items");
@@ -436,7 +441,7 @@ public partial class Media(
         {
             foreach (var error in createMediaItems.Errors)
             {
-                logger.LogWarning("Couldn't create a media item: {ErrorMessage}", error);
+                logger.LogWarning("Couldn't create a attachment item: {ErrorMessage}", error);
             }
 
             _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
@@ -445,5 +450,15 @@ public partial class Media(
         }
 
         navigationManager.NavigateTo(previousPage);
+    }
+
+    private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
+    {
+        return
+        [
+            GeneralPages.Home.ToGdsBreadcrumb(),
+            new ($"{EventPages.Details.Url}/{Reference}", $"Details"),
+            new ($"{EventPages.Upload.Url}/{Reference}", "Upload Attachments")
+        ];
     }
 }

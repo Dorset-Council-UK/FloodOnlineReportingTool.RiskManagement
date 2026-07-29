@@ -325,4 +325,49 @@ public partial class Details(
 
         navigationManager.NavigateTo($"{EventPages.Estimates.Url}/{SearchReference}");
     }
+    private async Task GoToUpload()
+    {
+        if (EditContext is null || !EditContext.Validate() || string.IsNullOrWhiteSpace(SearchReference))
+        {
+            return;
+        }
+
+        if (floodEventState.HasEstimates && string.Equals(floodEventState.Estimates?.SearchReference, SearchReference, StringComparison.Ordinal))
+        {
+            var estimates = floodEventState.Estimates;
+            estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
+            estimates?.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
+            estimates?.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+            floodEventState.SetEventEstimates(estimates);
+        }
+        else
+        {
+            var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+            EventEstimatesViewModel estimates;
+            if (savedSearch != null)
+            {
+                estimates = new();
+
+                estimates = estimates.ToModel(savedSearch);
+                estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
+                estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
+                estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+                estimates.SearchReference = SearchReference;
+            }
+            else
+            {
+                estimates = new EventEstimatesViewModel
+                {
+                    EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
+                    EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
+                    EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
+                    SearchReference = SearchReference,
+                };
+            }
+
+            floodEventState.SetEventEstimates(estimates);
+        }
+
+        navigationManager.NavigateTo($"{EventPages.Upload.Url}/{SearchReference}");
+    }
 }

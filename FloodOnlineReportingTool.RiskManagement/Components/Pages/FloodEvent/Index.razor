@@ -1,10 +1,11 @@
-﻿@page "/event/{SearchReference}"
+﻿@page "/event/{Reference}"
 @page "/event"
 
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Flood Event Details</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
 
 <GdsHeading Level="2">View flood event summary</GdsHeading>
 
@@ -17,13 +18,13 @@
         else
         {
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
-                <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds">
+                <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds" AdditionalCssClasses="print-main-column">
 
                     @* TODO - add action buttons functionality once decided *@
                     <div class="govuk-button-group">
-                        <GdsButton IsSubmit="false" Text="Action 1" AdditionalCssClasses="govuk-button--secondary" />
-                        <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
-                        <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
+                        <GdsButton IsSubmit="false" Text="Action 1" AdditionalCssClasses="govuk-button--secondary no-print" />
+                        <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary no-print" />
+                        <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary no-print" />
                     </div>
 
                     <GdsHeading Level="3">Basic details</GdsHeading>
@@ -33,7 +34,7 @@
                                 Reference
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @SearchReference
+                                @Reference
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -162,20 +163,20 @@
 
                 </GdsGridColumn>
 
-                <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
 
                     <GdsHeading Level="4">Further details</GdsHeading>
                     @* TODO - change these links to use GdsLink once published on Nuget *@
-                    <p><a href="">Affected properties</a></p>
-                    <p><a href="">Flood impacts</a></p>
-                    <p><a href="">Media</a></p>
-                    <p><a href="">Comments</a></p>
+                    <p><a href="event/propertysummary/@Reference">Affected properties</a></p>
+                    <p><a href="event/impactsummary/@Reference">Flood impacts</a></p>
+                    <p><a href="event/attachments/@Reference">Attachments</a></p>
+                    <p><a href="event/comments/@Reference">Comments</a></p>
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
-                    <p><a href="">CSV</a></p>
-                    <p><a href="">Something else</a></p>
-                    <hr class="govuk-section-break govuk-section-break--m" />
+                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
+                    <p><a href="@ExportToCsv()" download="@CsvDownloadFileName">CSV</a></p>
+                    <p><a href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</a></p>
 
                 </GdsGridColumn>
             </GdsGridRow>
