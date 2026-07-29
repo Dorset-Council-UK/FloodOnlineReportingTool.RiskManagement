@@ -7,7 +7,6 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using System.Security.Claims;
@@ -31,6 +30,9 @@ public partial class Details(
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
+    [Parameter]
+    public required string Reference { get; set; }
+
     private bool _gettingToken;
     private bool _isLoading = true;
     private bool _notFound = false;
@@ -43,9 +45,6 @@ public partial class Details(
     private readonly object _actionsModel = new();
     private EditContext? _actionsEditContext;
     private ValidationMessageStore? _actionsMessageStore;
-
-    [Parameter]
-    public required string Reference { get; set; }
 
     private readonly CancellationTokenSource _cts = new();
     private SearchResultFloodReport? ViewModel { get; set; } = default!;
