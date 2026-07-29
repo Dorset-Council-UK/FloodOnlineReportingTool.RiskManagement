@@ -12,5 +12,5 @@ internal static class EventPages
     public static readonly PageInfo Attachments = new(BaseUrl, "/attachments", "View event attachments");
     public static readonly PageInfo Comments = new(BaseUrl, "/comments", "View event comments");
     public static readonly PageInfo PropertySummary = new(BaseUrl, "/propertysummary", "View event property summary");
-    public static readonly PageInfo ImpactSummary = new(BaseUrl, "/comments", "View event impact summary");
+    public static readonly PageInfo ImpactSummary = new(BaseUrl, "/impactsummary", "View event impact summary");
 }
