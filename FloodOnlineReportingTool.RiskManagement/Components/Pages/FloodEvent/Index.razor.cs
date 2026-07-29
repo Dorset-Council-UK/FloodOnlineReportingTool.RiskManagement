@@ -1,8 +1,12 @@
+using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Text;
+using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -32,15 +36,15 @@ public partial class Index(
         }
     }
 
-    // TODO - the model is not yet populated
+    private EventOverviewViewModel? ViewModel { get; set; } = default!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        //if (Model is not null)
-        //{
+        if (ViewModel is not null)
+        {
             //add to recent work store
-            await settingsService.AddRecentWork($"{Reference}", "Flood Event", "", $"event/{Reference}");
-        //}
+            await settingsService.AddRecentWork($"{Reference}", "Flood Event", string.Empty, $"event/{Reference}");
+        }
         await base.OnAfterRenderAsync(firstRender);
     }
 
@@ -54,64 +58,69 @@ public partial class Index(
 
     private string ExportToJson()
     {
-        //if (ViewModel is not SearchResultFloodReport model)
-        //{
-        //    return string.Empty;
-        //}
-        //var exportDto = model.ToExportDto(ReportStatus);
-        //if (exportDto is null)
-        //{
+        if (ViewModel is not EventOverviewViewModel model)
+        {
+            return string.Empty;
+        }
+        var exportDto = model.ToExportDto();
+        if (exportDto is null || exportDto.Geom is null || exportDto.Geom.IsEmpty)
+        {
             // Invalid record
             return string.Empty;
-        //}
-        //var feature = new
-        //{
-        //    type = "Feature",
-        //    geometry = new
-        //    {
-        //        type = "Point",
-        //        coordinates = new[] { exportDto.X, exportDto.Y }
-        //    },
-        //    properties = new
-        //    {
-        //        exportDto.Reference,
-        //        exportDto.ReportedOn,
-        //        exportDto.RecordStatus,
-        //        exportDto.Easting,
-        //        exportDto.Northing
-        //    }
-        //};
+        }
 
-        //var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
-        //{
-        //    NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-        //});
+        var feature = new
+        {
+            type = "Feature",
+            geometry = new
+            {
+                type = "MultiPolygon",
+                coordinates = exportDto.Geom.Geometries
+                    .OfType<NetTopologySuite.Geometries.Polygon>()
+                    .Select(polygon =>
+                        new[] { polygon.ExteriorRing }
+                            .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
+                                .Select(polygon.GetInteriorRingN))
+                            .Select(ring => ring.Coordinates
+                                .Select(c => new[] { c.X, c.Y })
+                                .ToArray())
+                            .ToArray())
+                    .ToArray()
+            },
+            properties = new
+            {
+                exportDto.Reference,
+                exportDto.Title
+            }
+        };
 
-        //return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+        {
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+        });
+
+        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
     }
 
     private string ExportToCsv()
     {
-        //if (ViewModel is not SearchResultFloodReport model)
-        //{
-        //    return string.Empty;
-        //}
-        //var exportDto = model.ToExportDto(ReportStatus);
-        //if (exportDto is null)
-        //{
+        if (ViewModel is not EventOverviewViewModel model)
+        {
+            return string.Empty;
+        }
+        var exportDto = model.ToExportDto();
+        if (exportDto is null)
+        {
             // Invalid record
             return string.Empty;
-        //}
-        //var csv = new StringBuilder()
-        //    .AppendLine("Reference,ReportedOn,RecordStatus,Easting,Northing")
-        //    .AppendLine(string.Join(',',
-        //        CsvEscape(exportDto.Reference),
-        //        CsvEscape(exportDto.ReportedOn),
-        //        CsvEscape(exportDto.RecordStatus),
-        //        exportDto.Easting.ToString(System.Globalization.CultureInfo.InvariantCulture),
-        //        exportDto.Northing.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+        var csv = new StringBuilder()
+            .AppendLine("Reference,Title")
+            .AppendLine(string.Join(',',
+                CsvEscape(exportDto.Reference),
+                CsvEscape(exportDto.Title)));
 
-        //return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
     }
 
     private static string CsvEscape(string? value)
