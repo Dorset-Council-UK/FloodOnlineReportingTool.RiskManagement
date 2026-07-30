@@ -135,15 +135,15 @@ public partial class Upload(
         try
         {
             //get flood event ID by search reference
-            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, _cts.Token);
-            if (floodEvent is null)
+            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, 4326, _cts.Token);
+            if (!floodEvent.IsSuccess || floodEvent.ResultModel is null)
             {
                 logger.LogWarning("Flood event could not be found by search reference when loading media items");
                 navigationManager.NavigateTo("not-found");
                 return;
             }
 
-            _floodEventId = floodEvent.Id;
+            _floodEventId = floodEvent.ResultModel.Id;
             await LoadExistingMediaItems();
         }
         finally

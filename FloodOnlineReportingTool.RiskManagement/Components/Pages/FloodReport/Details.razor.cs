@@ -96,12 +96,12 @@ public partial class Details(
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? string.Empty;
 
                 AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
-                logger.LogInformation("Flood report detail loaded successfully for reference");
+                logger.LogInformation("Flood report details loaded successfully for reference");
             }
             else
             {
                 _notFound = true;
-                logger.LogWarning("Flood report detail not found for reference");
+                logger.LogWarning("Flood report details not found for reference");
             }
         }
         catch (Exception ex)

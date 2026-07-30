@@ -1,5 +1,4 @@
 ﻿@page "/event/{Reference}"
-@page "/event"
 
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -11,9 +10,13 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader">
     <Authorized>
-        @if(_redirectingToSearchOptions)
+        @if (_redirectingToSearchOptions)
         {
             <GdsSpinner Show ShowMessage Message="Redirecting to search options..." />
+        }
+        else if (ViewModel is null)
+        {
+            <GdsWarning Text="We couldn't load the data for this record." />
         }
         else
         {
@@ -42,7 +45,7 @@
                                 Title
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add title data *@
+                                @ViewModel.SearchTitle
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -50,7 +53,7 @@
                                 Created on
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add created on date *@
+                                @ViewModel.CreatedAt.GdsReadable()
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -58,7 +61,18 @@
                                 Updated on
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add updated on date *@
+                                @if (ViewModel.UpdatedAt == default)
+                                {
+                                    <span>-</span>
+                                }
+                                else if (string.IsNullOrWhiteSpace(ViewModel.UpdatedBy))
+                                {
+                                    <span>@ViewModel.UpdatedAt.GdsReadable()</span>
+                                }
+                                else
+                                {
+                                    <span>@ViewModel.UpdatedAt.GdsReadable() by @ViewModel.UpdatedBy</span>
+                                }
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -66,7 +80,7 @@
                                 Record status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add record status data *@
+                                @ViewModel.RecordStatus
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -74,7 +88,7 @@
                                 Flood status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add flood status *@
+                                @ViewModel.FloodStatus
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -82,7 +96,7 @@
                                 Investigation status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add investigation status *@
+                                @ViewModel.InvestigationStatus
                             </dd>
                         </div>
                     </dl>
@@ -94,7 +108,23 @@
                                 Flood cause
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add flood cause data *@
+                                @if (ViewModel.PrimaryFloodCauses.Any() || ViewModel.SecondaryFloodCauses.Any())
+                                {
+                                    <ul class="govuk-list govuk-list--bullet">
+                                        @foreach (var cause in ViewModel.PrimaryFloodCauses)
+                                        {
+                                            <li>@cause (Primary)</li>
+                                        }
+                                        @foreach (var cause in ViewModel.SecondaryFloodCauses)
+                                        {
+                                            <li>@cause (Secondary)</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -102,7 +132,7 @@
                                 Flood start date
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add flood start date *@
+                                @ViewModel.FloodingStart.GdsReadable()
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -110,7 +140,7 @@
                                 Flood end date
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add flood end date *@
+                                @ViewModel.FloodingEnd.GdsReadable()
                             </dd>
                         </div>
                     </dl>
@@ -122,43 +152,76 @@
                                 Lead organisation
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add lead organisation data *@
+                                <ul class="govuk-list govuk-list--bullet">
+                                    @foreach (var organisation in ViewModel.ResponsibleOrganisations)
+                                    {
+                                        <li>@organisation</li>
+                                    }
+                                </ul>
                             </dd>
                         </div>
                     </dl>
 
-                    <GdsHeading Level="3">Properties overview</GdsHeading>
-                    <GdsTable T="string" FirstCellIsHeader>
-                        <HeaderContent>
-                            <GdsTableTh>Property type</GdsTableTh>
-                            <GdsTableTh>Flooded</GdsTableTh>
-                            <GdsTableTh>Affected</GdsTableTh>
-                            <GdsTableTh>Other</GdsTableTh>
-                        </HeaderContent>
-                        <RowTemplate Context="property">
-                            <GdsTableTd>@* TODO - add stuff *@</GdsTableTd>
-                            <GdsTableTd></GdsTableTd>
-                            <GdsTableTd></GdsTableTd>
-                            <GdsTableTd></GdsTableTd>
-                        </RowTemplate>
-                    </GdsTable>
+                    <GdsHeading Level="3">Total Estimated Impacts</GdsHeading>
+                    <table class="govuk-table">
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row">
+                                <th scope="col" class="govuk-table__header">Property type</th>
+                                <th scope="col" class="govuk-table__header">Flooded</th>
+                                <th scope="col" class="govuk-table__header">Affected</th>
+                                <th scope="col" class="govuk-table__header">Other</th>
+                            </tr>
+                        </thead>
+                        <tbody class="govuk-table__body">
+                            <tr class="govuk-table__row">
+                                <th scope="row" class="govuk-table__header">Residential</th>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedResidentialFlooded</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedResidentialAffected</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedResidentialOther</td>
+                            </tr>
+                            <tr class="govuk-table__row">
+                                <th scope="row" class="govuk-table__header">Commercial</th>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedCommercialFlooded</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedCommercialAffected</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedCommercialOther</td>
+                            </tr>
+                            <tr class="govuk-table__row">
+                                <th scope="row" class="govuk-table__header">Total</th>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedTotalInternallyFlooded</td>
+                                <td class="govuk-table__cell" colspan="2">@ViewModel.EstimatedTotalExternalOnly</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                    <p><a href="">Full details for all affected properties</a></p>
+                    <p><a href="event/propertysummary/@Reference">Full details for all affected properties</a></p>
 
                     <GdsHeading Level="3">Location</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Address
+                                UPRN/USRN
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add address data *@
+                                @if (ViewModel.UPRN is null && ViewModel.USRN is null)
+                                {
+                                    <span>Not provided</span>
+                                }
+                                else
+                                {
+                                    @if (ViewModel.UPRN is not null)
+                                    {
+                                        <div>UPRN: @ViewModel.UPRN</div>
+                                    }
+                                    @if (ViewModel.USRN is not null)
+                                    {
+                                        <div>USRN: @ViewModel.USRN</div>
+                                    }
+                                }
                             </dd>
                         </div>
                     </dl>
-                    @* TODO - add geometry to map *@
                     <div style="height:300px;" class="govuk-!-margin-bottom-2">
-                        <MiniMap></MiniMap>
+                        <MiniMap Geometry=ViewModel.Geom></MiniMap>
                     </div>
 
                 </GdsGridColumn>
