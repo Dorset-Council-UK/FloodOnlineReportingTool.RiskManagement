@@ -12,40 +12,37 @@
             <FluentValidationValidator />
             <GdsErrorSummary />
 
+            <GdsFormGroup>
+                <GdsFieldsetGroup>
+                    <GdsFieldsetLegend>
+                        <GdsFieldsetHeading Level="1">Do you know a reference number or flood event title?</GdsFieldsetHeading>
+                    </GdsFieldsetLegend>
 
-            <GdsFormGroup For="() => _isReferenceKnown" Id="reference_or_search">
-                <InputRadioGroup @bind-Value="_isReferenceKnown">
-                    <GdsFieldsetGroup>
-                        <Heading>
-                            <h1 class="govuk-fieldset__heading">Do you know a reference number or flood event title?</h1>
-                        </Heading>
-                        <Content>
-                            <GdsHint>Select one option.</GdsHint>
-                            <GdsErrorMessage />
-                            <div class="govuk-radios" data-module="govuk-radios">
-                                @foreach (var option in _isReferenceKnownOptions)
-                                {
-                                    var conditionalId = option.Value ? "conditional-known" : null;
-                                    <GdsRadio Option="option" ConditionalId="@conditionalId" />
-                                    if (conditionalId != null)
-                                    {
-                                        <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="@conditionalId">
-                                            <GdsFormGroup For="@(() => Model.ByReference)">
-                                                <GdsLabel Text="Please the search reference or title" />
-                                                <GdsErrorMessage />
-                                                <GdsInputText @bind-Value=Model.ByReference class="govuk-input govuk-input--width-10" />
-                                            </GdsFormGroup>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                        </Content>
-                    </GdsFieldsetGroup>
-                </InputRadioGroup>
+                    <GdsHint>Select one option</GdsHint>
+                    <GdsErrorMessage />
+
+                    <GdsRadios @bind-Value="_isReferenceKnown">
+                        <GdsRadioItem>
+                            <GdsInputRadio Value="@true" ConditionalId="conditional-known" />
+                            <GdsRadioLabel Text="Yes" />
+                        </GdsRadioItem>
+                        <GdsRadioConditional Id="conditional-known">
+                            <GdsFormGroup>
+                                <GdsLabel Text="Please the search reference or title" />
+                                <GdsErrorMessage />
+                                <GdsInputText @bind-Value="Model.ByReference" class="govuk-input govuk-input--width-10" />
+                            </GdsFormGroup>
+                        </GdsRadioConditional>
+
+                        <GdsRadioItem>
+                            <GdsInputRadio Value="@false" />
+                            <GdsRadioLabel Text="No" />
+                        </GdsRadioItem>
+                    </GdsRadios>
+                </GdsFieldsetGroup>
             </GdsFormGroup>
 
-            <p><button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Search</button></p>
-
+            <p><GdsButton IsSubmit PreventDoubleClick Text="Search" /></p>
         </EditForm>
     </Authorized>
 
