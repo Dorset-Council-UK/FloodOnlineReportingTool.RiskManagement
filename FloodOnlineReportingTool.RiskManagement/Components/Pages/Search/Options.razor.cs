@@ -44,7 +44,8 @@ public partial class Options(
     [Parameter]
     public string? SearchReference { get; set; }
 
-    private IReadOnlyCollection<GdsOptionItem<Guid>> _floodSourceOptions = [];
+    private IList<FloodProblem> _primaryFloodProblems = [];
+    private Dictionary<string, bool> _selectedFloodSources = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,7 +58,8 @@ public partial class Options(
             _messageStore = new(EditContext);
         }
 
-        _floodSourceOptions = await CreateFloodSourceOptions();
+        _primaryFloodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
+        UpdateSelectedFloodSources();
     }
 
     protected override async Task OnParametersSetAsync()
@@ -71,7 +73,7 @@ public partial class Options(
             {
                 Model.CopyFrom(savedSearch);
                 searchOptionsState.SetOptions(Model);
-                UpdateSelectedFloodSourceOptions();
+                UpdateSelectedFloodSources();
             }
         }
 
@@ -79,7 +81,7 @@ public partial class Options(
         if (!hasReferenceChanged && searchOptionsState.Options is not null)
         {
             Model.CopyFrom(searchOptionsState.Options);
-            UpdateSelectedFloodSourceOptions();
+            UpdateSelectedFloodSources();
         }
 
         // 3. Page parameters
@@ -125,9 +127,6 @@ public partial class Options(
 
     private async Task OnValidSubmit()
     {
-        // Update flood cause selection from checkboxes
-        Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
-        
         // Persist in state for page navigation
         searchOptionsState.SetOptions(Model);
         
@@ -198,7 +197,6 @@ public partial class Options(
 
     private void GoToMap()
     {
-        Model.ByFloodSource = [.. _floodSourceOptions.Where(o => o.Selected).Select(o => o.Value)];
         searchOptionsState.SetOptions(Model);
 
         if (SearchReference is null)
@@ -210,40 +208,27 @@ public partial class Options(
         navigationManager.NavigateTo($"{SearchPages.OptionsMap.Url}/{SearchReference}");
     }
 
-    private void FloodSourceChanged(GdsOptionItem<Guid> option)
+    private void OnFloodSourceChanged(bool isChecked, Guid floodSourceId)
     {
-        if (option.Selected)
+        // update the model
+        if (isChecked)
         {
-            Model.ByFloodSource.Add(option.Value);
+            if (!Model.ByFloodSource.Contains(floodSourceId))
+            {
+                Model.ByFloodSource.Add(floodSourceId);
+            }
         }
         else
         {
-            Model.ByFloodSource.Remove(option.Value);
+            Model.ByFloodSource.Remove(floodSourceId);
         }
     }
 
-    private void UpdateSelectedFloodSourceOptions()
+    /// <summary>
+    /// Set up the selected flood sources (string, bool dictionary)
+    /// </summary>
+    private void UpdateSelectedFloodSources()
     {
-        var currentlySelected = Model.ByFloodSource.ToHashSet();
-        foreach (var option in _floodSourceOptions)
-        {
-            option.Selected = currentlySelected.Contains(option.Value);
-        }
-    }
-
-    private async Task<IReadOnlyCollection<GdsOptionItem<Guid>>> CreateFloodSourceOptions()
-    {
-        const string idPrefix = "flood-source";
-        var floodProblems = await commonRepository.GetFloodProblems("Primary", _cts.Token);
-        return [.. floodProblems.Select((o, idx) => CreateFloodOption(o, idPrefix))];
-    }
-
-    private GdsOptionItem<Guid> CreateFloodOption(FloodProblem floodProblem, string idPrefix)
-    {
-        var id = $"{idPrefix}-{floodProblem.Id}".AsSpan();
-        var label = floodProblem.TypeName.AsSpan();
-        var selected = Model.ByFloodSource.Contains(floodProblem.Id);
-
-        return new GdsOptionItem<Guid>(id, label, floodProblem.Id, selected);
+        _selectedFloodSources = _primaryFloodProblems.ToDictionary(o => o.Id.ToString("N"), o => Model.ByFloodSource.Contains(o.Id), StringComparer.Ordinal);
     }
 }
