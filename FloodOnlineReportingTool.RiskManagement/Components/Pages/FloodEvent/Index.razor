@@ -153,9 +153,15 @@
                             </dt>
                             <dd class="govuk-summary-list__value">
                                 <ul class="govuk-list govuk-list--bullet">
-                                    @foreach (var organisation in ViewModel.ResponsibleOrganisations)
+                                    @if (ViewModel.ResponsibleOrganisations.Any())
                                     {
-                                        <li>@organisation</li>
+                                        @foreach (var organisation in ViewModel.ResponsibleOrganisations)
+                                        {
+                                            <li>@organisation</li>
+                                        }
+                                    } else
+                                    {
+                                        <li>Unknown</li>
                                     }
                                 </ul>
                             </dd>

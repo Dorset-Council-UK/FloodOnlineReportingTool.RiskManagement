@@ -45,7 +45,7 @@ internal class SavedSearchConfiguration : IEntityTypeConfiguration<SavedSearch>
         // This prevents InvalidCastException when EF Core tries to materialize entities with NULL array values.
         // Explicitly allow NULL values from the database while converting them to empty collections in the entity.
         var converter = new ValueConverter<ICollection<Guid>, Guid[]>(
-            v => v.ToArray(),
+            v => (v ?? Array.Empty<Guid>()).ToArray(),
             v => v == null ? new List<Guid>() : v.ToList());
 
         builder
