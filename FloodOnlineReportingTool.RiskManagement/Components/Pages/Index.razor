@@ -9,18 +9,18 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
-        <div class="govuk-width-container">
-            <div class="govuk-grid-row">
+        <GdsContainer>
+            <GdsGridRow>
                 <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="@_past30DaysCount.ToString()" CardStyle="@_userEventStyle" />
                 <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flooded properties recorded in the last 30 days" HeaderText="@_userPropertyCount.ToString()" CardStyle="@_userPropertyStyle" />
-            </div>
-            <div class="govuk-grid-row">
+            </GdsGridRow>
+            <GdsGridRow>
                 <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="@_userActionCount.ToString()" CardStyle="@_userActionStyle" LinkURL="action" />
                 <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new search" HeaderText="Search for records" CardStyle="info" LinkURL="search" />
-            </div>
+            </GdsGridRow>
 
-            <div class="govuk-grid-row">
-                <div class="govuk-grid-column-one-half">
+            <GdsGridRow>
+                <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                     <h3>Other tasks</h3>
 
                     <ul class="govuk-list">
@@ -31,14 +31,14 @@
                             <a class="govuk-link" href="#">Create a property log / record site visits</a>
                         </li>
                     </ul>
-                </div>
+                </GdsGridColumn>
 
-                <div class="govuk-grid-column-one-half">
+                <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                     <h3>Pick up where you left off</h3>
                     <RecentWorkList />
-                </div>
-            </div>
-        </div>
+                </GdsGridColumn>
+            </GdsGridRow>
+        </GdsContainer>
     </Authorized>
     <NotAuthorized>
             <GdsWarning Text="Please sign in to view your dashboard" />
