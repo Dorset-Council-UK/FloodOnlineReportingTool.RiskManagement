@@ -132,7 +132,7 @@
                                 Flood start date
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @ViewModel.FloodingStart.GdsReadable()
+                                @(ViewModel.FloodingStart == default ? "-" : ViewModel.FloodingStart.GdsReadable())
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">

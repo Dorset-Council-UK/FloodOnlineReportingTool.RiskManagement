@@ -11,7 +11,7 @@ internal static class EventOverviewViewModelExtensions
         {
             Reference = viewModel?.SearchReference ?? string.Empty,
             Title = viewModel?.SearchTitle ?? string.Empty,
-            Geom = viewModel?.Geom ?? new NetTopologySuite.Geometries.MultiPolygon(null)
+            Geom = viewModel?.Geom ?? new NetTopologySuite.Geometries.MultiPolygon(System.Array.Empty<NetTopologySuite.Geometries.Polygon>())
         };
     }
 }
