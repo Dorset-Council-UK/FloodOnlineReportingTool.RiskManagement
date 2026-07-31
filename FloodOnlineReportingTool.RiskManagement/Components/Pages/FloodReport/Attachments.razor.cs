@@ -9,7 +9,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodReport;
 
 public partial class Attachments(
     ILogger<Attachments> logger,
-    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
+    NavigationManager navigationManager)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
     private string Title => ReportPages.Attachments.Title;
@@ -54,5 +54,15 @@ public partial class Attachments(
             new ($"{ReportPages.Details.Url}/{Reference}", $"Flood report {Reference}"),
             new ($"{ReportPages.Attachments.Url}/{Reference}", "Attachments")
         ];
+    }
+
+    private void GoToUpload()
+    {
+        if (Reference is null)
+        {
+            navigationManager.NavigateTo($"{ReportPages.Attachments.Url}/{Reference}");
+        }
+
+        navigationManager.NavigateTo($"{ReportPages.Upload.Url}/{Reference}");
     }
 }

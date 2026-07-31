@@ -30,6 +30,9 @@ public partial class Upload(
     [Parameter]
     public string? Reference { get; set; }
 
+    [Parameter]
+    public bool Overview { get; set; } = false;
+
     private const int MaxNumFiles = 50;
     private const int MaxFileSizeMB = 100;
     private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
@@ -92,8 +95,13 @@ public partial class Upload(
         _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
         _validationMessageStore = new(_editContext);
         _fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
-        previousPage = $"event/details/{Reference}";
-
+        if (Overview)
+        {
+            previousPage = $"event/attachments/{Reference}";
+        } else
+        {
+            previousPage = $"event/details/{Reference}";
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -127,15 +135,15 @@ public partial class Upload(
         try
         {
             //get flood event ID by search reference
-            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, _cts.Token);
-            if (floodEvent is null)
+            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+            if (!floodEvent.IsSuccess || floodEvent.ResultModel is null)
             {
                 logger.LogWarning("Flood event could not be found by search reference when loading media items");
                 navigationManager.NavigateTo("not-found");
                 return;
             }
 
-            _floodEventId = floodEvent.Id;
+            _floodEventId = floodEvent.ResultModel.Id;
             await LoadExistingMediaItems();
         }
         finally

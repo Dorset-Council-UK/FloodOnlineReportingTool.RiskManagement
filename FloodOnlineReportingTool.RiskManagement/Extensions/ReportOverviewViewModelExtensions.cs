@@ -1,11 +1,11 @@
-﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
-using FloodOnlineReportingTool.RiskManagement.Models.Export;
+﻿using FloodOnlineReportingTool.RiskManagement.Models.Export;
+using FloodOnlineReportingTool.RiskManagement.Models.Report;
 
 namespace FloodOnlineReportingTool.RiskManagement.Extensions;
-internal static class SearchResultsViewModelExtensions
+internal static class ReportOverviewViewModelExtensions
 {
-    public static FloodReportExportDto? ToExportDto(this SearchResultFloodReport viewModel, string reportStatus)
-    {
+    public static FloodReportExportDto? ToExportDto(this ReportOverviewViewModel viewModel, string reportStatus)
+    {    
         var firstSource = viewModel?.SourceRecords?.FirstOrDefault();
         if (firstSource is null)
         {

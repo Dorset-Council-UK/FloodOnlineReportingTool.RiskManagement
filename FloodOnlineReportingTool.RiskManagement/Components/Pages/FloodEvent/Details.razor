@@ -1,4 +1,5 @@
 ﻿@page "/event/details/{SearchReference}"
+@page "/event/details/{SearchReference}/{Overview:bool}"
 @page "/event/details"
 @using FloodOnlineReportingTool.Contracts.Shared
 @using FloodOnlineReportingTool.RiskManagement.Authorization
@@ -11,9 +12,12 @@
 
 <GdsBackLink Href="@($"{SearchPages.Results.Url}/{SearchReference}")" />
 
-<p class="govuk-body-l">
-    This form will upgrade a search to a flood event. 
-</p>
+@if (!Overview)
+{
+    <p class="govuk-body-l">
+        This form will upgrade a search to a flood event.
+    </p>
+}
 
 <AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">
     <Authorized>

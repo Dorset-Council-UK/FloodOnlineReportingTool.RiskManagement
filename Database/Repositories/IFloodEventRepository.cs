@@ -40,5 +40,5 @@ public interface IFloodEventRepository
 
     Task<IList<EventStatus>> GetEventStatuses(CancellationToken cancellationToken);
 
-    Task<FloodEvent?> GetBySearchReference(string searchReference, CancellationToken cancellationToken);
+    Task<GetResult<FloodEvent>> GetBySearchReference(string searchReference, int targetSrid, CancellationToken cancellationToken);
 }
