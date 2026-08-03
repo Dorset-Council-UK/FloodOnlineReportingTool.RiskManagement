@@ -6,7 +6,6 @@ using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.JSInterop;
 using System.Text;
 using System.Text.Json;
@@ -149,8 +148,15 @@ public partial class Index(
         }
     }
 
+    private IJSObjectReference? _module;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender)
+        {
+            _module = await js.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/FloodEvent/Index.razor.js");
+        }
+
         if (ViewModel is not null)
         {
             //add to recent work store
@@ -167,71 +173,120 @@ public partial class Index(
     private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
     private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
 
-    private string ExportToJson()
+    private string? _exportErrorMessage;
+
+    private async Task ExportToJsonAsync()
     {
+        _exportErrorMessage = null;
+
         if (ViewModel is not EventOverviewViewModel model)
         {
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the view model is not available.";
+            logger.LogWarning(_exportErrorMessage);
+            return;
         }
+
         var exportDto = model.ToExportDto();
         if (exportDto is null || exportDto.Geom is null || exportDto.Geom.IsEmpty)
         {
-            // Invalid record
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the geometry data is invalid or empty.";
+            logger.LogWarning(_exportErrorMessage);
+            return;
         }
 
-        var feature = new
+        try
         {
-            type = "Feature",
-            geometry = new
+            var feature = new
             {
-                type = "MultiPolygon",
-                coordinates = exportDto.Geom.Geometries
-                    .OfType<NetTopologySuite.Geometries.Polygon>()
-                    .Select(polygon =>
-                        new[] { polygon.ExteriorRing }
-                            .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
-                                .Select(polygon.GetInteriorRingN))
-                            .Select(ring => ring.Coordinates
-                                .Select(c => new[] { c.X, c.Y })
+                type = "Feature",
+                geometry = new
+                {
+                    type = "MultiPolygon",
+                    coordinates = exportDto.Geom.Geometries
+                        .OfType<NetTopologySuite.Geometries.Polygon>()
+                        .Select(polygon =>
+                            new[] { polygon.ExteriorRing }
+                                .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
+                                    .Select(polygon.GetInteriorRingN))
+                                .Select(ring => ring.Coordinates
+                                    .Select(c => new[] { c.X, c.Y })
+                                    .ToArray())
                                 .ToArray())
-                            .ToArray())
-                    .ToArray()
-            },
-            properties = new
+                        .ToArray()
+                },
+                properties = new
+                {
+                    exportDto.Reference,
+                    exportDto.Title
+                }
+            };
+
+            var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
             {
-                exportDto.Reference,
-                exportDto.Title
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+            });
+
+            var dataUrl = $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("downloadFile", dataUrl, JsonDownloadFileName);
             }
-        };
-
-        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+            else
+            {
+                _exportErrorMessage = "The export module failed to load. Please refresh the page and try again.";
+                logger.LogError(_exportErrorMessage);
+            }
+        }
+        catch (Exception ex)
         {
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-        });
-
-        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+        }
     }
 
-    private string ExportToCsv()
+    private async Task ExportToCsvAsync()
     {
+        _exportErrorMessage = null;
+
         if (ViewModel is not EventOverviewViewModel model)
         {
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the view model is not available.";
+            logger.LogWarning(_exportErrorMessage);
+            return;
         }
+
         var exportDto = model.ToExportDto();
         if (exportDto is null)
         {
-            // Invalid record
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the export data is invalid.";
+            logger.LogWarning(_exportErrorMessage);
+            return;
         }
-        var csv = new StringBuilder()
-            .AppendLine("Reference,Title")
-            .AppendLine(string.Join(',',
-                CsvEscape(exportDto.Reference),
-                CsvEscape(exportDto.Title)));
 
-        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+        try
+        {
+            var csv = new StringBuilder()
+                .AppendLine("Reference,Title")
+                .AppendLine(string.Join(',',
+                    CsvEscape(exportDto.Reference),
+                    CsvEscape(exportDto.Title)));
+
+            var dataUrl = $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("downloadFile", dataUrl, CsvDownloadFileName);
+            }
+            else
+            {
+                _exportErrorMessage = "The export module failed to load. Please refresh the page and try again.";
+                logger.LogError(_exportErrorMessage);
+            }
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+        }
     }
 
     private static string CsvEscape(string? value)

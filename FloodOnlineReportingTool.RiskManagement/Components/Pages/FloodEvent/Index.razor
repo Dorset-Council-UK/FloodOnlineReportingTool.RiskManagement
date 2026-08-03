@@ -243,9 +243,13 @@
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
+                    @if (!string.IsNullOrEmpty(_exportErrorMessage))
+                    {
+                        <GdsWarning Text="@_exportErrorMessage" />
+                    }
                     <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
-                    <p><a href="@ExportToCsv()" download="@CsvDownloadFileName">CSV</a></p>
-                    <p><a href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</a></p>
+                    <p><a href="#" @onclick="ExportToCsvAsync" @onclick:preventDefault="true">CSV</a></p>
+                    <p><a href="#" @onclick="ExportToJsonAsync" @onclick:preventDefault="true">GeoJSON</a></p>
 
                 </GdsGridColumn>
             </GdsGridRow>
