@@ -154,7 +154,15 @@ public partial class Index(
     {
         if (firstRender)
         {
-            _module = await js.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/FloodEvent/Index.razor.js");
+            try
+            {
+                _module = await js.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/FloodEvent/Index.razor.js");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to load export JS module.");
+                _module = null;
+            }
         }
 
         if (ViewModel is not null)
