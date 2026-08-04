@@ -41,6 +41,12 @@ public partial class Index(
 
     private bool _redirectingToSearchOptions;
 
+    private bool _isExportingJson;
+    private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
+
+    private bool _isExportingCsv;
+    private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
+
     protected override async Task OnInitializedAsync()
     {
         Breadcrumbs = CreateBreadcrumbs();
@@ -148,22 +154,8 @@ public partial class Index(
         }
     }
 
-    private IJSObjectReference? _module;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                _module = await js.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/FloodEvent/Index.razor.js");
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Failed to load export JS module.");
-                _module = null;
-            }
-        }
+    { 
 
         if (ViewModel is not null)
         {
@@ -178,20 +170,38 @@ public partial class Index(
         await js.InvokeVoidAsync("print");
     }
 
-    private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
-    private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
-
     private string? _exportErrorMessage;
 
-    private async Task ExportToJsonAsync()
+    private async Task DownloadGeoJson()
+    {
+        if (_isExportingJson) {  return; }
+        _isExportingJson = true;
+
+        try
+        {
+            var fileStream = await ExportToJsonAsync();
+            if (fileStream is null)  {  return; }
+
+            using (fileStream)
+            using (var streamReference = new DotNetStreamReference(fileStream))
+            {
+                await js.InvokeVoidAsync("downloadFileFromStream", JsonDownloadFileName, streamReference);
+            }
+        }
+        finally
+        {
+            _isExportingJson = false;
+        }
+    }
+
+    private Task<MemoryStream?> ExportToJsonAsync()
     {
         _exportErrorMessage = null;
-
         if (ViewModel is not EventOverviewViewModel model)
         {
             _exportErrorMessage = "Unable to export: the view model is not available.";
             logger.LogWarning(_exportErrorMessage);
-            return;
+            return Task.FromResult<MemoryStream?>(null);
         }
 
         var exportDto = model.ToExportDto();
@@ -199,7 +209,7 @@ public partial class Index(
         {
             _exportErrorMessage = "Unable to export: the geometry data is invalid or empty.";
             logger.LogWarning(_exportErrorMessage);
-            return;
+            return Task.FromResult<MemoryStream?>(null);
         }
 
         try
@@ -234,33 +244,49 @@ public partial class Index(
                 NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
             });
 
-            var dataUrl = $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
-            if (_module is not null)
-            {
-                await _module.InvokeVoidAsync("downloadFile", dataUrl, JsonDownloadFileName);
-            }
-            else
-            {
-                _exportErrorMessage = "The export module failed to load. Please refresh the page and try again.";
-                logger.LogError(_exportErrorMessage);
-            }
+            var bytes = Encoding.UTF8.GetBytes(json);
+            var stream = new MemoryStream(bytes);
+
+            return Task.FromResult<MemoryStream?>(stream);
         }
         catch (Exception ex)
         {
             _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
             logger.LogError(ex, _exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
     }
 
-    private async Task ExportToCsvAsync()
+    private async Task DownloadCsv()
+    {
+        if (_isExportingCsv) { return; }
+        _isExportingCsv = true;
+
+        try
+        {
+            var fileStream = await ExportToCsvAsync();
+            if (fileStream is null) { return; }
+
+            using (fileStream)
+            using (var streamReference = new DotNetStreamReference(fileStream))
+            {
+                await js.InvokeVoidAsync("downloadFileFromStream", CsvDownloadFileName, streamReference);
+            }
+        }
+        finally
+        {
+            _isExportingCsv = false;
+        }
+    }
+
+    private Task<MemoryStream?> ExportToCsvAsync()
     {
         _exportErrorMessage = null;
-
         if (ViewModel is not EventOverviewViewModel model)
         {
             _exportErrorMessage = "Unable to export: the view model is not available.";
             logger.LogWarning(_exportErrorMessage);
-            return;
+            return Task.FromResult<MemoryStream?>(null);
         }
 
         var exportDto = model.ToExportDto();
@@ -268,7 +294,7 @@ public partial class Index(
         {
             _exportErrorMessage = "Unable to export: the export data is invalid.";
             logger.LogWarning(_exportErrorMessage);
-            return;
+            return Task.FromResult<MemoryStream?>(null);
         }
 
         try
@@ -279,21 +305,16 @@ public partial class Index(
                     CsvEscape(exportDto.Reference),
                     CsvEscape(exportDto.Title)));
 
-            var dataUrl = $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
-            if (_module is not null)
-            {
-                await _module.InvokeVoidAsync("downloadFile", dataUrl, CsvDownloadFileName);
-            }
-            else
-            {
-                _exportErrorMessage = "The export module failed to load. Please refresh the page and try again.";
-                logger.LogError(_exportErrorMessage);
-            }
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            var stream = new MemoryStream(bytes);
+
+            return Task.FromResult<MemoryStream?>(stream);
         }
         catch (Exception ex)
         {
             _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
             logger.LogError(ex, _exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
     }
 
