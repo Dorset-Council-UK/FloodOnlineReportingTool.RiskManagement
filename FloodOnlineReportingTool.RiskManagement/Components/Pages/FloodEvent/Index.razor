@@ -247,9 +247,9 @@
                     {
                         <GdsWarning Text="@_exportErrorMessage" />
                     }
-                    <p><GdsButton IsSubmit="false" Text="Print/Save page" AdditionalCssClasses="govuk-link govuk-!-margin-0" @onclick="PrintPageAsync" /></p>
-                    <p><GdsButton IsSubmit="false" Text="CSV" AdditionalCssClasses="govuk-link govuk-!-margin-0" @onclick="ExportToCsvAsync" /></p>
-                    <p><GdsButton IsSubmit="false" Text="GeoJSON" AdditionalCssClasses="govuk-link govuk-!-margin-0" @onclick="ExportToJsonAsync" /></p>
+                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
+                    <p><a href="@_selfUrl" @onclick="ExportToCsvAsync" @onclick:preventDefault="true"><span class="govuk-visually-hidden">Download </span>CSV</a></p>
+                    <p><a href="@_selfUrl" @onclick="ExportToJsonAsync" @onclick:preventDefault="true"><span class="govuk-visually-hidden">Download </span>GeoJSON</a></p>
 
                 </GdsGridColumn>
             </GdsGridRow>
