@@ -5,7 +5,7 @@
 
 <PageTitle>Flood Reporting Admin</PageTitle>
 
-<h1 class="govuk-heading-l">Flood Reporting Admin</h1>
+<GdsHeading Level="1" Size="GdsSize.Large">Flood Reporting Admin</GdsHeading>
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
@@ -21,20 +21,20 @@
 
             <GdsGridRow>
                 <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                    <h3>Other tasks</h3>
+                    <GdsHeading Level="3">Other tasks</GdsHeading>
 
                     <ul class="govuk-list">
                         <li>
-                            <a class="govuk-link" href="flood-event">Create a new flood event</a>
+                            <GdsLink Href="flood-event">Create a new flood event</GdsLink>
                         </li>
                         <li>
-                            <a class="govuk-link" href="#">Create a property log / record site visits</a>
+                            <GdsLink Href="#" PreventDefault>Create a property log / record site visits</GdsLink>
                         </li>
                     </ul>
                 </GdsGridColumn>
 
                 <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                    <h3>Pick up where you left off</h3>
+                    <GdsHeading Level="3">Pick up where you left off</GdsHeading>
                     <RecentWorkList />
                 </GdsGridColumn>
             </GdsGridRow>
