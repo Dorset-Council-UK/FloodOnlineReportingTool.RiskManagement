@@ -2,12 +2,12 @@ using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Models.Report;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using System.Security.Claims;
@@ -31,6 +31,9 @@ public partial class Details(
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
+    [Parameter]
+    public required string Reference { get; set; }
+
     private bool _gettingToken;
     private bool _isLoading = true;
     private bool _notFound = false;
@@ -44,11 +47,8 @@ public partial class Details(
     private EditContext? _actionsEditContext;
     private ValidationMessageStore? _actionsMessageStore;
 
-    [Parameter]
-    public required string Reference { get; set; }
-
     private readonly CancellationTokenSource _cts = new();
-    private SearchResultFloodReport? ViewModel { get; set; } = default!;
+    private ReportOverviewViewModel? ViewModel { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,16 +86,22 @@ public partial class Details(
             if (reportResult.IsSuccess && reportResult.ResultModel is not null)
             {
                 var reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
-                ViewModel = reportResult.ResultModel;
+                ViewModel = new ReportOverviewViewModel
+                {
+                    Id = reportResult.ResultModel.Id,
+                    Reference = reportResult.ResultModel.Reference,
+                    RecordStatusId = reportResult.ResultModel.RecordStatusId,
+                    SourceRecords = reportResult.ResultModel.SourceRecords
+                };
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? string.Empty;
 
                 AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
-                logger.LogInformation("Flood report detail loaded successfully for reference");
+                logger.LogInformation("Flood report details loaded successfully for reference");
             }
             else
             {
                 _notFound = true;
-                logger.LogWarning("Flood report detail not found for reference");
+                logger.LogWarning("Flood report details not found for reference");
             }
         }
         catch (Exception ex)
@@ -174,7 +180,7 @@ public partial class Details(
 
     private string ExportToJson()
     {
-        if (ViewModel is not SearchResultFloodReport model)
+        if (ViewModel is not ReportOverviewViewModel model)
         {
             return string.Empty;
         }
@@ -212,7 +218,7 @@ public partial class Details(
 
     private string ExportToCsv()
     {
-        if (ViewModel is not SearchResultFloodReport model)
+        if (ViewModel is not ReportOverviewViewModel model)
         {
             return string.Empty;
         }

@@ -1,4 +1,5 @@
-﻿using FloodOnlineReportingTool.Contracts;
+﻿using System.Data;
+using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.DbContexts;
 using FloodOnlineReportingTool.Database.Models.FloodEvents;
@@ -207,13 +208,79 @@ public class FloodEventRepository(
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<FloodEvent?> GetBySearchReference(string searchReference, CancellationToken cancellationToken)
+    public async Task<GetResult<FloodEvent>> GetBySearchReference(
+        string searchReference,
+        int targetSrid,
+        CancellationToken cancellationToken
+        )
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await context.FloodEvents
+
+        var floodEvent = await context.FloodEvents
             .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Include(e => e.SavedSearch)
             .Where(e => e.SavedSearch.Reference == searchReference)
             .FirstOrDefaultAsync(cancellationToken);
 
+        if (floodEvent is null)
+        {
+            return GetResult<FloodEvent>.Failure([$"No flood event found with search reference '{searchReference}'."]);
+        }
+
+        // Transform geometry if a different SRID is requested
+        if (targetSrid != 27700 && floodEvent.SavedSearch.Geom is not null)
+        {
+            var transformedGeom = await GetTransformedGeometry(
+                floodEvent.SavedSearchId, 
+                targetSrid, 
+                cancellationToken);
+
+            floodEvent = floodEvent with
+            {
+                SavedSearch = floodEvent.SavedSearch with
+                {
+                    Geom = transformedGeom
+                }
+            };
+        }
+
+        return GetResult<FloodEvent>.Success(floodEvent);
+    }
+
+    private async Task<NetTopologySuite.Geometries.MultiPolygon?> GetTransformedGeometry(
+        Guid savedSearchId,
+        int targetSrid,
+        CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var connection = context.Database.GetDbConnection();
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = """
+        SELECT ST_Multi(ST_Transform("Geom", @targetSrid))
+        FROM "SavedSearches"
+        WHERE "Id" = @savedSearchId
+        """;
+
+        var savedSearchIdParameter = command.CreateParameter();
+        savedSearchIdParameter.ParameterName = "savedSearchId";
+        savedSearchIdParameter.Value = savedSearchId;
+        command.Parameters.Add(savedSearchIdParameter);
+
+        var targetSridParameter = command.CreateParameter();
+        targetSridParameter.ParameterName = "targetSrid";
+        targetSridParameter.Value = targetSrid;
+        command.Parameters.Add(targetSridParameter);
+
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync(cancellationToken);
+        }
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        return result as NetTopologySuite.Geometries.MultiPolygon;
     }
 }

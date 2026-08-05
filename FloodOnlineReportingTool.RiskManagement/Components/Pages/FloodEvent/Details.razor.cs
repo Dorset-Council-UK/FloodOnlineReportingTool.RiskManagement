@@ -4,7 +4,6 @@ using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.RiskManagement.Services.SavedStates;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +27,8 @@ public partial class Details(
 {
     [Parameter]
     public string? SearchReference { get; set; }
+    [Parameter]
+    public bool Overview { get; set; } = false;
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
