@@ -11,7 +11,7 @@
         <GdsWarning Text="You do not have permission to view actions. Contact your administrator to request permission." />
     </NotAuthorized>
     <Authorized>
-        <h1 class="govuk-heading-l">@Title</h1>
+        <GdsHeading Level="1" Size="GdsSize.Large">@Title</GdsHeading>
 
         <p>Upload some photos or videos that show the flooding or damage caused. </p>
         <p>Please ensure there are no identifiable people or personal data in your uploaded files.</p>
@@ -23,7 +23,7 @@
 
             <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-            <GdsFormGroup For="() => Model.UploadedFiles">
+            <GdsFormGroup>
                 <GdsLabel Text="Add photos, videos or supporting documents" />
                 <GdsHint>Accepted file types: JPG, PNG, GIF, MP4, WEBM, OGG, PDF, DOCX, CSV, XLSX</GdsHint>
                 <GdsErrorMessage />
@@ -36,7 +36,7 @@
                 }
                 @if (RemainingSlots > 0)
                 {
-                    <GdsFileInput IsBusy="@_isLoading" OnFilesSubmitted="OnFilesSubmitted" />
+                    <GdsFileInput Id="@nameof(Model.UploadedFiles)" IsBusy="@_isLoading" OnFilesSubmitted="OnFilesSubmitted" />
                 }
                 else
                 {
@@ -96,7 +96,7 @@
                                 <td class="govuk-table__cell">
                                     @if (_renamingFile == file)
                                     {
-                                        <GdsFormGroup For="() => _renameText" AdditionalCssClasses="@($"govuk-!-margin-bottom-2{(_renameError is not null ? " govuk-form-group--error" : "")}")">
+                                        <GdsFormGroup AdditionalCssClasses="@($"govuk-!-margin-bottom-2{(_renameError is not null ? " govuk-form-group--error" : "")}")">
                                             <GdsLabel Text="File name" />
                                             @if (_renameError is not null)
                                             {
