@@ -5,7 +5,7 @@
 
 <PageTitle>Event Impact Estimates</PageTitle>
 
-<h1 class="govuk-heading-l">Event Impact Estimates</h1>
+<GdsHeading Level="1" Size="GdsSize.Large">Event Impact Estimates</GdsHeading>
 
 <p class="govuk-body-l">
     Add the estimated impacts for this flood event.
@@ -27,66 +27,76 @@
                     </ul>
                 </p>
             </GdsInsetText>
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Residential</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedResidentialFloodedString">
+
+            <GdsFormGroup>
+                <GdsFieldsetGroup>
+                    <GdsFieldsetLegend Size="GdsSize.Medium">
+                        <GdsFieldsetHeading Level="2">Residential</GdsFieldsetHeading>
+                    </GdsFieldsetLegend>
+
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Internally flooded:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialFloodedString @bind-NumberValue=Model.EstimatedResidentialFlooded class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedResidentialAffectedString">
+                        </GdsGridColumn>
+
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Affected:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialAffectedString @bind-NumberValue=Model.EstimatedResidentialAffected class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedResidentialOtherString">
+                        </GdsGridColumn>
+
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Other:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedResidentialOtherString @bind-NumberValue=Model.EstimatedResidentialOther class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Commercial</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedCommercialFloodedString">
+                        </GdsGridColumn>
+
+                    </GdsGridRow>
+                </GdsFieldsetGroup>
+            </GdsFormGroup>
+
+            <GdsFormGroup>
+                <GdsFieldsetGroup>
+                    <GdsFieldsetLegend Size="GdsSize.Medium">
+                        <GdsFieldsetHeading Level="2">Commercial</GdsFieldsetHeading>
+                    </GdsFieldsetLegend>
+
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Internally flooded:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialFloodedString @bind-NumberValue=Model.EstimatedCommercialFlooded class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedCommercialAffectedString">
+                        </GdsGridColumn>
+
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Affected:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialAffectedString @bind-NumberValue=Model.EstimatedCommercialAffected class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-third">
-                            <GdsFormGroup For="() => Model.EstimatedCommercialOtherString">
+                        </GdsGridColumn>
+
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Other:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedCommercialOtherString @bind-NumberValue=Model.EstimatedCommercialOther class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
+                        </GdsGridColumn>
+
+                    </GdsGridRow>
+                </GdsFieldsetGroup>
+            </GdsFormGroup>
 
             <GdsInsetText>
                 <p>
@@ -97,55 +107,60 @@
                 </p>
             </GdsInsetText>
 
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <h2 class="govuk-fieldset__heading">Utility Impacts</h2>
-                    </legend>
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoElectricString">
+            <GdsFormGroup>
+                <GdsFieldsetGroup>
+                    <GdsFieldsetLegend Size="GdsSize.Medium">
+                        <GdsFieldsetHeading Level="2">Utility Impacts</GdsFieldsetHeading>
+                    </GdsFieldsetLegend>
+
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Switched off electrics:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoElectricString @bind-NumberValue=Model.EstimatedNoElectric class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoGasString">
+                        </GdsGridColumn>
+
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Switched off gas:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoGasString @bind-NumberValue=Model.EstimatedNoGas class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
+                        </GdsGridColumn>
 
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoFoulString">
+                    </GdsGridRow>
+                </GdsFieldsetGroup>
+            </GdsFormGroup>
+
+            <GdsFormGroup>
+                <GdsFieldsetGroup>
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Foul sewer unavailable:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoFoulString @bind-NumberValue=Model.EstimatedNoFoul class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                        <div class="govuk-grid-column-one-half">
-                            <GdsFormGroup For="() => Model.EstimatedNoWaterSupplyString">
+                        </GdsGridColumn>
+
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                            <GdsFormGroup>
                                 <GdsLabel Text="Water supply unavailable:" />
                                 <GdsInputNumber @bind-Value=Model.EstimatedNoWaterSupplyString @bind-NumberValue=Model.EstimatedNoWaterSupply class="govuk-input govuk-input-width--10" />
                                 <GdsErrorMessage />
                             </GdsFormGroup>
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
+                        </GdsGridColumn>
 
-            <div class="govuk-form-group">
-                <fieldset class="govuk-fieldset">
-                    <div class="govuk-grid-row">
-                        <div class="govuk-grid-column-full">
+                    </GdsGridRow>
+                </GdsFieldsetGroup>
+            </GdsFormGroup>
+
+            <GdsFormGroup>
+                <GdsFieldsetGroup>
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.Full">
                             @if (!_isLoading)
                             {
                                 <div class="govuk-button-group">
@@ -154,10 +169,10 @@
                                 </div>
                                 
                             }
-                        </div>
-                    </div>
-                </fieldset>
-            </div>
+                        </GdsGridColumn>
+                    </GdsGridRow>
+                </GdsFieldsetGroup>
+            </GdsFormGroup>
         </EditForm>
     </Authorized>
     <NotAuthorized>
