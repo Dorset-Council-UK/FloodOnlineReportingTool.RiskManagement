@@ -335,14 +335,20 @@ public partial class Upload(
             }
 
             //delete from storage
-            if (!await blobStorageService.DeleteFileFromBlobByURLAsync(file.Url))
+            try
             {
-                logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
+                if (!await blobStorageService.DeleteFileFromBlobByURLAsync(file.Url))
+                {
+                    logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
+                }
+            } catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred deleting media item with URL {url} from blob storage", file.Url);
             }
-
-            //remove from list
-            Model.UploadedFiles.Remove(file);
-
+            finally { 
+                //remove from list
+                Model.UploadedFiles.Remove(file);
+            }
             CheckValidationStateOfFileUploads();
             StateHasChanged();
         }
