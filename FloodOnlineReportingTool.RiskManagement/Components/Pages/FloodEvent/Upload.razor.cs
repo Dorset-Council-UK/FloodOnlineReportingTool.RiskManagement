@@ -331,10 +331,7 @@ public partial class Upload(
                     _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
                     _editContext.NotifyValidationStateChanged();
                     return;
-                }
-
-                //remove from list
-                Model.UploadedFiles.Remove(file);
+                } 
             }
 
             //delete from storage
@@ -342,6 +339,9 @@ public partial class Upload(
             {
                 logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
             }
+
+            //remove from list
+            Model.UploadedFiles.Remove(file);
 
             CheckValidationStateOfFileUploads();
             StateHasChanged();
