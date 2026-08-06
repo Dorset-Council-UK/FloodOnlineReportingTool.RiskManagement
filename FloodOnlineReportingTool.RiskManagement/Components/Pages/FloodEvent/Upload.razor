@@ -110,14 +110,17 @@
                                         </GdsFormGroup>
 
                                         <div class="govuk-button-group">
-                                            <button type="button" class="govuk-button govuk-button--primary" @onclick="() => SaveRename(file)">Save</button>
-                                            <button type="button" class="govuk-button govuk-button--secondary" @onclick="CancelRename">Cancel</button>
+                                            <GdsButton IsSubmit="false" OnClick="() => SaveRename(file)" Text="Save" />
+                                            <GdsButton IsSubmit="false" OnClick="CancelRename" Text="Cancel" />
                                         </div>
                                     }
                                     else
                                     {
                                         @file.Name
-                                        <br /><button type="button" class="govuk-link govuk-link--no-visited-state" @onclick="() => StartRename(file)" @onclick:preventDefault>Rename<span class="govuk-visually-hidden"> file '@file.Name'</span></button>
+                                        <br />
+                                        <GdsLink Href="" NoVisitedState OnClick="() => StartRename(file)" PreventDefault>
+                                            Rename<span class="govuk-visually-hidden"> file '@file.Name'</span>
+                                        </GdsLink>
                                     }
                                 </td>
                                 <td class="govuk-table__cell">
@@ -126,7 +129,7 @@
                                     </strong>
                                 </td>
                                 <td class="govuk-table__cell">
-                                    <button type="button" class="govuk-button govuk-button--warning" @onclick="() => DeleteUploadedFile(file)">Delete file</button>
+                                    <GdsButton IsSubmit="false" OnClick="() => DeleteUploadedFile(file)" AdditionalCssClasses="govuk-button--warning" Text="Delete file" />
                                     <a href="@(string.IsNullOrWhiteSpace(blobStorageOptions.Value.ReadSASToken) ? file.Url : $"{file.Url}?{blobStorageOptions.Value.ReadSASToken.TrimStart('?')}")" target="_blank" rel="noreferrer noopener" class="govuk-button govuk-button--secondary">View<span class="govuk-visually-hidden"> (opens in new tab)</span></a>
                                 </td>
                             </tr>
@@ -147,7 +150,7 @@
                                     </strong>
                                 </td>
                                 <td class="govuk-table__cell">
-                                    <button type="button" class="govuk-button govuk-button--warning" @onclick="() => DeleteRejectedFile(rejectedFile)">Delete file</button>
+                                    <GdsButton IsSubmit="false" OnClick="() => DeleteRejectedFile(rejectedFile)" AdditionalCssClasses="govuk-button--warning" Text="Delete file" />
                                 </td>
                             </tr>
                         }
@@ -158,7 +161,7 @@
             @if (!_isLoading)
             {
                 <div class="govuk-button-group">
-                    <button type="submit" data-prevent-double-click="true" class="govuk-button" data-module="govuk-button">Save changes</button>
+                    <GdsButton IsSubmit="true" PreventDoubleClick Text="Save changes" />
                     <a draggable="false" data-prevent-double-click="true" class="govuk-link govuk-link--no-visited-state" href="@previousPage">Cancel</a>
                 </div>
             }
