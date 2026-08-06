@@ -6,7 +6,6 @@ using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.JSInterop;
 using System.Text;
 using System.Text.Json;
@@ -41,6 +40,12 @@ public partial class Index(
     private EventOverviewViewModel? ViewModel { get; set; } = default!;
 
     private bool _redirectingToSearchOptions;
+
+    private bool _isExportingJson;
+    private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
+
+    private bool _isExportingCsv;
+    private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,7 +155,8 @@ public partial class Index(
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
+    { 
+
         if (ViewModel is not null)
         {
             //add to recent work store
@@ -164,74 +170,152 @@ public partial class Index(
         await js.InvokeVoidAsync("print");
     }
 
-    private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
-    private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
+    private string? _exportErrorMessage;
 
-    private string ExportToJson()
+    private async Task DownloadGeoJson()
     {
+        if (_isExportingJson) {  return; }
+        _isExportingJson = true;
+
+        try
+        {
+            var fileStream = await ExportToJsonAsync();
+            if (fileStream is null)  {  return; }
+
+            using (fileStream)
+            using (var streamReference = new DotNetStreamReference(fileStream))
+            {
+                await js.InvokeVoidAsync("downloadFileFromStream", JsonDownloadFileName, streamReference);
+            }
+        }
+        finally
+        {
+            _isExportingJson = false;
+        }
+    }
+
+    private Task<MemoryStream?> ExportToJsonAsync()
+    {
+        _exportErrorMessage = null;
         if (ViewModel is not EventOverviewViewModel model)
         {
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the view model is not available.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
+
         var exportDto = model.ToExportDto();
         if (exportDto is null || exportDto.Geom is null || exportDto.Geom.IsEmpty)
         {
-            // Invalid record
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the geometry data is invalid or empty.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
 
-        var feature = new
+        try
         {
-            type = "Feature",
-            geometry = new
+            var feature = new
             {
-                type = "MultiPolygon",
-                coordinates = exportDto.Geom.Geometries
-                    .OfType<NetTopologySuite.Geometries.Polygon>()
-                    .Select(polygon =>
-                        new[] { polygon.ExteriorRing }
-                            .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
-                                .Select(polygon.GetInteriorRingN))
-                            .Select(ring => ring.Coordinates
-                                .Select(c => new[] { c.X, c.Y })
+                type = "Feature",
+                geometry = new
+                {
+                    type = "MultiPolygon",
+                    coordinates = exportDto.Geom.Geometries
+                        .OfType<NetTopologySuite.Geometries.Polygon>()
+                        .Select(polygon =>
+                            new[] { polygon.ExteriorRing }
+                                .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
+                                    .Select(polygon.GetInteriorRingN))
+                                .Select(ring => ring.Coordinates
+                                    .Select(c => new[] { c.X, c.Y })
+                                    .ToArray())
                                 .ToArray())
-                            .ToArray())
-                    .ToArray()
-            },
-            properties = new
+                        .ToArray()
+                },
+                properties = new
+                {
+                    exportDto.Reference,
+                    exportDto.Title
+                }
+            };
+
+            var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
             {
-                exportDto.Reference,
-                exportDto.Title
-            }
-        };
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+            });
 
-        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+            var bytes = Encoding.UTF8.GetBytes(json);
+            var stream = new MemoryStream(bytes);
+
+            return Task.FromResult<MemoryStream?>(stream);
+        }
+        catch (Exception ex)
         {
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-        });
-
-        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
+        }
     }
 
-    private string ExportToCsv()
+    private async Task DownloadCsv()
     {
+        if (_isExportingCsv) { return; }
+        _isExportingCsv = true;
+
+        try
+        {
+            var fileStream = await ExportToCsvAsync();
+            if (fileStream is null) { return; }
+
+            using (fileStream)
+            using (var streamReference = new DotNetStreamReference(fileStream))
+            {
+                await js.InvokeVoidAsync("downloadFileFromStream", CsvDownloadFileName, streamReference);
+            }
+        }
+        finally
+        {
+            _isExportingCsv = false;
+        }
+    }
+
+    private Task<MemoryStream?> ExportToCsvAsync()
+    {
+        _exportErrorMessage = null;
         if (ViewModel is not EventOverviewViewModel model)
         {
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the view model is not available.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
+
         var exportDto = model.ToExportDto();
         if (exportDto is null)
         {
-            // Invalid record
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the export data is invalid.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
-        var csv = new StringBuilder()
-            .AppendLine("Reference,Title")
-            .AppendLine(string.Join(',',
-                CsvEscape(exportDto.Reference),
-                CsvEscape(exportDto.Title)));
 
-        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+        try
+        {
+            var csv = new StringBuilder()
+                .AppendLine("Reference,Title")
+                .AppendLine(string.Join(',',
+                    CsvEscape(exportDto.Reference),
+                    CsvEscape(exportDto.Title)));
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            var stream = new MemoryStream(bytes);
+
+            return Task.FromResult<MemoryStream?>(stream);
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
+        }
     }
 
     private static string CsvEscape(string? value)

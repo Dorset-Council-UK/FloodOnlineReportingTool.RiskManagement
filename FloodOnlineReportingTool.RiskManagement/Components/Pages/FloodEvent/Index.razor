@@ -242,9 +242,20 @@
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
-                    <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
-                    <p><GdsLink Href="@ExportToCsv()" AdditionalAttributes="@(new Dictionary<string, object> { { "download", CsvDownloadFileName } })">CSV</GdsLink></p>
-                    <p><GdsLink Href="@ExportToJson()" AdditionalAttributes="@(new Dictionary<string, object> { { "download", JsonDownloadFileName } })">GeoJSON</GdsLink></p>
+                    @if (!string.IsNullOrEmpty(_exportErrorMessage))
+                    {
+                        <GdsWarning Text="@_exportErrorMessage" />
+                    }
+                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
+                    <p><a href="@_selfUrl" @onclick="DownloadCsv" @onclick:preventDefault="true" aria-disabled="@_isExportingCsv">
+                        <span class="govuk-visually-hidden">Download </span>CSV
+                        </a>
+                    </p>
+                    <p>
+                        <a href="@_selfUrl" @onclick="DownloadGeoJson" @onclick:preventDefault="true" aria-disabled="@_isExportingJson">
+                            <span class="govuk-visually-hidden">Download </span>GeoJSON
+                        </a>
+                    </p>
 
                 </GdsGridColumn>
             </GdsGridRow>
