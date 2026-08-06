@@ -59,9 +59,8 @@
         }
     }
 
-    private string GetSkipLinkHref()
-    {
-        var currentUri = new Uri(Navigation.Uri);
-        return $"{currentUri.GetLeftPart(UriPartial.Path)}#main-content";
-    }
+private string GetSkipLinkHref()
+{
+    var currentUri = new Uri(Navigation.Uri);
+    return $"{currentUri.PathAndQuery}#main-content";
 }
