@@ -235,17 +235,16 @@
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
 
                     <GdsHeading Level="4">Further details</GdsHeading>
-                    @* TODO - change these links to use GdsLink once Href attribute can handle complex logic *@
-                    <p><a href="event/propertysummary/@Reference">Affected properties</a></p>
-                    <p><a href="event/impactsummary/@Reference">Flood impacts</a></p>
-                    <p><a href="event/attachments/@Reference">Attachments</a></p>
-                    <p><a href="event/comments/@Reference">Comments</a></p>
+                    <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Affected properties</GdsLink></p>
+                    <p><GdsLink Href="@($"event/impactsummary/{Reference}")">Flood impacts</GdsLink></p>
+                    <p><GdsLink Href="@($"event/attachments/{Reference}")">Attachments</GdsLink></p>
+                    <p><GdsLink Href="@($"event/comments/{Reference}")">Comments</GdsLink></p>
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
-                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
-                    <p><a href="@ExportToCsv()" download="@CsvDownloadFileName">CSV</a></p>
-                    <p><a href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</a></p>
+                    <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
+                    <p><GdsLink Href="@ExportToCsv()" AdditionalAttributes="@(new Dictionary<string, object> { { "download", CsvDownloadFileName } })">CSV</GdsLink></p>
+                    <p><GdsLink Href="@ExportToJson()" AdditionalAttributes="@(new Dictionary<string, object> { { "download", JsonDownloadFileName } })">GeoJSON</GdsLink></p>
 
                 </GdsGridColumn>
             </GdsGridRow>
