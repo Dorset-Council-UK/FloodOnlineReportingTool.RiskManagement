@@ -65,6 +65,10 @@ button.govuk-link {
         display: none !important;
     }
 
+    .page-break {
+        break-after: page;
+    }
+
     /* Expand main content column to printable width */
     .print-main-column {
         width: 100% !important;

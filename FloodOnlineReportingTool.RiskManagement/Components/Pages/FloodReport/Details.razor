@@ -58,7 +58,26 @@
                                 Reported on
                             </dt>
                             <dd class="govuk-summary-list__value">
-@(firstSource is not null ? firstSource.CreatedUtc.GdsReadable() : "Unknown date")
+                                @ViewModel.CreatedUtc.GdsReadable() 
+                            </dd>
+                        </div>
+                        <div class="govuk-summary-list__row">
+                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                                Last updated
+                            </dt>
+                            <dd class="govuk-summary-list__value">
+                                @if (ViewModel.UpdatedAt == default)
+                                {
+                                    <span>-</span>
+                                }
+                                else if (string.IsNullOrWhiteSpace(ViewModel.UpdatedBy))
+                                {
+                                    <span>@ViewModel.UpdatedAt.GdsReadable()</span>
+                                }
+                                else
+                                {
+                                    <span>@ViewModel.UpdatedAt.GdsReadable() by @ViewModel.UpdatedBy</span>
+                                }
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -78,7 +97,7 @@
                                 Flood location
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @* TODO - add flood location data *@
+                                @ViewModel.LocationDescription
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -87,67 +106,32 @@
                             </dt>
                             <dd class="govuk-summary-list__value">
                                 <div class="flood-map-container">
-                                    <MiniMap Geometry="@firstSource?.Geom" />
+                                    <MiniMap Geometry="@ViewModel.Geom" />
                                 </div>
                             </dd>
                         </div>
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Flood cause
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add flood cause data *@
-                            </dd>
-                        </div>
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Is the flood ongoing?
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add flood ongoing status *@
-                            </dd>
-                        </div>
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Uninhabitable?
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add uninhabitable status *@
-                            </dd>
-                        </div>
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Vulnerable people?
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add vulnerable people data *@
-                            </dd>
-                        </div>
                     </dl>
 
-                    <GdsHeading Level="3">Contacts</GdsHeading>
-                    <dl class="govuk-summary-list">
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Contacts available
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add contacts available data *@
-                            </dd>
-                        </div>
-                    </dl>
-
-                    <GdsHeading Level="3">Organisations</GdsHeading>
-                    <dl class="govuk-summary-list">
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Lead organisation
-                            </dt>
-                            <dd class="govuk-summary-list__value">
-                                @* TODO - add lead organisation data *@
-                            </dd>
-                        </div>
-                    </dl>
+                    @if (ViewModel.SourceRecords is null)
+                    {
+                        <GdsWarning Text="Source record information is missing." />
+                    }
+                    else if (ViewModel.SourceRecords.Count == 1)
+                    {
+                        <SourceSummary SourceRecord="@ViewModel.SourceRecords.First()" />
+                    } else
+                    {
+                        <GdsHeading Level="3">Source Records</GdsHeading>
+                        <GdsTabs Title="Options">
+                            @foreach(var source in ViewModel.SourceRecords)
+                            {
+                                // TODO - We don't want a heading in these panels
+                                <GdsTabPanel Id="@source.Reference" Heading="@source.Reference" HeadingClass="govuk-visually-hidden">
+                                    <SourceSummary SourceRecord="@source" />
+                                </GdsTabPanel>
+                            }
+                        </GdsTabs>
+                    }
                 </GdsGridColumn>
 
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
@@ -157,9 +141,21 @@
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
+                    @if (!string.IsNullOrEmpty(_exportErrorMessage))
+                    {
+                        <GdsWarning Text="@_exportErrorMessage" />
+                    }
                     <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
-                    <p><a href="@ExportToCsv()" download="@CsvDownloadFileName">CSV</a></p>
-                    <p><a href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</a></p>
+                    <p>
+                        <a href="@_selfUrl" @onclick="DownloadCsv" @onclick:preventDefault="true" aria-disabled="@_isExportingCsv">
+                            <span class="govuk-visually-hidden">Download </span>CSV
+                        </a>
+                    </p>
+                    <p>
+                        <a href="@_selfUrl" @onclick="DownloadGeoJson" @onclick:preventDefault="true" aria-disabled="@_isExportingJson">
+                            <span class="govuk-visually-hidden">Download </span>GeoJSON
+                        </a>
+                    </p>
                 </GdsGridColumn>
             </GdsGridRow>
         }

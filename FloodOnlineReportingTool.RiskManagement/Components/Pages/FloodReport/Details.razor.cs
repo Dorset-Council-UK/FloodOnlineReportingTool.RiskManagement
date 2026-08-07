@@ -1,6 +1,6 @@
-using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Report;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -50,6 +50,12 @@ public partial class Details(
     private readonly CancellationTokenSource _cts = new();
     private ReportOverviewViewModel? ViewModel { get; set; } = default!;
 
+    private bool _isExportingJson;
+    private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
+
+    private bool _isExportingCsv;
+    private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
+
     protected override async Task OnInitializedAsync()
     {
         _actionsEditContext = new EditContext(_actionsModel);
@@ -81,18 +87,12 @@ public partial class Details(
             // GetFloodReportDetail returns SearchResultFloodReport, fully mapped and ready for display.
             // SearchFloodReportByReference returns FloodReportWithSourceReferences (raw API shape) and
             // should not be used here as it does not contain the full data needed for display.
-            var reportResult = await reportStatusClient.GetFloodReportDetail(Reference, true, _cts.Token);
+            var reportResult = await reportStatusClient.GetFloodReportOverview(Reference, _cts.Token);
 
             if (reportResult.IsSuccess && reportResult.ResultModel is not null)
             {
+                ViewModel = reportResult.ResultModel;
                 var reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
-                ViewModel = new ReportOverviewViewModel
-                {
-                    Id = reportResult.ResultModel.Id,
-                    Reference = reportResult.ResultModel.Reference,
-                    RecordStatusId = reportResult.ResultModel.RecordStatusId,
-                    SourceRecords = reportResult.ResultModel.SourceRecords
-                };
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? string.Empty;
 
                 AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
@@ -175,69 +175,148 @@ public partial class Details(
         await js.InvokeVoidAsync("print");
     }
 
-    private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
-    private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
+    private string? _exportErrorMessage;
 
-    private string ExportToJson()
+    private async Task DownloadGeoJson()
     {
-        if (ViewModel is not ReportOverviewViewModel model)
+        if (_isExportingJson) { return; }
+        _isExportingJson = true;
+
+        try
         {
-            return string.Empty;
-        }
-        var exportDto = model.ToExportDto(ReportStatus);
-        if (exportDto is null)
-        {
-            // Invalid record
-            return string.Empty;
-        }
-        var feature = new
-        {
-            type = "Feature",
-            geometry = new
+            var fileStream = await ExportToJsonAsync();
+            if (fileStream is null) { return; }
+
+            using (fileStream)
+            using (var streamReference = new DotNetStreamReference(fileStream))
             {
-                type = "Point",
-                coordinates = new[] { exportDto.X, exportDto.Y }
-            },
-            properties = new
-            {
-                exportDto.Reference,
-                exportDto.ReportedOn,
-                exportDto.RecordStatus,
-                exportDto.Easting,
-                exportDto.Northing
+                await js.InvokeVoidAsync("downloadFileFromStream", JsonDownloadFileName, streamReference);
             }
-        };
-
-        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+        }
+        finally
         {
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-        });
-
-        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+            _isExportingJson = false;
+        }
     }
 
-    private string ExportToCsv()
+    private Task<MemoryStream?> ExportToJsonAsync()
     {
+        _exportErrorMessage = null;
         if (ViewModel is not ReportOverviewViewModel model)
         {
-            return string.Empty;
+            _exportErrorMessage = "Unable to export: the view model is not available.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
+
         var exportDto = model.ToExportDto(ReportStatus);
         if (exportDto is null)
         {
-            // Invalid record
-            return string.Empty;
+            _exportErrorMessage = "Unable to export this record.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
         }
-        var csv = new StringBuilder()
-            .AppendLine("Reference,ReportedOn,RecordStatus,Easting,Northing")
-            .AppendLine(string.Join(',',
-                CsvEscape(exportDto.Reference),
-                CsvEscape(exportDto.ReportedOn),
-                CsvEscape(exportDto.RecordStatus),
-                exportDto.Easting.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                exportDto.Northing.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
-        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+        try
+        {
+            var feature = new
+            {
+                type = "Feature",
+                geometry = new
+                {
+                    type = "Point",
+                    coordinates = new[] { exportDto.X, exportDto.Y }
+                },
+                properties = new
+                {
+                    exportDto.Reference,
+                    exportDto.ReportedOn,
+                    exportDto.RecordStatus,
+                    exportDto.Easting,
+                    exportDto.Northing
+                }
+            };
+
+            var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+            {
+                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+            });
+
+            var bytes = Encoding.UTF8.GetBytes(json);
+            var stream = new MemoryStream(bytes);
+
+            return Task.FromResult<MemoryStream?>(stream);
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
+        }
+    }
+
+    private async Task DownloadCsv()
+    {
+        if (_isExportingCsv) { return; }
+        _isExportingCsv = true;
+
+        try
+        {
+            var fileStream = await ExportToCsvAsync();
+            if (fileStream is null) { return; }
+
+            using (fileStream)
+            using (var streamReference = new DotNetStreamReference(fileStream))
+            {
+                await js.InvokeVoidAsync("downloadFileFromStream", CsvDownloadFileName, streamReference);
+            }
+        }
+        finally
+        {
+            _isExportingCsv = false;
+        }
+    }
+
+    private Task<MemoryStream?> ExportToCsvAsync()
+    {
+        _exportErrorMessage = null;
+        if (ViewModel is not ReportOverviewViewModel model)
+        {
+            _exportErrorMessage = "Unable to export: the view model is not available.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
+        }
+
+        var exportDto = model.ToExportDto(ReportStatus);
+        if (exportDto is null)
+        {
+            _exportErrorMessage = "Unable to export: the export data is invalid.";
+            logger.LogWarning(_exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
+        }
+
+        try
+        {
+            var csv = new StringBuilder()
+                .AppendLine("Reference,ReportedOn,RecordStatus,Easting,Northing")
+                .AppendLine(string.Join(',',
+                    CsvEscape(exportDto.Reference),
+                    CsvEscape(exportDto.ReportedOn),
+                    CsvEscape(exportDto.RecordStatus),
+                    exportDto.Easting.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    exportDto.Northing.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            var stream = new MemoryStream(bytes);
+
+            return Task.FromResult<MemoryStream?>(stream);
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+            return Task.FromResult<MemoryStream?>(null);
+        }
     }
 
     private static string CsvEscape(string? value)

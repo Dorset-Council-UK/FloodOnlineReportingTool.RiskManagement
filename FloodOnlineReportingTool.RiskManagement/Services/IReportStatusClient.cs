@@ -2,6 +2,7 @@
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
+using FloodOnlineReportingTool.RiskManagement.Models.Report;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using NetTopologySuite.Geometries;
 
@@ -72,6 +73,11 @@ public interface IReportStatusClient
     /// </summary>
     Task<SearchRedirect?> FindFloodReportByReference(string reference, CancellationToken ct = default);
 
+    /// <summary>
+    /// Retrieves the flood report overview for display on the overview page.
+    /// </summary>
+    Task<GetResult<ReportOverviewViewModel>> GetFloodReportOverview(string reference, CancellationToken ct = default);
+    
     /// <summary>
     /// Retrieves the full flood report detail for display on the details page.
     /// Internally maps <see cref="FloodReportWithSourceReferences"/> to <see cref="SearchResultFloodReport"/>.
