@@ -331,18 +331,24 @@ public partial class Upload(
                     _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
                     _editContext.NotifyValidationStateChanged();
                     return;
-                }
-
-                //remove from list
-                Model.UploadedFiles.Remove(file);
+                } 
             }
 
             //delete from storage
-            if (!await blobStorageService.DeleteFileFromBlobByURLAsync(file.Url))
+            try
             {
-                logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
+                if (!await blobStorageService.DeleteFileFromBlobByURLAsync(file.Url))
+                {
+                    logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
+                }
+            } catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred deleting media item with URL {url} from blob storage", file.Url);
             }
-
+            finally { 
+                //remove from list
+                Model.UploadedFiles.Remove(file);
+            }
             CheckValidationStateOfFileUploads();
             StateHasChanged();
         }
