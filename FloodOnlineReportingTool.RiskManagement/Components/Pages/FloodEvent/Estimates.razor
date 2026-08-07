@@ -157,22 +157,19 @@
                 </GdsFieldsetGroup>
             </GdsFormGroup>
 
-            <GdsFormGroup>
-                <GdsFieldsetGroup>
-                    <GdsGridRow>
-                        <GdsGridColumn Width="GdsGridColumnWidth.Full">
-                            @if (!_isLoading)
-                            {
-                                <div class="govuk-button-group">
-                                    <GdsButton IsSubmit="true" Text="Save flood event" />
-                                    <GdsButton IsSubmit="false" OnClick="@BackToDetails" AdditionalCssClasses="govuk-button--secondary" Text="Return to details" />
-                                </div>
+            <GdsGridRow>
+                <GdsGridColumn Width="GdsGridColumnWidth.Full">
+                    @if (!_isLoading)
+                    {
+                        <div class="govuk-button-group">
+                            <GdsButton IsSubmit="true" Text="Save flood event" />
+                            <GdsButton IsSubmit="false" OnClick="@BackToDetails" AdditionalCssClasses="govuk-button--secondary" Text="Return to details" />
+                        </div>
                                 
-                            }
-                        </GdsGridColumn>
-                    </GdsGridRow>
-                </GdsFieldsetGroup>
-            </GdsFormGroup>
+                    }
+                </GdsGridColumn>
+            </GdsGridRow>
+
         </EditForm>
     </Authorized>
     <NotAuthorized>

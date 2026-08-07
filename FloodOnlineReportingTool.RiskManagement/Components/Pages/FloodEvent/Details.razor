@@ -46,51 +46,52 @@
                     </GdsFieldsetGroup>
                 </GdsFormGroup>
 
-                <GdsFormGroup>
-                    <GdsFieldsetGroup>
-                        <GdsGridRow>
-                            <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
-                                <GdsFormGroup>
-                                    <GdsLabel Text="Record status:" />
-                                    <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
-                                        @foreach (var option in _eventStatuses)
-                                        {
-                                            <option value="@option.Id">@option.Text</option>
-                                        }
-                                    </GdsSelect>
-                                    <GdsErrorMessage />
-                                </GdsFormGroup>
-                            </GdsGridColumn>
+                <GdsFieldsetGroup>
+                    <GdsFieldsetLegend Size="GdsSize.Medium">
+                        <GdsFieldsetHeading Level="2">Statuses</GdsFieldsetHeading>
+                    </GdsFieldsetLegend>
+                    <GdsGridRow>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
+                                <GdsLabel Text="Record status:" />
+                                <GdsSelect T="Guid" @bind-Value="Model.RecordStatus" style="width:100%;">
+                                    @foreach (var option in _eventStatuses)
+                                    {
+                                        <option value="@option.Id">@option.Text</option>
+                                    }
+                                </GdsSelect>
+                                <GdsErrorMessage />
+                            </GdsFormGroup>
+                        </GdsGridColumn>
 
-                            <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
-                                <GdsFormGroup>
-                                    <GdsLabel Text="Flood status:" />
-                                    <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
-                                        @foreach(var option in _floodStatuses)
-                                        {
-                                            <option value="@option.Id">@option.Text</option>
-                                        }
-                                    </GdsSelect>
-                                    <GdsErrorMessage />
-                                </GdsFormGroup>
-                            </GdsGridColumn>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
+                                <GdsLabel Text="Flood status:" />
+                                <GdsSelect T="Guid" @bind-Value="Model.FloodStatus" style="width:100%;">
+                                    @foreach(var option in _floodStatuses)
+                                    {
+                                        <option value="@option.Id">@option.Text</option>
+                                    }
+                                </GdsSelect>
+                                <GdsErrorMessage />
+                            </GdsFormGroup>
+                        </GdsGridColumn>
 
-                            <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
-                                <GdsFormGroup>
-                                    <GdsLabel Text="Investigation status:" />
-                                    <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
-                                        @foreach (var option in _investigationStatuses)
-                                        {
-                                            <option value="@option.Id">@option.Text</option>
-                                        }
-                                    </GdsSelect>
-                                    <GdsErrorMessage />
-                                </GdsFormGroup>
-                            </GdsGridColumn>
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <GdsFormGroup>
+                                <GdsLabel Text="Investigation status:" />
+                                <GdsSelect T="Guid" @bind-Value="Model.InvestigationStatus" style="width:100%;">
+                                    @foreach (var option in _investigationStatuses)
+                                    {
+                                        <option value="@option.Id">@option.Text</option>
+                                    }
+                                </GdsSelect>
+                                <GdsErrorMessage />
+                            </GdsFormGroup>
+                        </GdsGridColumn>
 
-                        </GdsGridRow>
-                    </GdsFieldsetGroup>
-                </GdsFormGroup>
+                    </GdsGridRow>
+                </GdsFieldsetGroup>
 
                 <GdsFormGroup>
                     <GdsFieldsetGroup>
