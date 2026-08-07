@@ -9,7 +9,8 @@
 
 <GdsBackLink Href="@($"{SearchPages.Options.Url}/{SearchReference}")"></GdsBackLink>
 
-<h1 class="govuk-heading-l">Results for Search @SearchReference</h1>
+<GdsHeading Level="1" Size="GdsSize.Large">Results for Search @SearchReference</GdsHeading>
+
 <p>You can use the reference to get straight back to these results at any time.</p>
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
@@ -27,37 +28,21 @@
         {
             if (!_isLoading && (SearchResults is not null && SearchResults.TotalCount != 0))
             {
-                <div class="govuk-tabs" data-module="govuk-tabs">
-                    <h2 class="govuk-tabs__title">
-                        View results as
-                    </h2>
-                    <ul class="govuk-tabs__list">
-                        <li class="govuk-tabs__list-item govuk-tabs__list-item--selected">
-                            <a class="govuk-tabs__tab" href="#table">
-                                Table
-                            </a>
-                        </li>
-                        <li class="govuk-tabs__list-item">
-                            <a class="govuk-tabs__tab" href="#list">
-                                List
-                            </a>
-                        </li>
-                        <li class="govuk-tabs__list-item">
-                            <a class="govuk-tabs__tab" href="#map">
-                                Map
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="govuk-tabs__panel" id="table">
+                <GdsTabs Title="View results as">
+
+                    <GdsTabPanel Heading="Table" Id="table">
+                    
                         @if (SearchResultsGrouped is not null)
                         {
                             <SearchResultTable SearchResults="SearchResultsGrouped" OnPageChanged="(int p) => OnPageChanged(p)" />
                         }
-                    </div>
-                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="list">
+                    </GdsTabPanel>
+
+                    <GdsTabPanel Heading="List" Id="list">
                         <SearchResultList SearchResults="SearchResultsGrouped" OnPageChanged="(int pageNumber) => OnPageChanged(pageNumber)" />
-                    </div>
-                    <div class="govuk-tabs__panel govuk-tabs__panel--hidden" id="map">
+                    </GdsTabPanel>
+
+                    <GdsTabPanel Heading="Map" Id="map">
                         <GdsSpinner Show="_isLoadingMapData" ShowMessage="true" />
                         @if (_mapResultsTooMany)
                         {
@@ -67,14 +52,15 @@
                         <div style="height:400px;" class="govuk-!-margin-bottom-2">
                             <MiniMap @ref="_miniMapRef" OnBecameVisible="OnMapBecameVisible"></MiniMap>
                         </div>
-                    </div>
-                </div>
+                    </GdsTabPanel>
+
+                </GdsTabs>
 
                 @if (SearchResultsViewModel.FromDate.DateUtc is not null && SearchResultsViewModel.ToDate.DateUtc is not null)
                 {
-                    <div class="govuk-form-group">
-                        <fieldset class="govuk-fieldset">
-                            <div class="govuk-grid-row">
+                    <GdsFormGroup>
+                        <GdsFieldsetGroup>
+                            <GdsGridRow>
                                 @if (!_isLoading)
                                 {
                                     <details class="govuk-details">
@@ -102,9 +88,9 @@
                                     </details>
                                     <GdsStartButton Href="@($"{EventPages.Details.Url}/{SearchReference}")" Text="Create flood event" />
                                 }
-                            </div>
-                        </fieldset>
-                    </div>
+                            </GdsGridRow>
+                        </GdsFieldsetGroup>
+                    </GdsFormGroup>
                 }
                 
 

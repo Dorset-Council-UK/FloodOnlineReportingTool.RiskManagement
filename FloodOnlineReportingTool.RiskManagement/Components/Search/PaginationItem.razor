@@ -1,7 +1,7 @@
 ﻿<li class="@ItemClass">
-    <a class="govuk-link govuk-pagination__link" href="@Navigation.ToBaseRelativePath(Navigation.Uri)" aria-label="@AriaLabel" aria-current="@AriaCurrent" @onclick="HandleClick" @onclick:preventDefault>
+    <GdsLink Href="@Navigation.ToBaseRelativePath(Navigation.Uri)" AdditionalCssClasses="govuk-pagination__link" aria-label="@AriaLabel" aria-current="@AriaCurrent" OnClick="HandleClick" PreventDefault>
         @PageNumber
-    </a>
+    </GdsLink>
 </li>
 
 @code {
