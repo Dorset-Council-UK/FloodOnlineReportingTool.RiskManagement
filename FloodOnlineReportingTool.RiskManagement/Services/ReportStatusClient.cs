@@ -261,6 +261,10 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         // Use the first source's geometry and location for the parent view model,
         // as these represent the primary flood location for display on the page.
         var firstSource = searchResult._sources.FirstOrDefault();
+        if (firstSource is null)
+        {
+            return GetResult<ReportOverviewViewModel>.Failure(["Flood report has no source records."]);
+        }
 
         var returnModel = new ReportOverviewViewModel
         {
@@ -270,8 +274,8 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
             UpdatedAt = floodReport.UpdatedUtc,
             UpdatedBy = null,
             RecordStatusId = floodReport.RecordStatus,
-            Geom = firstSource?.Geom!,
-            LocationDescription = firstSource?.LocationDescription ?? string.Empty,
+            Geom = firstSource.Geom,
+            LocationDescription = firstSource.LocationDescription ?? string.Empty,
             SourceRecords = sourceRecords
         };
 

@@ -112,15 +112,15 @@
                         </div>
                     </dl>
 
-                    @if (ViewModel.SourceRecords is null)
+                    @if (ViewModel.SourceRecords.Count == 0)
                     {
                         <GdsWarning Text="Source record information is missing." />
                     }
                     else if (ViewModel.SourceRecords.Count == 1)
                     {
                         <SourceSummary SourceRecord="@ViewModel.SourceRecords.First()" />
-                    } else
-                    {
+                    }
+                    else
                         <GdsHeading Level="3">Source Records</GdsHeading>
                         <GdsTabs Title="Options">
                             @foreach(var source in ViewModel.SourceRecords)
