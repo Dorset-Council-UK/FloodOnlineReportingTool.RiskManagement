@@ -186,9 +186,8 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
                     options.Deserializer = (content) =>
                     {
                         if (content is null) return null;
-                        var json = content.ReadAsStringAsync().GetAwaiter().GetResult();
-                        logger.LogDebug("Raw flood report source JSON: {Json}", json);
-                        return JsonSerializer.Deserialize<FloodReportSource>(json, _jsonSerializerOptions);
+                        var stream = content.ReadAsStream(ct);
+                        return JsonSerializer.Deserialize<FloodReportSource>(stream, _jsonSerializerOptions);
                     };
                 }, cancellationToken: ct);
 
@@ -206,6 +205,11 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         {
             logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report source exists", ex.StatusCode);
             return GetResult<FloodReportSource>.Failure(["No flood report source found for reference."]);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Downstream API request failed for flood report source — {Message}", ex.Message);
+            return GetResult<FloodReportSource>.Failure(["Downstream API request failed for flood report source."]);
         }
     }
 
@@ -347,6 +351,11 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         {
             logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report exists", ex.StatusCode);
             return GetResult<FloodReportWithSourceReferences>.Failure(["No flood report found for reference."]);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Downstream API request failed for flood report source — {Message}", ex.Message);
+            return GetResult<FloodReportWithSourceReferences>.Failure(["Downstream API request failed for flood report source."]);
         }
     }
 
