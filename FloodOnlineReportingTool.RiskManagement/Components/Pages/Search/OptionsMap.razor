@@ -35,8 +35,8 @@ else
 
                             <GdsHeading Level="2" Size="GdsSize.Medium">Add by region</GdsHeading>
 
-                            <GdsFormGroup For="() => _searchTerm">
-                                <GdsLabel Text="Search for regions (i.e. parish/ward)" />
+                            <GdsFormGroup>
+                                <GdsLabel Text="Search for regions (such as parish/ward)" />
                                 <GdsErrorMessage />
                                 <GdsInputText @bind-Value="_searchTerm" class="govuk-input govuk-input--width-15" disabled="@(!_canEdit)" />
                             </GdsFormGroup>
@@ -45,9 +45,7 @@ else
                             </div>
                             @if (_isSearching)
                             {
-                                <div class="govuk-hint">
-                                    <span class="govuk-!-font-size-16">Searching...</span>
-                                </div>
+                                <GdsSpinner Message="Searching..." Show ShowMessage />
                             }
                             @if (!string.IsNullOrEmpty(_regionSearchErrorMessage))
                             {
@@ -57,7 +55,7 @@ else
                             }
                             @if (_parishResults.Any() && _parishResults.Count >= 1)
                             {
-                                <div class="govuk-form-group">
+                                <GdsFormGroup>
                                     <GdsLabel Text="Select a parish" />
 
                                     <GdsSelect @key="_parishSelectKey" T="string" @bind-Value="_selectedParish" @bind-Value:after="@OnParishSelected" disabled="@(!_canEdit)">
@@ -67,12 +65,12 @@ else
                                             <option value="@option">@option</option>
                                         }
                                     </GdsSelect>
-                                </div>
+                                </GdsFormGroup>
                             }
 
                             @if (_wardResults.Any() && _wardResults.Count >= 1)
                             {
-                                <div class="govuk-form-group">
+                                <GdsFormGroup>
                                     <GdsLabel Text="Select a ward" />
 
                                     <GdsSelect @key="_wardSelectKey" T="string" @bind-Value="_selectedWard" @bind-Value:after="@OnWardSelected" disabled="@(!_canEdit)">
@@ -82,7 +80,7 @@ else
                                             <option value="@option">@option</option>
                                         }
                                     </GdsSelect> 
-                                </div>
+                                </GdsFormGroup>
                             }
 
                         </EditForm>
@@ -116,15 +114,12 @@ else
             <EditForm EditContext="EditContext" FormName="CreateSearchOptions">
                 <FluentValidationValidator />
                 <GdsErrorSummary />
-                <div class="govuk-form-group">
-                    <fieldset class="govuk-fieldset">
-                        <GdsGridRow>
-                            <GdsGridColumn Width="GdsGridColumnWidth.Full">
-                                <GdsButton IsSubmit="false" PreventDoubleClick OnClick="@SaveAndReturn" Text="Save area" disabled="@(!_canEdit)" />
-                            </GdsGridColumn>
-                        </GdsGridRow>
-                    </fieldset>
-                </div>
+
+                <GdsGridRow>
+                    <GdsGridColumn Width="GdsGridColumnWidth.Full">
+                        <GdsButton IsSubmit="false" PreventDoubleClick OnClick="@SaveAndReturn" Text="Save area" disabled="@(!_canEdit)" />
+                    </GdsGridColumn>
+                </GdsGridRow>
             </EditForm>
         </Authorized>
 

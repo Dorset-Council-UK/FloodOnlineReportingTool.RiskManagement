@@ -1,6 +1,7 @@
 ﻿@page "/search/options/{SearchReference}"
 @page "/search/options"
 
+@using FloodOnlineReportingTool.Contracts.Shared
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
@@ -25,40 +26,39 @@ else
                     <GdsWarning Text="This search is locked and cannot be modified" />
                 }
 
-                <fieldset class="govuk-fieldset">
-                    <legend class="govuk-fieldset__legend govuk-fieldset__legend--m">
-                        <GdsHeading Level="2" class="govuk-fieldset__heading">Search options</GdsHeading>
-                    </legend>
-                    <div class="govuk-form-group">
-                        <GdsGridRow>
-                            <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                                <GdsInputDate Id="search-start" For="() => Model.FromDate">
-                                    <Heading>
-                                        <GdsLabel For="Model.FromDate" Text="Reports from" />
-                                    </Heading>
-                                </GdsInputDate>
-                            </GdsGridColumn>
-                            <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                                <GdsInputDate Id="search-end" For="() => Model.ToDate">
-                                    <Heading>
-                                        <GdsLabel For="Model.ToDate" Text="Report until" />
-                                    </Heading>
-                                </GdsInputDate>
-                            </GdsGridColumn>
-                        </GdsGridRow>
-                    </div>
-                </fieldset>
+                <GdsHeading Level="2" Size="GdsSize.Medium">Search options</GdsHeading>
 
                 <GdsGridRow>
                     <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                        <GdsFormGroup For="() => Model.ByPersonsName">
+                        <GdsFormGroup>
+                            <GdsInputDate For="() => Model.FromDate" LegendSize="GdsSize.Medium">
+                                <Heading>
+                                    <GdsFieldsetHeading Level="3">Reports from</GdsFieldsetHeading>
+                                </Heading>
+                            </GdsInputDate>
+                        </GdsFormGroup>
+                    </GdsGridColumn>
+                    <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                        <GdsFormGroup>
+                            <GdsInputDate For="() => Model.ToDate" LegendSize="GdsSize.Medium">
+                                <Heading>
+                                    <GdsFieldsetHeading Level="3">Report until</GdsFieldsetHeading>
+                                </Heading>
+                            </GdsInputDate>
+                        </GdsFormGroup>
+                    </GdsGridColumn>
+                </GdsGridRow>
+
+                <GdsGridRow>
+                    <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                        <GdsFormGroup>
                             <GdsLabel Text="Search for reports by the person's name" />
                             <GdsErrorMessage />
                             <GdsInputText @bind-Value=Model.ByPersonsName class="govuk-input govuk-input--width-50" disabled="@(!_canEdit)" />
                         </GdsFormGroup>
                     </GdsGridColumn>
                     <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                        <GdsFormGroup For="() => Model.ByPostcode">
+                        <GdsFormGroup>
                             <GdsLabel Text="Search by affected postcode" />
                             <GdsErrorMessage />
                             <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" disabled="@(!_canEdit)" />
@@ -68,19 +68,37 @@ else
 
                 <GdsGridRow>
                     <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                        <GdsFormGroup For="() => Model.ByFloodSource">
-                            <GdsFieldsetGroup LegendTextSize="GdsSize.Small">
-                                <Heading>
-                                    <GdsHeading Level="2" class="govuk-fieldset__heading">Filter results by the source of flooding</GdsHeading>
-                                </Heading>
-                                <Content>
-                                    <GdsHint>Select all that apply</GdsHint>
-                                    <GdsErrorMessage />
-                                    <GdsCheckboxes T="Guid" Options="@_floodSourceOptions" Name="@nameof(Model.ByFloodSource)" OnChanged="FloodSourceChanged" Smaller />
-                                </Content>
+                        <GdsFormGroup>
+                            <GdsFieldsetGroup>
+                                <GdsFieldsetLegend Size="GdsSize.Small">
+                                    <GdsFieldsetHeading Level="2">Filter results by the source of flooding</GdsFieldsetHeading>
+                                </GdsFieldsetLegend>
+
+                                <GdsHint>Select all that apply</GdsHint>
+                                <GdsErrorMessage />
+
+                                <GdsCheckboxes For="() => Model.ByFloodSource" Smaller>
+                                    @foreach(var floodProblem in _primaryFloodProblems)
+                                    {
+                                        string key = floodProblem.Id.ToString("N");
+                                        string id = $"flood-source-{key}";
+                                        bool isNotSure = floodProblem.Id == PrimaryCauseIds.NotSure;
+
+                                        if (isNotSure)
+                                        {
+                                            <GdsCheckboxDivider />
+                                        }
+
+                                        <GdsCheckboxItem>
+                                            <GdsInputCheckbox Id="@id" @bind-Value="@_selectedFloodSources[key]" OnChanged="isChecked => OnFloodSourceChanged(isChecked, floodProblem.Id)" Exclusive="isNotSure" />
+                                            <GdsCheckboxLabel Text="@floodProblem.TypeName" />
+                                        </GdsCheckboxItem>
+                                    }
+                                </GdsCheckboxes>
                             </GdsFieldsetGroup>
                         </GdsFormGroup>
                     </GdsGridColumn>
+
                     <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                         <div style="height:400px;" class="govuk-!-margin-bottom-2">
                             <MiniMap Geometry="Model.ByPolygon"></MiniMap>

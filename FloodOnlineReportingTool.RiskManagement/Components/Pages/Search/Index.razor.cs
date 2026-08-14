@@ -1,10 +1,8 @@
-using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.Search;
 
@@ -25,11 +23,6 @@ public partial class Index(
     private EditContext editContext = default!;
     private readonly CancellationTokenSource _cts = new();
     private bool _isReferenceKnown;
-
-    private IReadOnlyCollection<GdsOptionItem<bool>> _isReferenceKnownOptions = [
-        new("ref-known-yes", "Yes", value: true),
-        new("ref-known-no", "No", value: false),
-    ];
 
     protected override void OnInitialized()
     {
@@ -75,9 +68,8 @@ public partial class Index(
         if (_isReferenceKnown)
         {
             return SearchPages.Results;
-        } else
-        {
-            return SearchPages.Options;
-        }   
+        }
+        
+        return SearchPages.Options; 
     }
 }

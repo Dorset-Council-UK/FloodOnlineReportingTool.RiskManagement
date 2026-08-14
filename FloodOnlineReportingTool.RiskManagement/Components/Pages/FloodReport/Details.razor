@@ -136,8 +136,8 @@
 
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
                     <GdsHeading Level="4">Further details</GdsHeading>
-                    <p><a href="report/attachments/@Reference">Attached Documents</a></p>
-                    <p><a href="report/comments/@Reference">Comments</a></p>
+                    <p><GdsLink Href="@($"report/attachments/{Reference}")">Attached Documents</GdsLink></p>
+                    <p><GdsLink Href="@($"report/comments/{Reference}")">Comments</GdsLink></p>
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
