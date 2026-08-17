@@ -246,11 +246,8 @@
                     {
                         <GdsWarning Text="@_exportErrorMessage" />
                     }
-                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
-                    <p><a href="@_selfUrl" @onclick="DownloadCsv" @onclick:preventDefault="true" aria-disabled="@_isExportingCsv">
-                        <span class="govuk-visually-hidden">Download </span>CSV
-                        </a>
-                    </p>
+                    <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
+                    <p><GdsLink Href="@ExportToCsv()" download="@CsvDownloadFileName">CSV</GdsLink></p>
                     <p><GdsLink Href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</GdsLink></p>
 
                 </GdsGridColumn>

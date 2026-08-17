@@ -246,50 +246,20 @@ public partial class Index(
         return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
     }
 
-    private async Task DownloadCsv()
+    private string ExportToCsv()
     {
-        if (_isExportingCsv) { return; }
-        _isExportingCsv = true;
-
-        try
-        {
-            var fileStream = await ExportToCsvAsync();
-            if (fileStream is null) { return; }
-
-            using (fileStream)
-            using (var streamReference = new DotNetStreamReference(fileStream))
-            {
-                await js.InvokeVoidAsync("downloadFileFromStream", CsvDownloadFileName, streamReference);
-            }
-        }
-        finally
-        {
-            _isExportingCsv = false;
-        }
-    }
-
-    private Task<MemoryStream?> ExportToCsvAsync()
-    {
-        _exportErrorMessage = null;
         if (ViewModel is not EventOverviewViewModel model)
         {
-            _exportErrorMessage = "Unable to export: the view model is not available.";
-            logger.LogWarning(_exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
+            return string.Empty;
         }
-
         var exportDto = model.ToExportDto();
         if (exportDto is null)
         {
-            _exportErrorMessage = "Unable to export: the export data is invalid.";
-            logger.LogWarning(_exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
+            // Invalid record
+            return string.Empty;
         }
-
-        try
-        {
-            var csv = new StringBuilder()
-                .AppendLine("Reference,Title,FloodingStart,FloodingEnd,PrimaryFloodCauses,SecondaryFloodCauses,ResponsibleOrganisations,UPRN,USRN,RecordStatus,FloodStatus,InvestigationStatus,EstimatedVulnerable,EstimatedUninhabitable,EstimatedTotalExternalOnly,EstimatedTotalInternallyFlooded,EstimatedDisruptedUtilities,EstimatedResidentialAffected,EstimatedResidentialFlooded,EstimatedResidentialOther,EstimatedCommercialAffected,EstimatedCommercialFlooded,EstimatedCommercialOther,EstimatedNoElectric,EstimatedNoGas,EstimatedNoFoul,EstimatedNoWaterSupply,StatusNote")
+        var csv = new StringBuilder()
+            .AppendLine("Reference,Title,FloodingStart,FloodingEnd,PrimaryFloodCauses,SecondaryFloodCauses,ResponsibleOrganisations,UPRN,USRN,RecordStatus,FloodStatus,InvestigationStatus,EstimatedVulnerable,EstimatedUninhabitable,EstimatedTotalExternalOnly,EstimatedTotalInternallyFlooded,EstimatedDisruptedUtilities,EstimatedResidentialAffected,EstimatedResidentialFlooded,EstimatedResidentialOther,EstimatedCommercialAffected,EstimatedCommercialFlooded,EstimatedCommercialOther,EstimatedNoElectric,EstimatedNoGas,EstimatedNoFoul,EstimatedNoWaterSupply,StatusNote")
                 .AppendJoin(',', string.Join(',',
                     CsvEscape(exportDto.Reference),
                     CsvEscape(exportDto.Title),
@@ -321,17 +291,7 @@ public partial class Index(
                     CsvEscape(exportDto.StatusNote ?? string.Empty)
                     )).AppendLine();
 
-            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-            var stream = new MemoryStream(bytes);
-
-            return Task.FromResult<MemoryStream?>(stream);
-        }
-        catch (Exception ex)
-        {
-            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
-            logger.LogError(ex, _exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
+        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
     }
 
     private static string CsvEscape(string? value)
