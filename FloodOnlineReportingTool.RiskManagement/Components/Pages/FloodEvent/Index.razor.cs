@@ -7,6 +7,7 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -235,7 +236,33 @@ public partial class Index(
                 properties = new
                 {
                     exportDto.Reference,
-                    exportDto.Title
+                    exportDto.Title,
+                    exportDto.FloodingStart,
+                    exportDto.FloodingEnd,
+                    exportDto.PrimaryFloodCauses,
+                    exportDto.SecondaryFloodCauses,
+                    exportDto.ResponsibleOrganisations,
+                    exportDto.UPRN,
+                    exportDto.USRN,
+                    exportDto.RecordStatus,
+                    exportDto.FloodStatus,
+                    exportDto.InvestigationStatus,
+                    exportDto.EstimatedVulnerable,
+                    exportDto.EstimatedUninhabitable,
+                    exportDto.EstimatedTotalExternalOnly,
+                    exportDto.EstimatedTotalInternallyFlooded,
+                    exportDto.EstimatedDisruptedUtilities,
+                    exportDto.EstimatedResidentialAffected,
+                    exportDto.EstimatedResidentialFlooded,
+                    exportDto.EstimatedResidentialOther,
+                    exportDto.EstimatedCommercialAffected,
+                    exportDto.EstimatedCommercialOther,
+                    exportDto.EstimatedCommercialFlooded,
+                    exportDto.EstimatedNoElectric,
+                    exportDto.EstimatedNoGas,
+                    exportDto.EstimatedNoFoul,
+                    exportDto.EstimatedNoWaterSupply,
+                    exportDto.StatusNote
                 }
             };
 
@@ -300,10 +327,37 @@ public partial class Index(
         try
         {
             var csv = new StringBuilder()
-                .AppendLine("Reference,Title")
-                .AppendLine(string.Join(',',
+                .AppendLine("Reference,Title,FloodingStart,FloodingEnd,PrimaryFloodCauses,SecondaryFloodCauses,ResponsibleOrganisations,UPRN,USRN,RecordStatus,FloodStatus,InvestigationStatus,EstimatedVulnerable,EstimatedUninhabitable,EstimatedTotalExternalOnly,EstimatedTotalInternallyFlooded,EstimatedDisruptedUtilities,EstimatedResidentialAffected,EstimatedResidentialFlooded,EstimatedResidentialOther,EstimatedCommercialAffected,EstimatedCommercialFlooded,EstimatedCommercialOther,EstimatedNoElectric,EstimatedNoGas,EstimatedNoFoul,EstimatedNoWaterSupply,StatusNote")
+                .AppendJoin(',', string.Join(',',
                     CsvEscape(exportDto.Reference),
-                    CsvEscape(exportDto.Title)));
+                    CsvEscape(exportDto.Title),
+                    CsvEscape(exportDto.FloodingStart.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.FloodingEnd.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.PrimaryFloodCauses.ToString()),
+                    CsvEscape(exportDto.SecondaryFloodCauses.ToString()),
+                    CsvEscape(exportDto.ResponsibleOrganisations.ToString()),
+                    CsvEscape(exportDto.UPRN?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.USRN?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.RecordStatus),
+                    CsvEscape(exportDto.FloodStatus),
+                    CsvEscape(exportDto.InvestigationStatus),
+                    CsvEscape(exportDto.EstimatedVulnerable.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.EstimatedUninhabitable.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.EstimatedTotalExternalOnly.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.EstimatedTotalInternallyFlooded.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.EstimatedDisruptedUtilities.ToString(CultureInfo.InvariantCulture)),
+                    CsvEscape(exportDto.EstimatedResidentialAffected?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedResidentialFlooded?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedResidentialOther?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedCommercialAffected?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedCommercialFlooded?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedCommercialOther?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedNoElectric?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedNoGas?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedNoFoul?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.EstimatedNoWaterSupply?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
+                    CsvEscape(exportDto.StatusNote ?? string.Empty)
+                    )).AppendLine();
 
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());
             var stream = new MemoryStream(bytes);
