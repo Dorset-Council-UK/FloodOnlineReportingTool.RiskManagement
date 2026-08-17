@@ -251,7 +251,7 @@ public partial class Index(
         }
         var csv = new StringBuilder()
             .AppendLine("Reference,Title,FloodingStart,FloodingEnd,PrimaryFloodCauses,SecondaryFloodCauses,ResponsibleOrganisations,UPRN,USRN,RecordStatus,FloodStatus,InvestigationStatus,EstimatedVulnerable,EstimatedUninhabitable,EstimatedTotalExternalOnly,EstimatedTotalInternallyFlooded,EstimatedDisruptedUtilities,EstimatedResidentialAffected,EstimatedResidentialFlooded,EstimatedResidentialOther,EstimatedCommercialAffected,EstimatedCommercialFlooded,EstimatedCommercialOther,EstimatedNoElectric,EstimatedNoGas,EstimatedNoFoul,EstimatedNoWaterSupply,StatusNote")
-                .AppendJoin(',', string.Join(',',
+                .Append(string.Join(',',
                     CsvEscape(exportDto.Reference),
                     CsvEscape(exportDto.Title),
                     CsvEscape(exportDto.FloodingStart.ToString(CultureInfo.InvariantCulture)),
