@@ -72,26 +72,23 @@ public partial class Index(
 
                 await Task.WhenAll(eventStatusesTask, floodStatusesTask, investigationStatusesTask, primaryCausesTask, secondaryCausesTask);
 
-                var recordStatus = eventStatusesTask.Result
-                    .FirstOrDefault(s => s.Id == floodEvent.RecordStatus)?.Text ?? string.Empty;
+                var recordStatus = (await eventStatusesTask).FirstOrDefault(s => s.Id == floodEvent.RecordStatus)?.Text ?? string.Empty;
 
-                var floodStatus = floodStatusesTask.Result
-                    .FirstOrDefault(s => s.Id == floodEvent.FloodStatus)?.Text ?? string.Empty;
+                var floodStatus = (await floodStatusesTask).FirstOrDefault(s => s.Id == floodEvent.FloodStatus)?.Text ?? string.Empty;
 
-                var investigationStatus = investigationStatusesTask.Result
-                    .FirstOrDefault(s => s.Id == floodEvent.InvestigationStatus)?.Text ?? string.Empty;
+                var investigationStatus = (await investigationStatusesTask).FirstOrDefault(s => s.Id == floodEvent.InvestigationStatus)?.Text ?? string.Empty;
 
                 // Resolve flood cause names from the SavedSearch.FloodSources Guids.
                 // FloodSources maps to FloodProblem records (previously called "flood sources" but
                 // renamed to "flood causes" to reduce confusion).
                 var savedSearchFloodSources = floodEvent.SavedSearch.FloodSources.ToHashSet();
-                var primaryCauseNames = primaryCausesTask.Result
+                var primaryCauseNames = (await primaryCausesTask)
                     .Where(p => savedSearchFloodSources.Contains(p.Id))
                     .Select(p => p.TypeName ?? string.Empty)
                     .Where(name => !string.IsNullOrEmpty(name))
                     .ToList();
 
-                var secondaryCauseNames = secondaryCausesTask.Result
+                var secondaryCauseNames = (await secondaryCausesTask)
                     .Where(p => savedSearchFloodSources.Contains(p.Id))
                     .Select(p => p.TypeName ?? string.Empty)
                     .Where(name => !string.IsNullOrEmpty(name))
