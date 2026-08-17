@@ -1,5 +1,6 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Export;
+using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Extensions;
 
@@ -11,6 +12,7 @@ internal static class EventOverviewViewModelExtensions
         {
             Reference = viewModel?.SearchReference ?? string.Empty,
             Title = viewModel?.SearchTitle ?? string.Empty,
+            Geom = viewModel?.Geom ?? new MultiPolygon([]),
             FloodingStart = viewModel?.FloodingStart ?? DateTimeOffset.MinValue,
             FloodingEnd = viewModel?.FloodingEnd ?? DateTimeOffset.MinValue,
             PrimaryFloodCauses = viewModel?.PrimaryFloodCauses ?? [],
