@@ -166,8 +166,6 @@ public partial class Index(
         await js.InvokeVoidAsync("print");
     }
 
-    private string? _exportErrorMessage;
-
     private string ExportToJson()
     {
         if (ViewModel is not EventOverviewViewModel model)
