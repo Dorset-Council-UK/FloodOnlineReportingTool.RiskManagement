@@ -43,11 +43,7 @@ public partial class Index(
     private EventOverviewViewModel? ViewModel { get; set; } = default!;
 
     private bool _redirectingToSearchOptions;
-
-    private bool _isExportingJson;
     private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
-
-    private bool _isExportingCsv;
     private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
 
     protected override async Task OnInitializedAsync()
