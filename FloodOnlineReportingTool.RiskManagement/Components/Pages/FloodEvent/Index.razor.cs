@@ -203,7 +203,7 @@ public partial class Index(
                                     .Select(c => new[] { c.X, c.Y })
                                     .ToArray())
                                 .ToArray())
-                        .ToArray()
+                        .ToArray(),
             },
             properties = new
             {
@@ -234,13 +234,13 @@ public partial class Index(
                 exportDto.EstimatedNoGas,
                 exportDto.EstimatedNoFoul,
                 exportDto.EstimatedNoWaterSupply,
-                exportDto.StatusNote
-            }
+                exportDto.StatusNote,
+            },
         };
 
         var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
         {
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
         });
 
         return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
@@ -306,7 +306,7 @@ public partial class Index(
         return
         [
             GeneralPages.Home.ToGdsBreadcrumb(),
-            new ($"{EventPages.View.Url}/{Reference}", $"Flood event {Reference}")
+            new ($"{EventPages.View.Url}/{Reference}", $"Flood event {Reference}"),
         ];
     }
 }
