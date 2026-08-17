@@ -173,7 +173,7 @@ public partial class Index(
             return string.Empty;
         }
         var exportDto = model.ToExportDto();
-        if (exportDto is null)
+        if (exportDto is null || exportDto.Geom.IsEmpty)
         {
             // Invalid record
             return string.Empty;
