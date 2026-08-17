@@ -175,28 +175,6 @@ public partial class Index(
 
     private string? _exportErrorMessage;
 
-    //private async Task DownloadGeoJson()
-    //{
-    //    if (_isExportingJson) {  return; }
-    //    _isExportingJson = true;
-
-    //    try
-    //    {
-    //        var fileStream = await ExportToJsonAsync();
-    //        if (fileStream is null)  {  return; }
-
-    //        using (fileStream)
-    //        using (var streamReference = new DotNetStreamReference(fileStream))
-    //        {
-    //            await js.InvokeVoidAsync("downloadFileFromStream", JsonDownloadFileName, streamReference);
-    //        }
-    //    }
-    //    finally
-    //    {
-    //        _isExportingJson = false;
-    //    }
-    //}
-
     private string ExportToJson()
     {
         if (ViewModel is not EventOverviewViewModel model)
@@ -267,95 +245,6 @@ public partial class Index(
 
         return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
     }
-
-    //private Task<MemoryStream?> ExportToJsonAsync()
-    //{
-    //    _exportErrorMessage = null;
-    //    if (ViewModel is not EventOverviewViewModel model)
-    //    {
-    //        _exportErrorMessage = "Unable to export: the view model is not available.";
-    //        logger.LogWarning(_exportErrorMessage);
-    //        return Task.FromResult<MemoryStream?>(null);
-    //    }
-
-    //    var exportDto = model.ToExportDto();
-    //    if (exportDto is null || exportDto.Geom is null || exportDto.Geom.IsEmpty)
-    //    {
-    //        _exportErrorMessage = "Unable to export: the geometry data is invalid or empty.";
-    //        logger.LogWarning(_exportErrorMessage);
-    //        return Task.FromResult<MemoryStream?>(null);
-    //    }
-
-    //    try
-    //    {
-    //        var feature = new
-    //        {
-    //            type = "Feature",
-    //            geometry = new
-    //            {
-    //                type = "MultiPolygon",
-    //                coordinates = exportDto.Geom.Geometries
-    //                    .OfType<NetTopologySuite.Geometries.Polygon>()
-    //                    .Select(polygon =>
-    //                        new[] { polygon.ExteriorRing }
-    //                            .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
-    //                                .Select(polygon.GetInteriorRingN))
-    //                            .Select(ring => ring.Coordinates
-    //                                .Select(c => new[] { c.X, c.Y })
-    //                                .ToArray())
-    //                            .ToArray())
-    //                    .ToArray()
-    //            },
-    //            properties = new
-    //            {
-    //                exportDto.Reference,
-    //                exportDto.Title,
-    //                exportDto.FloodingStart,
-    //                exportDto.FloodingEnd,
-    //                exportDto.PrimaryFloodCauses,
-    //                exportDto.SecondaryFloodCauses,
-    //                exportDto.ResponsibleOrganisations,
-    //                exportDto.UPRN,
-    //                exportDto.USRN,
-    //                exportDto.RecordStatus,
-    //                exportDto.FloodStatus,
-    //                exportDto.InvestigationStatus,
-    //                exportDto.EstimatedVulnerable,
-    //                exportDto.EstimatedUninhabitable,
-    //                exportDto.EstimatedTotalExternalOnly,
-    //                exportDto.EstimatedTotalInternallyFlooded,
-    //                exportDto.EstimatedDisruptedUtilities,
-    //                exportDto.EstimatedResidentialAffected,
-    //                exportDto.EstimatedResidentialFlooded,
-    //                exportDto.EstimatedResidentialOther,
-    //                exportDto.EstimatedCommercialAffected,
-    //                exportDto.EstimatedCommercialOther,
-    //                exportDto.EstimatedCommercialFlooded,
-    //                exportDto.EstimatedNoElectric,
-    //                exportDto.EstimatedNoGas,
-    //                exportDto.EstimatedNoFoul,
-    //                exportDto.EstimatedNoWaterSupply,
-    //                exportDto.StatusNote
-    //            }
-    //        };
-
-    //        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
-    //        {
-    //            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-    //        });
-
-    //        var bytes = Encoding.UTF8.GetBytes(json);
-    //        var stream = new MemoryStream(bytes);
-
-    //        return Task.FromResult<MemoryStream?>(stream);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
-    //        logger.LogError(ex, _exportErrorMessage);
-    //        return Task.FromResult<MemoryStream?>(null);
-    //    }
-    //}
 
     private async Task DownloadCsv()
     {
