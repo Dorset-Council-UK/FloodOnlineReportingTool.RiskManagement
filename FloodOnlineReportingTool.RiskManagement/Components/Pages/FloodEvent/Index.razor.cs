@@ -1,3 +1,4 @@
+using CsvHelper;
 using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Repositories;
@@ -9,9 +10,11 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Formats.Asn1;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -249,48 +252,137 @@ public partial class Index(
             // Invalid record
             return string.Empty;
         }
-        var csv = new StringBuilder()
-            .AppendLine("Reference,Title,FloodingStart,FloodingEnd,PrimaryFloodCauses,SecondaryFloodCauses,ResponsibleOrganisations,UPRN,USRN,RecordStatus,FloodStatus,InvestigationStatus,EstimatedVulnerable,EstimatedUninhabitable,EstimatedTotalExternalOnly,EstimatedTotalInternallyFlooded,EstimatedDisruptedUtilities,EstimatedResidentialAffected,EstimatedResidentialFlooded,EstimatedResidentialOther,EstimatedCommercialAffected,EstimatedCommercialFlooded,EstimatedCommercialOther,EstimatedNoElectric,EstimatedNoGas,EstimatedNoFoul,EstimatedNoWaterSupply,StatusNote")
-                .Append(string.Join(',',
-                    CsvEscape(exportDto.Reference),
-                    CsvEscape(exportDto.Title),
-                    CsvEscape(exportDto.FloodingStart.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(exportDto.FloodingEnd.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(string.Join("; ", exportDto.PrimaryFloodCauses)),
-                    CsvEscape(string.Join("; ", exportDto.SecondaryFloodCauses)),
-                    CsvEscape(string.Join("; ", exportDto.ResponsibleOrganisations)),
-                    CsvEscape(exportDto.UPRN?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.USRN?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.RecordStatus),
-                    CsvEscape(exportDto.FloodStatus),
-                    CsvEscape(exportDto.InvestigationStatus),
-                    CsvEscape(exportDto.EstimatedVulnerable.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(exportDto.EstimatedUninhabitable.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(exportDto.EstimatedTotalExternalOnly.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(exportDto.EstimatedTotalInternallyFlooded.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(exportDto.EstimatedDisruptedUtilities.ToString(CultureInfo.InvariantCulture)),
-                    CsvEscape(exportDto.EstimatedResidentialAffected?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedResidentialFlooded?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedResidentialOther?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedCommercialAffected?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedCommercialFlooded?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedCommercialOther?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedNoElectric?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedNoGas?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedNoFoul?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.EstimatedNoWaterSupply?.ToString(CultureInfo.InvariantCulture) ?? string.Empty),
-                    CsvEscape(exportDto.StatusNote ?? string.Empty)
-                    )).AppendLine();
+        //var csv = new StringBuilder()
+        //    .AppendLine("Reference,Title,FloodingStart,FloodingEnd,PrimaryFloodCauses,SecondaryFloodCauses,ResponsibleOrganisations,UPRN,USRN,RecordStatus,FloodStatus,InvestigationStatus,EstimatedVulnerable,EstimatedUninhabitable,EstimatedTotalExternalOnly,EstimatedTotalInternallyFlooded,EstimatedDisruptedUtilities,EstimatedResidentialAffected,EstimatedResidentialFlooded,EstimatedResidentialOther,EstimatedCommercialAffected,EstimatedCommercialFlooded,EstimatedCommercialOther,EstimatedNoElectric,EstimatedNoGas,EstimatedNoFoul,EstimatedNoWaterSupply,StatusNote")
+        //        .Append(string.Join(',',
+        //            CsvEscapeString(exportDto.Reference),
+        //            CsvEscapeString(exportDto.Title),
+        //            CsvEscapeDateTime(exportDto.FloodingStart),
+        //            CsvEscapeDateTime(exportDto.FloodingEnd),
+        //            CsvEscapeStrings(exportDto.PrimaryFloodCauses),
+        //            CsvEscapeStrings(exportDto.SecondaryFloodCauses),
+        //            CsvEscapeStrings(exportDto.ResponsibleOrganisations),
+        //            CsvEscapeLong(exportDto.UPRN),
+        //            CsvEscapeLong(exportDto.USRN),
+        //            CsvEscapeString(exportDto.RecordStatus),
+        //            CsvEscapeString(exportDto.FloodStatus),
+        //            CsvEscapeString(exportDto.InvestigationStatus),
+        //            CsvEscapeInt(exportDto.EstimatedVulnerable),
+        //            CsvEscapeInt(exportDto.EstimatedUninhabitable),
+        //            CsvEscapeInt(exportDto.EstimatedTotalExternalOnly),
+        //            CsvEscapeInt(exportDto.EstimatedTotalInternallyFlooded),
+        //            CsvEscapeInt(exportDto.EstimatedDisruptedUtilities),
+        //            CsvEscapeInt(exportDto.EstimatedResidentialAffected),
+        //            CsvEscapeInt(exportDto.EstimatedResidentialFlooded),
+        //            CsvEscapeInt(exportDto.EstimatedResidentialOther),
+        //            CsvEscapeInt(exportDto.EstimatedCommercialAffected),
+        //            CsvEscapeInt(exportDto.EstimatedCommercialFlooded),
+        //            CsvEscapeInt(exportDto.EstimatedCommercialOther),
+        //            CsvEscapeInt(exportDto.EstimatedNoElectric),
+        //            CsvEscapeInt(exportDto.EstimatedNoGas),
+        //            CsvEscapeInt(exportDto.EstimatedNoFoul),
+        //            CsvEscapeInt(exportDto.EstimatedNoWaterSupply),
+        //            CsvEscapeString(exportDto.StatusNote)
+        //            )).AppendLine();
 
-        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+        // Write csv data to Memory Stream
+        MemoryStream ms = new();
+
+        using var writer = new StreamWriter(ms, leaveOpen: true);        
+        using var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+        csvWriter.WriteField("Reference");
+        csvWriter.WriteField("Title");
+        csvWriter.WriteField("FloodingStart");
+        csvWriter.WriteField("FloodingEnd");
+        csvWriter.WriteField("PrimaryFloodCauses");
+        csvWriter.WriteField("SecondaryFloodCauses");
+        csvWriter.WriteField("ResponsibleOrganisations");
+        csvWriter.WriteField("UPRN");
+        csvWriter.WriteField("USRN");
+        csvWriter.WriteField("RecordStatus");
+        csvWriter.WriteField("FloodStatus");
+        csvWriter.WriteField("InvestigationStatus");
+        csvWriter.WriteField("EstimatedVulnerable");
+        csvWriter.WriteField("EstimatedUninhabitable");
+        csvWriter.WriteField("EstimatedTotalExternalOnly");
+        csvWriter.WriteField("EstimatedTotalInternallyFlooded");
+        csvWriter.WriteField("EstimatedDisruptedUtilities");
+        csvWriter.WriteField("EstimatedResidentialAffected");
+        csvWriter.WriteField("EstimatedResidentialFlooded");
+        csvWriter.WriteField("EstimatedResidentialOther");
+        csvWriter.WriteField("EstimatedCommercialAffected");
+        csvWriter.WriteField("EstimatedCommercialFlooded");
+        csvWriter.WriteField("EstimatedCommercialOther");
+        csvWriter.WriteField("EstimatedNoElectric");
+        csvWriter.WriteField("EstimatedNoGas");
+        csvWriter.WriteField("EstimatedNoFoul");
+        csvWriter.WriteField("EstimatedNoWaterSupply");
+        csvWriter.WriteField("StatusNote");
+        csvWriter.NextRecord();
+
+        csvWriter.WriteField(exportDto.Reference);
+        csvWriter.WriteField(exportDto.Title);
+        csvWriter.WriteField(exportDto.FloodingStart);
+        csvWriter.WriteField(exportDto.FloodingEnd);
+        csvWriter.WriteField(exportDto.PrimaryFloodCauses);
+        csvWriter.WriteField(exportDto.SecondaryFloodCauses);
+        csvWriter.WriteField(exportDto.ResponsibleOrganisations);
+        csvWriter.WriteField(exportDto.UPRN);
+        csvWriter.WriteField(exportDto.USRN);
+        csvWriter.WriteField(exportDto.RecordStatus);
+        csvWriter.WriteField(exportDto.FloodStatus);
+        csvWriter.WriteField(exportDto.InvestigationStatus);
+        csvWriter.WriteField(exportDto.EstimatedVulnerable);
+        csvWriter.WriteField(exportDto.EstimatedUninhabitable);
+        csvWriter.WriteField(exportDto.EstimatedTotalExternalOnly);
+        csvWriter.WriteField(exportDto.EstimatedTotalInternallyFlooded);
+        csvWriter.WriteField(exportDto.EstimatedDisruptedUtilities);
+        csvWriter.WriteField(exportDto.EstimatedResidentialAffected);
+        csvWriter.WriteField(exportDto.EstimatedResidentialFlooded);
+        csvWriter.WriteField(exportDto.EstimatedResidentialOther);
+        csvWriter.WriteField(exportDto.EstimatedCommercialAffected);
+        csvWriter.WriteField(exportDto.EstimatedCommercialFlooded);
+        csvWriter.WriteField(exportDto.EstimatedCommercialOther);
+        csvWriter.WriteField(exportDto.EstimatedNoElectric);
+        csvWriter.WriteField(exportDto.EstimatedNoGas);
+        csvWriter.WriteField(exportDto.EstimatedNoFoul);
+        csvWriter.WriteField(exportDto.EstimatedNoWaterSupply);
+        csvWriter.WriteField(exportDto.StatusNote);
+        csvWriter.NextRecord();
+
+        writer.Flush();
+        
+        // Set pointer to start of memory stream for export
+        ms.Position = 0;
+
+        return string.Empty;
+        //// return file created from memory stream
+        ////return File(ms, "text/csv", "registerofinterests.csv");
+
+        //await JS.InvokeVoidAsync("downloadFile", "users.csv", csvContent);
+
+        //return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
+
+
+        //string CsvEscapeInt(int? value)
+        //    => CsvEscapeString(value?.ToString(CultureInfo.InvariantCulture) ?? null);
+
+        //string CsvEscapeLong(long? value)
+        //    => CsvEscapeString(value?.ToString(CultureInfo.InvariantCulture) ?? null);
+
+        //string CsvEscapeDateTime(DateTimeOffset? value)
+        //    => CsvEscapeString(value?.ToString(CultureInfo.InvariantCulture) ?? null);
+
+        //string CsvEscapeStrings(IReadOnlyCollection<string> values)
+        //    => CsvEscapeString(string.Join("; ", values));
+
+        //string CsvEscapeString(string? value)
+        //    => string.IsNullOrEmpty(value)
+        //        ? string.Empty
+        //        : $"\"{value.Replace("\"", "\"\"")}\"";
+                 
     }
 
-    private static string CsvEscape(string? value)
-    {
-        return string.IsNullOrEmpty(value)
-            ? string.Empty
-            : $"\"{value.Replace("\"", "\"\"")}\"";
-    }
 
     private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
     {

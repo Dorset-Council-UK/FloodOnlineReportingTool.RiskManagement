@@ -5,6 +5,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
 		<RepositoryUrl>https://github.com/Dorset-Council-UK/FloodOnlineReportingTool.RiskManagement</RepositoryUrl>
 		<UserSecretsId>9f7891c0-ddf3-4332-a92a-fe8fd2e0788c</UserSecretsId>
 	</PropertyGroup>
@@ -16,6 +17,7 @@
 		<PackageReference Include="Azure.Identity" Version="1.21.0" />
 		<PackageReference Include="Azure.Storage.Blobs" Version="12.29.1" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
+		<PackageReference Include="CsvHelper" Version="33.1.0" />
 		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="4.0.0" />
 		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
