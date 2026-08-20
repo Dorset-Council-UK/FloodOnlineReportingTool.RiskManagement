@@ -46,12 +46,12 @@ public record EventOverviewViewModelToCSV : CSVDataCreator<EventOverviewViewMode
         csvWriter.WriteField(objectToWriteToCSV.EstimatedTotalExternalOnly);
         csvWriter.WriteField(objectToWriteToCSV.EstimatedTotalInternallyFlooded);
         csvWriter.WriteField(objectToWriteToCSV.EstimatedDisruptedUtilities);
-        csvWriter.WriteField(objectToWriteToCSV.EstimatedResidentialAffected);
-        csvWriter.WriteField(objectToWriteToCSV.EstimatedResidentialFlooded);
-        csvWriter.WriteField(objectToWriteToCSV.EstimatedResidentialOther);
-        csvWriter.WriteField(objectToWriteToCSV.EstimatedCommercialAffected);
-        csvWriter.WriteField(objectToWriteToCSV.EstimatedCommercialFlooded);
-        csvWriter.WriteField(objectToWriteToCSV.EstimatedCommercialOther);
+        csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedResidentialAffected));
+        csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedResidentialFlooded));
+        csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedResidentialOther));
+        csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedCommercialAffected));
+        csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedCommercialFlooded));
+        csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedCommercialOther));
         csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedNoElectric));
         csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedNoGas));
         csvWriter.WriteField(NullableNumberToString(objectToWriteToCSV.EstimatedNoFoul));
