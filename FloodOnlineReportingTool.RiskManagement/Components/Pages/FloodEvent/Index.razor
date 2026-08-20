@@ -243,10 +243,11 @@
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
                     <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
-                    <p>
-                        <button class="govuk-button" @onclick="ExportToCsv">CSV</button>
-                    </p>
-                    <p><GdsLink Href="@ExportToJson()" download="@JsonDownloadFileName">GeoJSON</GdsLink></p>
+                    <p><button class="govuk-link" @onclick="ExportToCsv">CSV</button></p>
+                    @if (ViewModel.Geom is not null && ViewModel.Geom.NumGeometries is not 0)
+                    {
+                        <p><button class="govuk-link" @onclick="ExportToJson">GeoJSON</button></p>
+                    }
 
                 </GdsGridColumn>
             </GdsGridRow>
@@ -258,19 +259,3 @@
         <GdsWarning Text="You do not have permission to view events. Contact your administrator to request permission." />
     </NotAuthorized>
 </AuthorizeView>
-
-@* TODO: Consider converting this into TypeScript and/or moving it to a separate file *@
-<script>
-    // See https://learn.microsoft.com/en-us/aspnet/core/blazor/file-downloads?view=aspnetcore-10.0#download-from-a-stream for more information on downloading files from a stream in Blazor
-    window.downloadCSV = async (fileName, contentStreamReference) => {
-        const arrayBuffer = await contentStreamReference.arrayBuffer();
-        const blob = new Blob([arrayBuffer]);
-        const url = URL.createObjectURL(blob);
-        const anchorElement = document.createElement('a');
-        anchorElement.href = url;
-        anchorElement.download = fileName ?? '';
-        anchorElement.click();
-        anchorElement.remove();
-        URL.revokeObjectURL(url);
-    }
-</script>

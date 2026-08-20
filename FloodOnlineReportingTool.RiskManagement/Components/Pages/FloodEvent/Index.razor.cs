@@ -10,11 +10,6 @@ using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using System.Formats.Asn1;
-using System.Globalization;
-using System.Text;
-using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -169,84 +164,40 @@ public partial class Index(
         await js.InvokeVoidAsync("print");
     }
 
-    private string ExportToJson()
+    /// <summary>
+    /// Exports the flood event details to a GeoJSON file and triggers a download in the browser.
+    /// </summary>
+    /// <returns></returns>
+    private async Task ExportToJson()
     {
-        if (ViewModel is not EventOverviewViewModel model)
-        {
-            return string.Empty;
-        }
-        var exportDto = model.ToExportDto();
-        if (exportDto is null || exportDto.Geom.IsEmpty)
-        {
-            // Invalid record
-            return string.Empty;
-        }
-        var feature = new
-        {
-            type = "Feature",
-            geometry = new
-            {
-                type = "MultiPolygon",
-                coordinates = exportDto.Geom.Geometries
-                        .OfType<NetTopologySuite.Geometries.Polygon>()
-                        .Select(polygon =>
-                            new[] { polygon.ExteriorRing }
-                                .Concat(Enumerable.Range(0, polygon.NumInteriorRings)
-                                    .Select(polygon.GetInteriorRingN))
-                                .Select(ring => ring.Coordinates
-                                    .Select(c => new[] { c.X, c.Y })
-                                    .ToArray())
-                                .ToArray())
-                        .ToArray(),
-            },
-            properties = new
-            {
-                exportDto.Reference,
-                exportDto.Title,
-                exportDto.FloodingStart,
-                exportDto.FloodingEnd,
-                exportDto.PrimaryFloodCauses,
-                exportDto.SecondaryFloodCauses,
-                exportDto.ResponsibleOrganisations,
-                exportDto.UPRN,
-                exportDto.USRN,
-                exportDto.RecordStatus,
-                exportDto.FloodStatus,
-                exportDto.InvestigationStatus,
-                exportDto.EstimatedVulnerable,
-                exportDto.EstimatedUninhabitable,
-                exportDto.EstimatedTotalExternalOnly,
-                exportDto.EstimatedTotalInternallyFlooded,
-                exportDto.EstimatedDisruptedUtilities,
-                exportDto.EstimatedResidentialAffected,
-                exportDto.EstimatedResidentialFlooded,
-                exportDto.EstimatedResidentialOther,
-                exportDto.EstimatedCommercialAffected,
-                exportDto.EstimatedCommercialOther,
-                exportDto.EstimatedCommercialFlooded,
-                exportDto.EstimatedNoElectric,
-                exportDto.EstimatedNoGas,
-                exportDto.EstimatedNoFoul,
-                exportDto.EstimatedNoWaterSupply,
-                exportDto.StatusNote,
-            },
-        };
+        // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
+        // page is in British National Grid (SRID 27700), so re-fetch it reprojected for export.
+        const int wgs84Srid = 4326;
+        var wgs84EventResult = await floodEventRepository.GetBySearchReference(Reference, wgs84Srid, _cts.Token);
+        var geom = wgs84EventResult.ResultModel?.SavedSearch.Geom;
 
-        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
-        {
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
-        });
+        var geoJsonStream = await GeoJsonConverter.CreateGeoJsonAsync(
+            new EventOverviewViewModelToGeoJson(),
+            ViewModel,
+            geom,
+            _cts.Token);
 
-        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+        if (geoJsonStream is null)
+        {
+            return;
+        }
+
+        await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
+            EventOverviewViewModelToGeoJson.CreateFileName(Reference),
+            geoJsonStream);
     }
-
 
     /// <summary>
     /// Exports the flood event details to a CSV file and triggers a download in the browser.
     /// </summary>
     /// <returns></returns>
     private async Task ExportToCsv()
-        => await js.InvokeVoidAsync("downloadCSV", _cts.Token, 
+        => await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token, 
             EventOverviewViewModelToCSV.CreateFileName(Reference), 
             CSVConverter.CreateCsv(new EventOverviewViewModelToCSV(), ViewModel));
 
