@@ -1,0 +1,85 @@
+﻿<GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
+    <GdsGridColumn AdditionalCssClasses="print-main-column">
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                Flood cause
+            </dt>
+            <dd class="govuk-summary-list__value">
+                @if (SourceRecord.FloodCauses is not null && SourceRecord.FloodCauses.Any())
+                {
+                    <ul>
+                        @foreach (var cause in SourceRecord.FloodCauses)
+                        {
+                            <li>@cause</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span>Unknown</span>
+                }
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                Is the flood ongoing?
+            </dt>
+            <dd class="govuk-summary-list__value">
+                @(SourceRecord.IsOnGoing == true ? "Yes" : "No")
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                Uninhabitable?
+            </dt>
+            <dd class="govuk-summary-list__value">
+                @(SourceRecord.IsUninhabitable == true ? "Yes" : "No")
+            </dd>
+        </div>
+        <div class="govuk-summary-list__row page-break">
+            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                Vulnerable people?
+            </dt>
+            <dd class="govuk-summary-list__value">
+                @(SourceRecord.VulnerableCount > 0 ? SourceRecord.VulnerableCount.ToString() : "Unknown")
+            </dd>
+        </div>
+
+        <GdsHeading Level="3">Contacts</GdsHeading>
+        <dl class="govuk-summary-list">
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                    Contacts available
+                </dt>
+                <dd class="govuk-summary-list__value">
+                    @(SourceRecord.HasContacts == true ? "Yes" : "No")
+                </dd>
+            </div>
+        </dl>
+
+        <GdsHeading Level="3">Organisations</GdsHeading>
+        <dl class="govuk-summary-list">
+            <div class="govuk-summary-list__row">
+                <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
+                    Lead organisation
+                </dt>
+                <dd class="govuk-summary-list__value">
+                    @if (SourceRecord.Organisations is not null && SourceRecord.Organisations.Any())
+                    {
+                        <ul>
+                            @foreach (var org in SourceRecord.Organisations)
+                            {
+                                <li>@org</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span>Unknown</span>
+                    }
+                </dd>
+            </div>
+        </dl>
+
+    </GdsGridColumn>
+</GdsGridRow>
