@@ -242,11 +242,15 @@
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="4">Download the data</GdsHeading>
+                    @if (!string.IsNullOrEmpty(_exportErrorMessage))
+                    {
+                        <GdsWarning Text="@_exportErrorMessage" />
+                    }
                     <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
-                    <p><button class="govuk-link" @onclick="ExportToCsv">CSV</button></p>
+                    <p><button class="govuk-link" @onclick="ExportToCsv" disabled="@_isExportingCsv"><span class="govuk-visually-hidden">Download </span>CSV</button></p>
                     @if (ViewModel.Geom is not null && ViewModel.Geom.NumGeometries is not 0)
                     {
-                        <p><button class="govuk-link" @onclick="ExportToJson">GeoJSON</button></p>
+                        <p><button class="govuk-link" @onclick="ExportToJson" disabled="@_isExportingJson"><span class="govuk-visually-hidden">Download </span>GeoJSON</button></p>
                     }
 
                 </GdsGridColumn>

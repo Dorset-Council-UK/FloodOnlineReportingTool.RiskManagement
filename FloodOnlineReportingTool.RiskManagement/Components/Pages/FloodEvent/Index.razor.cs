@@ -36,10 +36,11 @@ public partial class Index(
 
     private readonly CancellationTokenSource _cts = new();
     private EventOverviewViewModel? ViewModel { get; set; } = default!;
+    private bool _isExportingJson;
 
+    private bool _isExportingCsv;
+    private string? _exportErrorMessage;
     private bool _redirectingToSearchOptions;
-    private string JsonDownloadFileName => $"flood-event-{Reference}.geojson";
-    private string CsvDownloadFileName => $"flood-event-{Reference}.csv";
 
     protected override async Task OnInitializedAsync()
     {
@@ -167,9 +168,14 @@ public partial class Index(
     /// <returns></returns>
     private async Task ExportToJson()
     {
-        // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
-        // page is in British National Grid (SRID 27700), so re-fetch it reprojected for export.
-        const int wgs84Srid = 4326;
+        _isExportingJson = true;
+        _exportErrorMessage = null;
+        try
+        {
+            if (ViewModel is null) throw new InvalidOperationException("ViewModel was null when exporting to GeoJSON");
+            // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
+            // page is in British National Grid (SRID 27700), so re-fetch it reprojected for export.
+            const int wgs84Srid = 4326;
         var wgs84EventResult = await floodEventRepository.GetBySearchReference(Reference, wgs84Srid, _cts.Token);
         var geom = wgs84EventResult.ResultModel?.SavedSearch.Geom;
 
@@ -187,6 +193,16 @@ public partial class Index(
         await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
             EventOverviewViewModelToGeoJson.CreateFileName(Reference),
             geoJsonStream);
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+        }
+        finally
+        {
+            _isExportingJson = false;
+        }
     }
 
     /// <summary>
@@ -194,10 +210,25 @@ public partial class Index(
     /// </summary>
     /// <returns></returns>
     private async Task ExportToCsv()
-        => await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token, 
-            EventOverviewViewModelToCSV.CreateFileName(Reference), 
+    {
+        _isExportingCsv = true;
+        _exportErrorMessage = null;
+        try
+        {
+            await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
+            ReportOverviewViewModelToCSV.CreateFileName(Reference),
             CSVConverter.CreateCsv(new EventOverviewViewModelToCSV(), ViewModel));
-
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+        }
+        finally
+        {
+            _isExportingCsv = false;
+        }
+    }
 
     private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
     {

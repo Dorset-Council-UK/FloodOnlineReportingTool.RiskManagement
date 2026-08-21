@@ -189,8 +189,6 @@ public partial class Details(
             if (ViewModel is null) throw new InvalidOperationException("ViewModel was null when exporting to GeoJSON");
             // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
             // page is in British National Grid (SRID 27700), so use the Lat/Lon values instead.
-            //const int wgs84Srid = 4326;
-            //var wgs84EventResult = await floodReportRepository.GetBySearchReference(Reference, wgs84Srid, _cts.Token);
             var geom = new Point(decimal.ToDouble(ViewModel.Longitude), decimal.ToDouble(ViewModel.Latitude));
 
             var geoJsonStream = await GeoJsonConverter.CreateGeoJsonAsync(
