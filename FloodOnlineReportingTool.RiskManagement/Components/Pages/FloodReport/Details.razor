@@ -147,16 +147,11 @@
                         <GdsWarning Text="@_exportErrorMessage" />
                     }
                     <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
-                    <p>
-                        <a href="@_selfUrl" @onclick="DownloadCsv" @onclick:preventDefault="true" aria-disabled="@_isExportingCsv">
-                            <span class="govuk-visually-hidden">Download </span>CSV
-                        </a>
-                    </p>
-                    <p>
-                        <a href="@_selfUrl" @onclick="DownloadGeoJson" @onclick:preventDefault="true" aria-disabled="@_isExportingJson">
-                            <span class="govuk-visually-hidden">Download </span>GeoJSON
-                        </a>
-                    </p>
+                    <p><button class="govuk-link" @onclick="ExportToCsv" disabled="@_isExportingCsv"><span class="govuk-visually-hidden">Download </span>CSV</button></p>
+                    @if (ViewModel.Geom is not null && ViewModel.Geom.NumGeometries is not 0)
+                    {
+                        <p><button class="govuk-link" @onclick="ExportToJson" disabled="@_isExportingJson"><span class="govuk-visually-hidden">Download </span>GeoJSON</button></p>
+                    }
                 </GdsGridColumn>
             </GdsGridRow>
         }

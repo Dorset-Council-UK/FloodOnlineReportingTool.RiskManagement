@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Converters;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
+using NetTopologySuite.Geometries;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -51,10 +53,9 @@ public partial class Details(
     private ReportOverviewViewModel? ViewModel { get; set; } = default!;
 
     private bool _isExportingJson;
-    private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
 
     private bool _isExportingCsv;
-    private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
+    private string? _exportErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -175,23 +176,43 @@ public partial class Details(
         await js.InvokeVoidAsync("print");
     }
 
-    private string? _exportErrorMessage;
-
-    private async Task DownloadGeoJson()
+    /// <summary>
+    /// Exports the flood event details to a GeoJSON file and triggers a download in the browser.
+    /// </summary>
+    /// <returns></returns>
+    private async Task ExportToJson()
     {
-        if (_isExportingJson) { return; }
         _isExportingJson = true;
-
+        _exportErrorMessage = null;
         try
         {
-            var fileStream = await ExportToJsonAsync();
-            if (fileStream is null) { return; }
+            if (ViewModel is null) throw new InvalidOperationException("ViewModel was null when exporting to GeoJSON");
+            // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
+            // page is in British National Grid (SRID 27700), so use the Lat/Lon values instead.
+            //const int wgs84Srid = 4326;
+            //var wgs84EventResult = await floodReportRepository.GetBySearchReference(Reference, wgs84Srid, _cts.Token);
+            var geom = new Point(decimal.ToDouble(ViewModel.Longitude), decimal.ToDouble(ViewModel.Latitude));
 
-            using (fileStream)
-            using (var streamReference = new DotNetStreamReference(fileStream))
+            var geoJsonStream = await GeoJsonConverter.CreateGeoJsonAsync(
+                new ReportOverviewViewModelToGeoJson(),
+                ViewModel,
+                geom,
+                _cts.Token);
+
+            if (geoJsonStream is null)
             {
-                await js.InvokeVoidAsync("downloadFileFromStream", JsonDownloadFileName, streamReference);
+                _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+                return;
             }
+
+            await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
+                ReportOverviewViewModelToGeoJson.CreateFileName(Reference),
+                geoJsonStream);
+        }
+        catch (Exception ex)
+        {
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
         }
         finally
         {
@@ -199,131 +220,29 @@ public partial class Details(
         }
     }
 
-    private Task<MemoryStream?> ExportToJsonAsync()
+    /// <summary>
+    /// Exports the flood report details to a CSV file and triggers a download in the browser.
+    /// </summary>
+    /// <returns></returns>
+    private async Task ExportToCsv()
     {
+        _isExportingCsv = true;
         _exportErrorMessage = null;
-        if (ViewModel is not ReportOverviewViewModel model)
-        {
-            _exportErrorMessage = "Unable to export: the view model is not available.";
-            logger.LogWarning(_exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
-
-        var exportDto = model.ToExportDto(ReportStatus);
-        if (exportDto is null)
-        {
-            _exportErrorMessage = "Unable to export this record.";
-            logger.LogWarning(_exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
-
         try
         {
-            var feature = new
-            {
-                type = "Feature",
-                geometry = new
-                {
-                    type = "Point",
-                    coordinates = new[] { exportDto.X, exportDto.Y }
-                },
-                properties = new
-                {
-                    exportDto.Reference,
-                    exportDto.ReportedOn,
-                    exportDto.RecordStatus,
-                    exportDto.Easting,
-                    exportDto.Northing
-                }
-            };
-
-            var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
-            {
-                NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-            });
-
-            var bytes = Encoding.UTF8.GetBytes(json);
-            var stream = new MemoryStream(bytes);
-
-            return Task.FromResult<MemoryStream?>(stream);
+            await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
+            ReportOverviewViewModelToCSV.CreateFileName(Reference),
+            CSVConverter.CreateCsv(new ReportOverviewViewModelToCSV(), ViewModel));
         }
         catch (Exception ex)
         {
             _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
             logger.LogError(ex, _exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
-    }
-
-    private async Task DownloadCsv()
-    {
-        if (_isExportingCsv) { return; }
-        _isExportingCsv = true;
-
-        try
-        {
-            var fileStream = await ExportToCsvAsync();
-            if (fileStream is null) { return; }
-
-            using (fileStream)
-            using (var streamReference = new DotNetStreamReference(fileStream))
-            {
-                await js.InvokeVoidAsync("downloadFileFromStream", CsvDownloadFileName, streamReference);
-            }
         }
         finally
         {
             _isExportingCsv = false;
         }
-    }
-
-    private Task<MemoryStream?> ExportToCsvAsync()
-    {
-        _exportErrorMessage = null;
-        if (ViewModel is not ReportOverviewViewModel model)
-        {
-            _exportErrorMessage = "Unable to export: the view model is not available.";
-            logger.LogWarning(_exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
-
-        var exportDto = model.ToExportDto(ReportStatus);
-        if (exportDto is null)
-        {
-            _exportErrorMessage = "Unable to export: the export data is invalid.";
-            logger.LogWarning(_exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
-
-        try
-        {
-            var csv = new StringBuilder()
-                .AppendLine("Reference,ReportedOn,RecordStatus,Easting,Northing")
-                .AppendLine(string.Join(',',
-                    CsvEscape(exportDto.Reference),
-                    CsvEscape(exportDto.ReportedOn),
-                    CsvEscape(exportDto.RecordStatus),
-                    exportDto.Easting.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    exportDto.Northing.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-
-            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-            var stream = new MemoryStream(bytes);
-
-            return Task.FromResult<MemoryStream?>(stream);
-        }
-        catch (Exception ex)
-        {
-            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
-            logger.LogError(ex, _exportErrorMessage);
-            return Task.FromResult<MemoryStream?>(null);
-        }
-    }
-
-    private static string CsvEscape(string? value)
-    {
-        return string.IsNullOrEmpty(value)
-            ? string.Empty
-            : $"\"{value.Replace("\"", "\"\"")}\"";
     }
 
     private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()

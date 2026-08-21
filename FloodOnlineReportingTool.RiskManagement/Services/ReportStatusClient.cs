@@ -276,7 +276,9 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
             RecordStatusId = floodReport.RecordStatus,
             Geom = firstSource.Geom,
             LocationDescription = firstSource.LocationDescription ?? string.Empty,
-            SourceRecords = sourceRecords
+            SourceRecords = sourceRecords,
+            Latitude = firstSource.Latitude,
+            Longitude = firstSource.Longitude,
         };
 
         return GetResult<ReportOverviewViewModel>.Success(returnModel);

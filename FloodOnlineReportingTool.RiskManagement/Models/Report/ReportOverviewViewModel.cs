@@ -12,6 +12,8 @@ public record ReportOverviewViewModel
     public required Guid RecordStatusId { get; set; }
     public required Point Geom { get; init; }
     public required string LocationDescription { get; init; }
+    public required decimal Latitude { get; init; }
+    public required decimal Longitude { get; init; }
 
     public IReadOnlyCollection<ReportOverviewSourceItem> SourceRecords { get; set; } = [];
 }
