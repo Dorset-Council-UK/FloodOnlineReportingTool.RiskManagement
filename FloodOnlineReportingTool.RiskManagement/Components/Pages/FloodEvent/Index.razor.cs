@@ -176,23 +176,25 @@ public partial class Index(
             // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
             // page is in British National Grid (SRID 27700), so re-fetch it reprojected for export.
             const int wgs84Srid = 4326;
-        var wgs84EventResult = await floodEventRepository.GetBySearchReference(Reference, wgs84Srid, _cts.Token);
-        var geom = wgs84EventResult.ResultModel?.SavedSearch.Geom;
+            var wgs84EventResult = await floodEventRepository.GetBySearchReference(Reference, wgs84Srid, _cts.Token);
+            var geom = wgs84EventResult.ResultModel?.SavedSearch.Geom;
 
-        var geoJsonStream = await GeoJsonConverter.CreateGeoJsonAsync(
-            new EventOverviewViewModelToGeoJson(),
-            ViewModel,
-            geom,
-            _cts.Token);
+            var geoJsonStream = await GeoJsonConverter.CreateGeoJsonAsync(
+                new EventOverviewViewModelToGeoJson(),
+                ViewModel,
+                geom,
+                _cts.Token);
 
-        if (geoJsonStream is null)
-        {
-            return;
-        }
+            if (geoJsonStream is null)
+            {
+                return;
+            }
 
-        await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
-            EventOverviewViewModelToGeoJson.CreateFileName(Reference),
-            geoJsonStream);
+            await js.InvokeVoidAsync("downloadFileFromStream", 
+                _cts.Token,
+                EventOverviewViewModelToGeoJson.CreateFileName(Reference),
+                geoJsonStream
+            );
         }
         catch (Exception ex)
         {
@@ -215,9 +217,11 @@ public partial class Index(
         _exportErrorMessage = null;
         try
         {
-            await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
-            ReportOverviewViewModelToCSV.CreateFileName(Reference),
-            CSVConverter.CreateCsv(new EventOverviewViewModelToCSV(), ViewModel));
+            await js.InvokeVoidAsync("downloadFileFromStream", 
+                _cts.Token,
+                EventOverviewViewModelToCSV.CreateFileName(Reference),
+                CSVConverter.CreateCsv(new EventOverviewViewModelToCSV(), ViewModel)
+            );
         }
         catch (Exception ex)
         {
