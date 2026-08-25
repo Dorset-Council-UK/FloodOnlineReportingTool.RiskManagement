@@ -1,6 +1,7 @@
-using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Converters;
 using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Report;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
+using NetTopologySuite.Geometries;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -50,6 +52,11 @@ public partial class Details(
     private readonly CancellationTokenSource _cts = new();
     private ReportOverviewViewModel? ViewModel { get; set; } = default!;
 
+    private bool _isExportingJson;
+
+    private bool _isExportingCsv;
+    private string? _exportErrorMessage;
+
     protected override async Task OnInitializedAsync()
     {
         _actionsEditContext = new EditContext(_actionsModel);
@@ -81,18 +88,12 @@ public partial class Details(
             // GetFloodReportDetail returns SearchResultFloodReport, fully mapped and ready for display.
             // SearchFloodReportByReference returns FloodReportWithSourceReferences (raw API shape) and
             // should not be used here as it does not contain the full data needed for display.
-            var reportResult = await reportStatusClient.GetFloodReportDetail(Reference, true, _cts.Token);
+            var reportResult = await reportStatusClient.GetFloodReportOverview(Reference, _cts.Token);
 
             if (reportResult.IsSuccess && reportResult.ResultModel is not null)
             {
+                ViewModel = reportResult.ResultModel;
                 var reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
-                ViewModel = new ReportOverviewViewModel
-                {
-                    Id = reportResult.ResultModel.Id,
-                    Reference = reportResult.ResultModel.Reference,
-                    RecordStatusId = reportResult.ResultModel.RecordStatusId,
-                    SourceRecords = reportResult.ResultModel.SourceRecords
-                };
                 ReportStatus = reportStatuses.Where(rs => rs.Id == ViewModel.RecordStatusId).Select(rs => rs.Text).FirstOrDefault() ?? string.Empty;
 
                 AcknowledgeAction = await actionLogRepository.GetAcknowledgeActionByReport(ViewModel.Reference, _cts.Token);
@@ -175,76 +176,71 @@ public partial class Details(
         await js.InvokeVoidAsync("print");
     }
 
-    private string JsonDownloadFileName => $"flood-report-{Reference}.geojson";
-    private string CsvDownloadFileName => $"flood-report-{Reference}.csv";
-
-    private string ExportToJson()
+    /// <summary>
+    /// Exports the flood event details to a GeoJSON file and triggers a download in the browser.
+    /// </summary>
+    /// <returns></returns>
+    private async Task ExportToJson()
     {
-        if (ViewModel is not ReportOverviewViewModel model)
+        _isExportingJson = true;
+        _exportErrorMessage = null;
+        try
         {
-            return string.Empty;
-        }
-        var exportDto = model.ToExportDto(ReportStatus);
-        if (exportDto is null)
-        {
-            // Invalid record
-            return string.Empty;
-        }
-        var feature = new
-        {
-            type = "Feature",
-            geometry = new
+            if (ViewModel is null) throw new InvalidOperationException("ViewModel was null when exporting to GeoJSON");
+            // GeoJSON requires coordinates in WGS84 (SRID 4326), but the geometry loaded for the
+            // page is in British National Grid (SRID 27700), so use the Lat/Lon values instead.
+            var geom = new Point(decimal.ToDouble(ViewModel.Longitude), decimal.ToDouble(ViewModel.Latitude));
+
+            var geoJsonStream = await GeoJsonConverter.CreateGeoJsonAsync(
+                new ReportOverviewViewModelToGeoJson(),
+                ViewModel,
+                geom,
+                _cts.Token);
+
+            if (geoJsonStream is null)
             {
-                type = "Point",
-                coordinates = new[] { exportDto.X, exportDto.Y }
-            },
-            properties = new
-            {
-                exportDto.Reference,
-                exportDto.ReportedOn,
-                exportDto.RecordStatus,
-                exportDto.Easting,
-                exportDto.Northing
+                _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+                return;
             }
-        };
 
-        var json = JsonSerializer.Serialize(feature, new JsonSerializerOptions
+            await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
+                ReportOverviewViewModelToGeoJson.CreateFileName(Reference),
+                geoJsonStream);
+        }
+        catch (Exception ex)
         {
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals
-        });
-
-        return $"data:application/geo+json;charset=utf-8,{Uri.EscapeDataString(json)}";
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
+        }
+        finally
+        {
+            _isExportingJson = false;
+        }
     }
 
-    private string ExportToCsv()
+    /// <summary>
+    /// Exports the flood report details to a CSV file and triggers a download in the browser.
+    /// </summary>
+    /// <returns></returns>
+    private async Task ExportToCsv()
     {
-        if (ViewModel is not ReportOverviewViewModel model)
+        _isExportingCsv = true;
+        _exportErrorMessage = null;
+        try
         {
-            return string.Empty;
+            await js.InvokeVoidAsync("downloadFileFromStream", _cts.Token,
+            ReportOverviewViewModelToCSV.CreateFileName(Reference),
+            CSVConverter.CreateCsv(new ReportOverviewViewModelToCSV(), ViewModel));
         }
-        var exportDto = model.ToExportDto(ReportStatus);
-        if (exportDto is null)
+        catch (Exception ex)
         {
-            // Invalid record
-            return string.Empty;
+            _exportErrorMessage = "An error occurred while preparing the export. Please try again.";
+            logger.LogError(ex, _exportErrorMessage);
         }
-        var csv = new StringBuilder()
-            .AppendLine("Reference,ReportedOn,RecordStatus,Easting,Northing")
-            .AppendLine(string.Join(',',
-                CsvEscape(exportDto.Reference),
-                CsvEscape(exportDto.ReportedOn),
-                CsvEscape(exportDto.RecordStatus),
-                exportDto.Easting.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                exportDto.Northing.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-
-        return $"data:text/csv;charset=utf-8,{Uri.EscapeDataString(csv.ToString())}";
-    }
-
-    private static string CsvEscape(string? value)
-    {
-        return string.IsNullOrEmpty(value)
-            ? string.Empty
-            : $"\"{value.Replace("\"", "\"\"")}\"";
+        finally
+        {
+            _isExportingCsv = false;
+        }
     }
 
     private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()

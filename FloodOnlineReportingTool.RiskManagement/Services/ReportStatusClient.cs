@@ -1,8 +1,10 @@
 ﻿using FloodOnlineReportingTool.Contracts.Shared.Models;
 using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
+using FloodOnlineReportingTool.RiskManagement.Models.Report;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
 using NetTopologySuite.Geometries;
@@ -81,32 +83,29 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         }
     }
 
-    /// <summary>
-    /// Retrieves the full flood report detail for display on the details page.
-    /// The downstream API avoids circular references by returning source data as string references
-    /// on <see cref="FloodReportWithSourceReferences"/>. This method resolves each reference via
-    /// a second API call, then assembles the full <see cref="SearchResultFloodReport"/> for the view.
-    /// </summary>
-    public async Task<GetResult<SearchResultFloodReport>> GetFloodReportDetail(string reference, bool firstSourceOnly = false, CancellationToken ct = default)
+    // Retrieves the flood report and resolves all source references into the slim SearchResultFloodReportSource
+    // contract type. Used by GetFloodReportDetail where the full entity fields are not required.
+    private async Task<(GetResult<FloodReportWithSourceReferences> _report, List<SearchResultFloodReportSource> _sources)> GetFloodReportResults(
+        string reference,
+        bool firstSourceOnly = false,
+        CancellationToken ct = default)
     {
-        logger.LogInformation("Retrieving full flood report detail for reference");
-
         var searchResult = await SearchFloodReportByReference(reference, ct);
 
         if (!searchResult.IsSuccess)
         {
             logger.LogWarning("Flood report not found for reference");
-            return GetResult<SearchResultFloodReport>.Failure(["Flood report not found."]);
+            return (GetResult<FloodReportWithSourceReferences>.Failure(["Flood report not found."]), []);
         }
 
         var floodReport = searchResult.ResultModel;
 
         if (floodReport is null)
         {
-            return GetResult<SearchResultFloodReport>.Failure(["Flood report result was empty."]);
+            return (GetResult<FloodReportWithSourceReferences>.Failure(["Flood report result was empty."]), []);
         }
 
-        // Resolve each source reference string into a full SearchResultFloodReportSource.
+        // Resolve each source reference string into a slim SearchResultFloodReportSource.
         // The API returns references rather than full source objects to avoid circular references.
         var sourceRecords = new List<SearchResultFloodReportSource>(floodReport.SourceReferences.Count);
 
@@ -117,7 +116,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
             if (!sourceResult.IsSuccess || sourceResult.ResultModel is null)
             {
                 logger.LogWarning("Flood report source not found for reference {SourceReference}", sourceReference);
-                return GetResult<SearchResultFloodReport>.Failure([$"Flood report source not found for reference '{sourceReference}'."]);
+                return (GetResult<FloodReportWithSourceReferences>.Failure([$"Flood report source not found for reference '{sourceReference}'."]), []);
             }
 
             sourceRecords.Add(sourceResult.ResultModel);
@@ -127,6 +126,184 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
                 break;
             }
         }
+
+        return (GetResult<FloodReportWithSourceReferences>.Success(floodReport), sourceRecords);
+    }
+
+    // Retrieves the flood report and resolves all source references into the full FloodReportSource
+    // entity. Used by GetFloodReportOverview where all fields (LocationDescription, Geom, ContactRecordTypes, etc.) are required.
+    private async Task<(GetResult<FloodReportWithSourceReferences> _report, List<FloodReportSource> _sources)> GetFullFloodReportResults(
+        string reference,
+        CancellationToken ct = default)
+    {
+        var searchResult = await SearchFloodReportByReference(reference, ct);
+
+        if (!searchResult.IsSuccess)
+        {
+            logger.LogWarning("Flood report not found for reference");
+            return (GetResult<FloodReportWithSourceReferences>.Failure(["Flood report not found."]), []);
+        }
+
+        var floodReport = searchResult.ResultModel;
+
+        if (floodReport is null)
+        {
+            return (GetResult<FloodReportWithSourceReferences>.Failure(["Flood report result was empty."]), []);
+        }
+
+        var sourceRecords = new List<FloodReportSource>(floodReport.SourceReferences.Count);
+
+        foreach (var sourceReference in floodReport.SourceReferences)
+        {
+            var sourceResult = await GetFullFloodReportSourceByReference(floodReport.Id, sourceReference, ct);
+
+            if (!sourceResult.IsSuccess || sourceResult.ResultModel is null)
+            {
+                logger.LogWarning("Flood report source not found for reference {SourceReference}", sourceReference);
+                return (GetResult<FloodReportWithSourceReferences>.Failure([$"Flood report source not found for reference '{sourceReference}'."]), []);
+            }
+
+            sourceRecords.Add(sourceResult.ResultModel);
+        }
+
+        return (GetResult<FloodReportWithSourceReferences>.Success(floodReport), sourceRecords);
+    }
+
+    // Returns the full FloodReportSource entity including all fields.
+    // Used when the caller needs fields not present on SearchResultFloodReportSource
+    // (e.g., LocationDescription, Geom, ContactRecordTypes).
+    private async Task<GetResult<FloodReportSource>> GetFullFloodReportSourceByReference(Guid floodReportId, string reference, CancellationToken ct = default)
+    {
+        logger.LogInformation("Fetching full flood report source from downstream API by reference");
+
+        var relativePath = $"/api/flood/report/{floodReportId}/sources/{Uri.EscapeDataString(reference)}";
+        try
+        {
+            var result = await downstreamApi
+                .CallApiForUserAsync<FloodReportSource>(RiskManagementOptions.ReportStatusApi, options =>
+                {
+                    options.RelativePath = relativePath;
+                    options.Deserializer = (content) =>
+                    {
+                        if (content is null) return null;
+                        var stream = content.ReadAsStream(ct);
+                        return JsonSerializer.Deserialize<FloodReportSource>(stream, _jsonSerializerOptions);
+                    };
+                }, cancellationToken: ct);
+
+            if (result is not null)
+            {
+                logger.LogInformation("Full flood report source found in downstream API");
+                return GetResult<FloodReportSource>.Success(result);
+            }
+
+            logger.LogWarning("No flood report source found in downstream API");
+            return GetResult<FloodReportSource>.Failure(["No flood report source found for reference."]);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
+                                                        or System.Net.HttpStatusCode.NotFound)
+        {
+            logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report source exists", ex.StatusCode);
+            return GetResult<FloodReportSource>.Failure(["No flood report source found for reference."]);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Downstream API request failed for flood report source — {Message}", ex.Message);
+            return GetResult<FloodReportSource>.Failure(["Downstream API request failed for flood report source."]);
+        }
+    }
+
+    public async Task<GetResult<ReportOverviewViewModel>> GetFloodReportOverview(string reference, CancellationToken ct = default)
+    {
+        logger.LogInformation("Retrieving full flood report overview for reference");
+
+        // Use the full source variant to retain all fields (Geom, LocationDescription, ContactRecordTypes, etc.)
+        var searchResult = await GetFullFloodReportResults(reference, ct);
+
+        if (!searchResult._report.IsSuccess)
+        {
+            var errorMessage = searchResult._report.Errors.FirstOrDefault() ?? "Flood report not found.";
+            return GetResult<ReportOverviewViewModel>.Failure([errorMessage]);
+        }
+
+        var floodReport = searchResult._report.ResultModel;
+        if (floodReport is null)
+        {
+            return GetResult<ReportOverviewViewModel>.Failure(["Flood report result was empty."]);
+        }
+
+        var sourceRecords = searchResult._sources
+            .Select(source => new ReportOverviewSourceItem
+            {
+                Reference = source.Reference,
+                ViewUri = source.ViewUri,
+                CreatedUtc = source.CreatedUtc,
+                UpdatedUtc = source.UpdatedUtc,
+                Uprn = source.Uprn,
+                Usrn = source.Usrn,
+                Easting = source.Easting,
+                Northing = source.Northing,
+                Latitude = source.Latitude,
+                Longitude = source.Longitude,
+                ImpactStartUtc = source.ImpactStartUtc,
+                ImpactDurationHours = source.ImpactDurationHours,
+                IsOnGoing = source.IsOnGoing,
+                IsUninhabitable = source.IsUninhabitable,
+                VulnerableCount = source.VulnerableCount,
+                HasInvestigation = source.HasInvestigation,
+                HasContacts = source.HasContacts,
+                ContactRecordTypes = source.ContactRecordTypes.Select(c => c.ToString()).ToArray(),
+                FloodCauses = source.FloodCauses.Select(fc => fc.Name).ToArray(),
+                Organisations = source.Organisations.Select(o => o.OrganisationName).ToArray(),
+            })
+            .ToArray();
+
+        // Use the first source's geometry and location for the parent view model,
+        // as these represent the primary flood location for display on the page.
+        var firstSource = searchResult._sources.FirstOrDefault();
+        if (firstSource is null)
+        {
+            return GetResult<ReportOverviewViewModel>.Failure(["Flood report has no source records."]);
+        }
+
+        var returnModel = new ReportOverviewViewModel
+        {
+            Id = floodReport.Id,
+            CreatedUtc = floodReport.CreatedUtc,
+            Reference = floodReport.Reference,
+            UpdatedAt = floodReport.UpdatedUtc,
+            UpdatedBy = null,
+            RecordStatusId = floodReport.RecordStatus,
+            Geom = firstSource.Geom,
+            LocationDescription = firstSource.LocationDescription ?? string.Empty,
+            SourceRecords = sourceRecords,
+            Latitude = firstSource.Latitude,
+            Longitude = firstSource.Longitude,
+        };
+
+        return GetResult<ReportOverviewViewModel>.Success(returnModel);
+    }
+
+    /// <summary>
+    /// Retrieves the full flood report detail for display on the details page.
+    /// The downstream API avoids circular references by returning source data as string references
+    /// on <see cref="FloodReportWithSourceReferences"/>. This method resolves each reference via
+    /// a second API call, then assembles the full <see cref="SearchResultFloodReport"/> for the view.
+    /// </summary>
+    public async Task<GetResult<SearchResultFloodReport>> GetFloodReportDetail(string reference, bool firstSourceOnly = false, CancellationToken ct = default)
+    {
+        logger.LogInformation("Retrieving full flood report detail for reference");
+
+        var searchResult = await GetFloodReportResults(reference, firstSourceOnly, ct);
+
+        if (!searchResult._report.IsSuccess)
+        {
+            logger.LogWarning("Flood report not found for reference");
+            return GetResult<SearchResultFloodReport>.Failure(["Flood report not found."]);
+        }
+
+        var floodReport = searchResult._report.ResultModel;
+        var sourceRecords = searchResult._sources;
 
         // Map FloodReportWithSourceReferences + resolved sources → SearchResultFloodReport.
         // RecordStatus (Guid) on the parent maps directly to RecordStatusId on the result.
@@ -180,6 +357,11 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
         {
             logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report exists", ex.StatusCode);
             return GetResult<FloodReportWithSourceReferences>.Failure(["No flood report found for reference."]);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Downstream API request failed for flood report source — {Message}", ex.Message);
+            return GetResult<FloodReportWithSourceReferences>.Failure(["Downstream API request failed for flood report source."]);
         }
     }
 

@@ -146,7 +146,7 @@
                     </dl>
 
                     <GdsHeading Level="3">Organisations</GdsHeading>
-                    <dl class="govuk-summary-list">
+                    <dl class="govuk-summary-list page-break">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
                                 Lead organisation
@@ -225,7 +225,7 @@
                                 }
                             </dd>
                         </div>
-                    </dl>
+                    </dl>                    
                     <div style="height:300px;" class="govuk-!-margin-bottom-2">
                         <MiniMap Geometry=ViewModel.Geom></MiniMap>
                     </div>
@@ -246,16 +246,12 @@
                     {
                         <GdsWarning Text="@_exportErrorMessage" />
                     }
-                    <p><a href="@_selfUrl" @onclick="PrintPageAsync" @onclick:preventDefault="true">Print/Save page</a></p>
-                    <p><a href="@_selfUrl" @onclick="DownloadCsv" @onclick:preventDefault="true" aria-disabled="@_isExportingCsv">
-                        <span class="govuk-visually-hidden">Download </span>CSV
-                        </a>
-                    </p>
-                    <p>
-                        <a href="@_selfUrl" @onclick="DownloadGeoJson" @onclick:preventDefault="true" aria-disabled="@_isExportingJson">
-                            <span class="govuk-visually-hidden">Download </span>GeoJSON
-                        </a>
-                    </p>
+                    <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
+                    <p><button class="govuk-link" @onclick="ExportToCsv" disabled="@_isExportingCsv"><span class="govuk-visually-hidden">Download </span>CSV</button></p>
+                    @if (ViewModel.Geom is not null && ViewModel.Geom.NumGeometries is not 0)
+                    {
+                        <p><button class="govuk-link" @onclick="ExportToJson" disabled="@_isExportingJson"><span class="govuk-visually-hidden">Download </span>GeoJSON</button></p>
+                    }
 
                 </GdsGridColumn>
             </GdsGridRow>

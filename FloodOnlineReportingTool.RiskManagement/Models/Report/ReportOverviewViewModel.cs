@@ -1,16 +1,19 @@
-﻿using FloodOnlineReportingTool.Contracts.Shared.Search;
+﻿using NetTopologySuite.Geometries;
 
 namespace FloodOnlineReportingTool.RiskManagement.Models.Report;
 
 public record ReportOverviewViewModel
 {
-    //[GdsFieldErrorClass(GdsFieldTypes.Input)]
-    //public string? UprnText { get; set; }
-    //public long? Uprn => long.TryParse(UprnText, CultureInfo.InvariantCulture, out var value) ? value : null;
-
     public Guid Id { get; init; }
-    public string Reference { get; init; } = string.Empty;
-    public Guid RecordStatusId { get; init; }
+    public required DateTimeOffset CreatedUtc { get; init; }
+    public DateTimeOffset? UpdatedAt { get; init; }
+    public string? UpdatedBy { get; init; }
+    public required string Reference { get; init; }
+    public required Guid RecordStatusId { get; set; }
+    public required Point Geom { get; init; }
+    public required string LocationDescription { get; init; }
+    public required decimal Latitude { get; init; }
+    public required decimal Longitude { get; init; }
 
-    public IReadOnlyCollection<SearchResultFloodReportSource> SourceRecords { get; init; } = [];
+    public IReadOnlyCollection<ReportOverviewSourceItem> SourceRecords { get; set; } = [];
 }
