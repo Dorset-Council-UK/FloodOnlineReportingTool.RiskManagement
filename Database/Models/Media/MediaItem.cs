@@ -1,4 +1,6 @@
-﻿namespace FloodOnlineReportingTool.Database.Models.Media
+﻿using System.Globalization;
+
+namespace FloodOnlineReportingTool.Database.Models.Media
 {
     public class MediaItem
     {
@@ -9,5 +11,62 @@
 
         // Foreign key
         public Guid FloodEventId { get; set; }
+
+        public MediaType Format
+        {
+            get
+            {
+                var extension = new System.IO.FileInfo(URL).Extension.ToLower(CultureInfo.InvariantCulture);
+                switch (extension ?? "") // URL.Substring(URL.Length - 4).ToLower
+                {
+                    case ".gif":
+                    case ".jpg":
+                    case ".jpeg":
+                    case ".png":
+                    case ".bmp":
+                    case ".tif":
+                    case ".tiff":
+                    case ".webp":
+                        {
+                            return MediaType.Image;
+                        }
+
+                    case ".wmv":
+                    case ".mov":
+                    case ".mp4":
+                    case ".mpg":
+                    case ".mpeg":
+                    case ".qt":
+                    case ".3gp":
+                    case ".webm":
+                    case ".ogg":
+                        {
+                            return MediaType.Video;
+                        }
+
+                    case ".pdf":
+                        {
+                            return MediaType.PDF_Document;
+                        }
+
+                    case ".doc":
+                    case ".docx":
+                        {
+                            return MediaType.Word_Document;
+                        }
+
+                    case ".xls":
+                    case ".xlsx":
+                        {
+                            return MediaType.Excel_Spreadsheet;
+                        }
+
+                    default:
+                        {
+                            return MediaType.Unknown;
+                        }
+                }
+            }
+        }
     }
 }

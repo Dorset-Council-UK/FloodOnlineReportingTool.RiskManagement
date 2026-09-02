@@ -1,14 +1,18 @@
 ﻿using FloodOnlineReportingTool.Database.DbContexts;
 using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace FloodOnlineReportingTool.Database.Repositories
 {
     public class MediaItemRepository(
         ILogger<MediaItemRepository> logger,
-        IDbContextFactory<RiskManagementDbContext> contextFactory
+        IDbContextFactory<RiskManagementDbContext> contextFactory,
+        IBlobStorageService blobStorageService
     ) : IMediaItemRepository
     {
         public async Task<int> GetCountByEvent(Guid floodEventId, CancellationToken cancellationToken)
@@ -104,6 +108,58 @@ namespace FloodOnlineReportingTool.Database.Repositories
             await context.SaveChangesAsync(cancellationToken);
 
             return DeleteResult<MediaItem>.Success();
+        }
+
+        public async Task<bool> RotateMediaImage(Guid mediaItemId, int rotationDegrees, CancellationToken ct = default)
+        {
+            try
+            {
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
+                var mediaItem = await context.MediaItems.Where(m => m.Id == mediaItemId).FirstOrDefaultAsync(ct);
+
+                if (mediaItem is null)
+                {
+                    logger.LogWarning("Media item with ID {MediaItemId} not found", mediaItemId);
+                    return false;
+                }
+
+                // Download the image from blob storage
+                var imageStream = await blobStorageService.DownloadFileFromBlobByURLAsync(mediaItem.URL);
+                if (imageStream is null)
+                {
+                    logger.LogWarning("Failed to download image from blob storage for media item {MediaItemId}", mediaItemId);
+                    return false;
+                }
+
+                // Load and rotate the image
+                using var image = await Image.LoadAsync(imageStream, ct);
+                imageStream.Dispose();
+
+                // Rotate the image based on degrees
+                image.Mutate(x => x.Rotate(rotationDegrees));
+
+                // Save rotated image to a memory stream
+                using var rotatedStream = new MemoryStream();
+                await image.SaveAsJpegAsync(rotatedStream, ct);
+                rotatedStream.Position = 0;
+
+                // Upload the rotated image back to blob storage (this will overwrite the existing image)
+                var uri = new Uri(mediaItem.URL);
+
+                // Extract just the filename from the URL
+                var segments = uri.Segments;
+                var fileName = segments[^1]; // Get the last segment (filename)
+
+                await blobStorageService.UploadFileToBlobAsync(fileName, "image/jpeg", rotatedStream);
+
+                logger.LogInformation("Successfully rotated media item {MediaItemId} by {RotationDegrees} degrees", mediaItemId, rotationDegrees);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred rotating media item {MediaItemId}", mediaItemId);
+                return false;
+            }
         }
 
         public async Task<Result<MediaItem>> UpdateTitle(Guid mediaItemId, string title, CancellationToken cancellationToken)
