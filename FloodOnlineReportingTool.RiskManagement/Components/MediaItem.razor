@@ -19,7 +19,7 @@
             <div class="card-body">
                 @if (IsEditable)
                 {
-                    <button type="button" class="btn btn-sm btn-outline-danger me-2" @onclick="DeleteMedia" disabled="@_isRotating"><i class="bi bi-trash"></i> Delete</button>
+                    <GdsButton IsSubmit="false" CssClass="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
                     <button type="button" class="btn btn-sm btn-outline-secondary me-2" title="Rotate counter clockwise" @onclick="() => RotateImage(-90)" disabled="@_isRotating">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </button>
