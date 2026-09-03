@@ -42,7 +42,7 @@
     {
         <div class="card">
             <div class="card-body">
-                <video src="@Media.URL" class="my-2" style="max-width:100%;height:300px;max-height:80vh" controls preload="metadata"></video>
+                <video src="@GetImageUrlWithCacheBuster()" class="my-2" style="max-width:100%;height:300px;max-height:80vh" controls preload="metadata"></video>
                 <div class="my-2">
                     @if (IsEditable)
                     {
