@@ -12,6 +12,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
         public FloodEvent? FloodEvent { get; set; }
         [Parameter]
         public bool IsEditable { get; set; }
+        [Parameter]
+        public required string Reference { get; set; }
         private readonly CancellationTokenSource _cts = new();
 
         private ICollection<MediaType>? MediaTypes;
@@ -19,6 +21,15 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
 
         protected override async Task OnInitializedAsync()
         {
+            //get flood event ID by search reference
+            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+            if (!floodEvent.IsSuccess || floodEvent.ResultModel is null)
+            {
+                logger.LogWarning("Flood event could not be found by search reference when loading media items");
+                return;
+            }
+
+            FloodEvent = floodEvent.ResultModel;
             MediaTypes = [.. Enum.GetValues<MediaType>().Where(mt => mt != MediaType.Unknown)];
 
             await base.OnInitializedAsync();
