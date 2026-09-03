@@ -1,9 +1,12 @@
 ﻿@using System.Globalization
 @using FloodOnlineReportingTool.Database.Models.Media
 @using FloodOnlineReportingTool.Database.Repositories
+@using FloodOnlineReportingTool.RiskManagement.Options
+@using Microsoft.Extensions.Options
 @inject IJSRuntime JS
 @inject ILogger<MediaItem> logger
 @inject IMediaItemRepository mediaItemRepository
+@inject IOptions<AzureBlobStorageOptions> blobStorageOptions
 
 @if (Media is not null)
 {
@@ -109,8 +112,11 @@
     {
         if (Media?.URL == null) return string.Empty;
 
-        var separator = Media.URL.Contains('?') ? "&" : "?";
-        return $"{Media.URL}{separator}v={_cacheBuster}";
+        var urlWithSasToken = string.IsNullOrWhiteSpace(blobStorageOptions.Value.ReadSASToken) 
+            ? Media.URL 
+            : $"{Media.URL}?{blobStorageOptions.Value.ReadSASToken.TrimStart('?')}";
+        var separator = urlWithSasToken.Contains('?') ? "&" : "?";
+        return $"{urlWithSasToken}{separator}v={_cacheBuster}";
     }
 
     private async Task DeleteMedia()
