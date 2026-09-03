@@ -26,7 +26,7 @@
     if (docs.Any())
     {
         <GdsGridRow>
-            <GdsHeading Level="4">Documents</GdsHeading>
+            <GdsHeading Level="3">Documents</GdsHeading>
             <div class="col">
                 <div class="table-responsive">
                     <table class="table table-striped">
@@ -45,7 +45,7 @@
     if (images.Any())
     {
         <GdsGridRow>
-            <GdsHeading Level="4">Images</GdsHeading>
+            <GdsHeading Level="3">Images</GdsHeading>
             <div id="media-gallery">
                 @foreach (DbMediaItem mediaItem in images.OrderByDescending(i => i.UploadDateUtc))
                 {
@@ -59,7 +59,7 @@
     if (videos.Any())
     {
         <GdsGridRow>
-            <GdsHeading Level="4">Videos</GdsHeading>
+            <GdsHeading Level="3">Videos</GdsHeading>
             @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
             {
                 <div class="col-12">
