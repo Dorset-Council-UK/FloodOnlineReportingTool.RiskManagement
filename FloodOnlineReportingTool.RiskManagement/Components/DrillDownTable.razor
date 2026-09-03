@@ -14,19 +14,19 @@
     </thead>
     <tbody class="govuk-table__body">        
         <tr class="govuk-table__row">
-            <td scope="row" class="govuk-table__cell">
+            <th scope="row" class="govuk-table__cell">
                 @if (currentParentIndex is not null)
                 {
                     <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="GoUpOneLevel" Text="<" />
                 }
-            </td>
+            </th>
             @TotalDataDisplay(ChildHierarchicalData().Select(x => x.Data))
             <td scope="row" class="govuk-table__cell"></td>
         </tr>
         @foreach (var row in ChildHierarchicalData())
         {
             <tr class="govuk-table__row">
-                <td scope="row" class="govuk-table__cell"></td>
+                <th scope="row" class="govuk-table__cell"></th>
                 @RowDataDisplay(row.Data)                
                 <td scope="row" class="govuk-table__cell">
                     @if (RowHasChildren(row.Index))
@@ -50,7 +50,7 @@
     /// <summary>
     /// The title which should be displayed above the table
     /// </summary>
-    /// <remarks> The row corresponding to the current parent (if it exists) will form the context, so information about this can be used in the calling component. 
+    /// <remarks> The row corresponding to the current parent (if it exists) will form the context, so information about this can be used in the calling component.</remarks>
     [Parameter]
     public RenderFragment<TRowData?> Title { get; set; } = default!;
 
@@ -63,14 +63,14 @@
     /// <summary>
     /// An HTML-encased total row for display at the top of the table
     /// </summary>
-    /// <remarks>All the children to be shown will form the context, so the calling component can use this for diaplying aggregated data.
+    /// <remarks>All the children to be shown will form the context, so the calling component can use this for diaplying aggregated data.</remarks>
     [Parameter, EditorRequired]
     public RenderFragment<IEnumerable<TRowData>> TotalDataDisplay { get; set; } = default!;
 
     /// <summary>
     /// A set of HTML-encased cells indicating how the data in a single row should be displayed.
     /// </summary>
-    /// <remarks>The current item of data will form the context, so information about this can be used in the calling component.
+    /// <remarks>The current item of data will form the context, so information about this can be used in the calling component.</remarks>
     [Parameter, EditorRequired]
     public RenderFragment<TRowData> RowDataDisplay { get; set; } = default!;
 

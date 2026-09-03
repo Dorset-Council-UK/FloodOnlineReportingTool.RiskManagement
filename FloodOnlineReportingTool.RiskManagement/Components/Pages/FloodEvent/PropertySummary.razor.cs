@@ -3,9 +3,7 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.CSharp.RuntimeBinder;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
-using System.Text.Json;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -50,7 +48,7 @@ public partial class PropertySummary(
         //Using the bounding polygon associated with whatever model we pass in, call the GeoAPI (places/Get Address Summary) to get all affected properties as GeoJSON
         //Convert the GeoJSON into an object or dynamic.
         //From this object extract a hierarchical list of premises types and number of affected properties per type (as per below hard-coded example).
-        // This should build the list such that tertiary claassifications are children of secondary classifications are children of primary classifications.
+        // This should build the list such that tertiary classifications are children of secondary classifications are children of primary classifications.
 
         premisesTotals = [
             (1, null, ("Dual Use", 1)),
