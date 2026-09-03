@@ -14,20 +14,20 @@
     {
         <div class="card my-2 bg-light-subtle">
             <a href="@GetImageUrlWithCacheBuster()" class="blueimp-img">
-                <img src="@GetImageUrlWithCacheBuster()" class="img-fluid" style="@(_isRotating ? "opacity: 0.5;" : "")" />
+                <img src="@GetImageUrlWithCacheBuster()" class="img-fluid" height="200" style="@(_isRotating ? "opacity: 0.5;" : "")" />
             </a>
             <div class="card-body">
                 @if (IsEditable)
                 {
-                    <GdsButton IsSubmit="false" CssClass="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" title="Rotate counter clockwise" @onclick="() => RotateImage(-90)" disabled="@_isRotating">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" title="Rotate clockwise" @onclick="() => RotateImage(90)" disabled="@_isRotating">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
+                    <div class="govuk-button-group">
+                        <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
+                        <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate counter clockwise" OnClick="() => RotateImage(-90)" disabled="@_isRotating"></GdsButton>
+                        <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate clockwise" OnClick="() => RotateImage(90)" disabled="@_isRotating"></GdsButton>
+                    </div>
                 }
-                <a href="@Media.URL" download target="_blank" class="btn btn-sm btn-outline-secondary me-2" title="Download"><i class="bi bi-cloud-arrow-down"></i></a>
+                
+                <GdsLink Href="@Media.URL" download target="_blank">Download</GdsLink>
+
                 <div class="mt-2 pt-2 border-1 border-top">
                     @if (!string.IsNullOrEmpty(Media.Title))
                     {
@@ -46,9 +46,9 @@
                 <div class="my-2">
                     @if (IsEditable)
                     {
-                        <button type="button" class="btn btn-sm btn-outline-danger me-2" @onclick="DeleteMedia"><i class="bi bi-trash"></i> Delete</button>
+                        <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton>
                     }
-                    <a href="@Media.URL" download target="_blank" class="btn btn-sm btn-outline-secondary me-2" title="Download"><i class="bi bi-cloud-arrow-down"></i></a>
+                    <GdsLink Href="@Media.URL" download target="_blank">Download</GdsLink>
 
                     <div class="mt-2 pt-2 border-1 border-top">
                         @if (!string.IsNullOrEmpty(Media.Title))
@@ -81,15 +81,14 @@
         <tr>
 
             <td>
-                <a href="@Media.URL" download target="_blank">
-                    <i class="bi @icon"></i>
+                <GdsLink Href="@Media.URL" download target="_blank">
                     @(string.IsNullOrEmpty(Media.Title) ? new System.IO.FileInfo(Media.URL).Name : Media.Title)
-                </a>
+                </GdsLink>
             </td>
             <td>@(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</td>
             @if (IsEditable)
             {
-                <td> <button type="button" class="btn btn-sm btn-outline-danger" @onclick="DeleteMedia"><i class="bi bi-trash"></i> Delete</button></td>
+                <td><GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton></td>
             }
 
         </tr>
