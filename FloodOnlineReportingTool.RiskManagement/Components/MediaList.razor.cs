@@ -16,7 +16,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
         public required string Reference { get; set; }
         private readonly CancellationTokenSource _cts = new();
 
-        private ICollection<MediaType>? MediaTypes;
         private IJSObjectReference? _jsModule;
 
         protected override async Task OnInitializedAsync()
@@ -30,7 +29,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
             }
 
             FloodEvent = floodEvent.ResultModel;
-            MediaTypes = [.. Enum.GetValues<MediaType>().Where(mt => mt != MediaType.Unknown)];
 
             await base.OnInitializedAsync();
         }

@@ -1,77 +1,73 @@
 ﻿@using FloodOnlineReportingTool.Database.Models.Media
 @using DbMediaItem = FloodOnlineReportingTool.Database.Models.Media.MediaItem
 
-@if (FloodEvent is not null)
+
+@if (FloodEvent is not null && FloodEvent.MediaItems.Any())
 {
-    @if (MediaTypes is not null)
+    var images = FloodEvent.MediaItems
+        .Where(m => m.Format == MediaType.Image)
+        .OrderByDescending(i => i.UploadDateUtc)
+        .ToList();
+
+    var videos = FloodEvent.MediaItems
+        .Where(m => m.Format == MediaType.Video)
+        .OrderByDescending(i => i.UploadDateUtc)
+        .ToList();
+
+    var docs = FloodEvent.MediaItems
+        .Where(m =>
+            m.Format == MediaType.PDF_Document ||
+            m.Format == MediaType.Word_Document ||
+            m.Format == MediaType.Excel_Spreadsheet ||
+            m.Format == MediaType.Unknown)
+        .OrderByDescending(i => i.UploadDateUtc)
+        .ToList();
+
+    if (docs.Any())
     {
-        foreach (var mediaType in MediaTypes)
-        {
-            <GdsHeading Level="3">@mediaType</GdsHeading>
-            //show the existing files
-            var mediaOfType = FloodEvent.MediaItems?.Where(m => m.Format == mediaType);
-            if(mediaOfType is not null){
-
-                var images = from m in mediaOfType where m.Format == MediaType.Image select m;
-                var videos = from m in mediaOfType where m.Format == MediaType.Video select m;
-                var docs =
-                    from m in mediaOfType
-                    where (
-                        m.Format == MediaType.PDF_Document ||
-                        m.Format == MediaType.Word_Document ||
-                        m.Format == MediaType.Excel_Spreadsheet ||
-                        m.Format == MediaType.Unknown)
-                    select m;
-
-                if (docs.Count() != 0)
-                {
-                    <GdsGridRow>
-                        <GdsHeading Level="4">Documents</GdsHeading>
-                        <div class="col">
-                            <div class="table-responsive">
-                                <table class="table table-striped">
-                                    <tbody>
-                                        @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
-                                        {
-                                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </GdsGridRow>
-                }
-
-                if (images.Count() != 0)
-                {
-                    <GdsGridRow>
-                        <GdsHeading Level="4">Images</GdsHeading>
-                        <div id="media-gallery">
-                            @foreach (DbMediaItem mediaItem in images.OrderByDescending(i => i.UploadDateUtc))
+        <GdsGridRow>
+            <GdsHeading Level="4">Documents</GdsHeading>
+            <div class="col">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <tbody>
+                            @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
                             {
                                 <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
                             }
-                        </div>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </GdsGridRow>
+    }
 
-                    </GdsGridRow>
-                    <hr />
-                }
-                if (videos.Count() != 0)
+    if (images.Any())
+    {
+        <GdsGridRow>
+            <GdsHeading Level="4">Images</GdsHeading>
+            <div id="media-gallery">
+                @foreach (DbMediaItem mediaItem in images.OrderByDescending(i => i.UploadDateUtc))
                 {
-                    <GdsGridRow>
-                        <GdsHeading Level="4">Videos</GdsHeading>
-                        @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
-                        {
-                            <div class="col-12">
-                                <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                            </div>
-                        }
-                    </GdsGridRow>
-                    <hr />
+                    <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
                 }
+            </div>
+
+        </GdsGridRow>
+        <hr />
+    }
+    if (videos.Any())
+    {
+        <GdsGridRow>
+            <GdsHeading Level="4">Videos</GdsHeading>
+            @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
+            {
+                <div class="col-12">
+                    <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+                </div>
             }
-            <hr/>
-        }
+        </GdsGridRow>
+        <hr />
     }
 }
 else

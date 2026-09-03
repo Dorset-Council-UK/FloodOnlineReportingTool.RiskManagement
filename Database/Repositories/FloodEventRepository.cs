@@ -219,6 +219,7 @@ public class FloodEventRepository(
         var floodEvent = await context.FloodEvents
             .AsNoTracking()
             .IgnoreAutoIncludes()
+            .Include(e => e.MediaItems)
             .Include(e => e.SavedSearch)
             .Where(e => e.SavedSearch.Reference == searchReference)
             .FirstOrDefaultAsync(cancellationToken);
@@ -255,6 +256,7 @@ public class FloodEventRepository(
             .AsNoTracking()
             .IgnoreAutoIncludes()
             .Include(e => e.SavedSearch)
+            .Include(e => e.MediaItems)
             .FirstOrDefaultAsync(e => e.Id == floodEventId, cancellationToken);
         if (floodEvent is null)
         {
