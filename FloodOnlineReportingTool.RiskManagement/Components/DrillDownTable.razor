@@ -1,0 +1,94 @@
+﻿@typeparam TRowData
+
+@if (Title is not null)
+{
+    @Title(ParentHierarchicalData().Data)
+}
+<table class="govuk-table">
+    <thead class="govuk-table__head">
+        <tr class="govuk-table__row">
+            <th scope="col" class="govuk-table__header">Up</th>
+            @ColumnHeadersDisplay
+            <th scope="col" class="govuk-table__header">Down</th>
+        </tr>
+    </thead>
+    <tbody class="govuk-table__body">        
+        <tr class="govuk-table__row">
+            <td scope="row" class="govuk-table__cell">
+                @if (currentParentIndex is not null)
+                {
+                    <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="GoUpOneLevel" Text="<" />
+                }
+            </td>
+            @TotalDataDisplay(ChildHierarchicalData().Select(x => x.Data))
+            <td scope="row" class="govuk-table__cell"></td>
+        </tr>
+        @foreach (var row in ChildHierarchicalData())
+        {
+            <tr class="govuk-table__row">
+                <td scope="row" class="govuk-table__cell"></td>
+                @RowDataDisplay(row.Data)                
+                <td scope="row" class="govuk-table__cell">
+                    @if (RowHasChildren(row.Index))
+                    {
+                        <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" OnClick="() => GoDownOneLevel(row.Index)" Text=">" />
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    /// <summary>
+    /// The data to display in the table together with indices to build the hierarchy.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyCollection<(int Index, int? ParentIndex, TRowData Data)> HierarchicalData { get; init; } = [];
+
+    /// <summary>
+    /// The title which should be displayed above the table
+    /// </summary>
+    /// <remarks> The row corresponding to the current parent (if it exists) will form the context, so information about this can be used in the calling component. 
+    [Parameter]
+    public RenderFragment<TRowData?> Title { get; set; } = default!;
+
+    /// <summary>
+    /// A set of HTML-encased column headings for the data. 
+    /// </summary>
+    [Parameter, EditorRequired]
+    public RenderFragment ColumnHeadersDisplay { get; set; } = default!;
+
+    /// <summary>
+    /// An HTML-encased total row for display at the top of the table
+    /// </summary>
+    /// <remarks>All the children to be shown will form the context, so the calling component can use this for diaplying aggregated data.
+    [Parameter, EditorRequired]
+    public RenderFragment<IEnumerable<TRowData>> TotalDataDisplay { get; set; } = default!;
+
+    /// <summary>
+    /// A set of HTML-encased cells indicating how the data in a single row should be displayed.
+    /// </summary>
+    /// <remarks>The current item of data will form the context, so information about this can be used in the calling component.
+    [Parameter, EditorRequired]
+    public RenderFragment<TRowData> RowDataDisplay { get; set; } = default!;
+
+
+    private int? currentParentIndex = null;
+
+    private (int Index, int? ParentIndex, TRowData Data) ParentHierarchicalData()
+        => HierarchicalData.FirstOrDefault(x => x.Index.Equals(currentParentIndex));
+
+    private IEnumerable<(int Index, int? ParentIndex, TRowData Data)> ChildHierarchicalData()
+        => HierarchicalData.Where(x => x.ParentIndex.Equals(currentParentIndex));
+
+    private bool RowHasChildren(int selectedIndex)
+        => HierarchicalData.Any(x => x.ParentIndex.Equals(selectedIndex));
+
+    private void GoUpOneLevel() 
+        => currentParentIndex = ParentHierarchicalData().ParentIndex;
+
+    private void GoDownOneLevel(int selectedIndex)
+        => currentParentIndex = selectedIndex;
+}
