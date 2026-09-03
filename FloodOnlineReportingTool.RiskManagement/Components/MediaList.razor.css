@@ -3,3 +3,18 @@
   orphans:1;
   widows:1;
 }*/
+
+.cards {
+    display: flex;
+    gap: 24px;
+    justify-content: left;
+    align-items: stretch;
+    flex-wrap: wrap;
+}
+
+    .cards media-image {
+        flex: 1 1 220px;
+        padding: 24px;
+        background: #fbfbfb;
+        border: 1px solid #d4d4d4;
+    }

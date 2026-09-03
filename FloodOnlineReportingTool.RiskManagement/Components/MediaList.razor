@@ -25,54 +25,50 @@
 
     if (docs.Any())
     {
-        <GdsGridRow>
-            <GdsHeading Level="3">Documents</GdsHeading>
-            <div class="col">
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <tbody>
-                            @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
-                            {
-                                <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+        
+        <GdsHeading Level="3">Documents</GdsHeading>
+        <div class="col">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <tbody>
+                        @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
+                        {
+                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </GdsGridRow>
+        </div>
     }
 
     if (images.Any())
     {
-            <GdsHeading Level="3">Images</GdsHeading>
-            <div id="media-gallery">
+        <GdsHeading Level="3">Images</GdsHeading>
+        <div id="media-gallery">
+            <section class="cards">
                 @foreach (var group in images.OrderByDescending(i => i.UploadDateUtc).Chunk(3))
                 {
-                    <GdsGridRow>
                     @foreach (DbMediaItem mediaItem in group)
-                    {
-                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
-                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                        </GdsGridColumn>
+                    {                                
+                        <media-image>
+                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>   
+                        </media-image>
                     }
-                    </GdsGridRow>
                 }
-            </div>
-
-
+            </section>
+        </div>
         <hr />
     }
     if (videos.Any())
     {
-        <GdsGridRow>
-            <GdsHeading Level="3">Videos</GdsHeading>
-            @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
-            {
-                <GdsGridRow>
-                    <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                </GdsGridRow>
-            }
-        </GdsGridRow>
+        
+        <GdsHeading Level="3">Videos</GdsHeading>
+        @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
+        {
+            <GdsGridRow>
+                <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+            </GdsGridRow>
+        }
         <hr />
     }
 }
