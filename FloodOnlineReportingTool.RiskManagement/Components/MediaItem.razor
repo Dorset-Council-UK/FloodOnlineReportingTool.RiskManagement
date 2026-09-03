@@ -26,7 +26,7 @@
                     </div>
                 }
                 
-                <GdsLink Href="@Media.URL" download target="_blank">Download</GdsLink>
+                <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download</GdsLink>
 
                 <div class="mt-2 pt-2 border-1 border-top">
                     @if (!string.IsNullOrEmpty(Media.Title))
@@ -48,7 +48,7 @@
                     {
                         <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton>
                     }
-                    <GdsLink Href="@Media.URL" download target="_blank">Download</GdsLink>
+                    <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download</GdsLink>
 
                     <div class="mt-2 pt-2 border-1 border-top">
                         @if (!string.IsNullOrEmpty(Media.Title))
@@ -81,7 +81,7 @@
         <tr>
 
             <td>
-                <GdsLink Href="@Media.URL" download target="_blank">
+                <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">
                     @(string.IsNullOrEmpty(Media.Title) ? new System.IO.FileInfo(Media.URL).Name : Media.Title)
                 </GdsLink>
             </td>
