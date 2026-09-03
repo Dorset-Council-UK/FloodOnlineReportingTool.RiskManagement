@@ -63,34 +63,17 @@
     }
     else
     {
-
-        var icon = "bi-fil-earmark";
-        if (Media.Format == MediaType.Word_Document)
-        {
-            icon = "bi-filetype-docx";
-        }
-        else if (Media.Format == MediaType.Excel_Spreadsheet)
-        {
-            icon = "bi-filetype-xlsx";
-        }
-        else if (Media.Format == MediaType.PDF_Document)
-        {
-            icon = "bi-filetype-pdf";
-        }
-
         <tr>
-
             <td>
                 <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">
                     @(string.IsNullOrEmpty(Media.Title) ? new System.IO.FileInfo(Media.URL).Name : Media.Title)
                 </GdsLink>
             </td>
-            <td>@(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</td>
+            <td><small><strong>Upload date: </strong>@(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small></td>
             @if (IsEditable)
             {
                 <td><GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton></td>
             }
-
         </tr>
     }
 

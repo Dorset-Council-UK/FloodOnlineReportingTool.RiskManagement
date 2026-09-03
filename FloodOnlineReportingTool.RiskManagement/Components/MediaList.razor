@@ -44,16 +44,22 @@
 
     if (images.Any())
     {
-        <GdsGridRow>
             <GdsHeading Level="3">Images</GdsHeading>
             <div id="media-gallery">
-                @foreach (DbMediaItem mediaItem in images.OrderByDescending(i => i.UploadDateUtc))
+                @foreach (var group in images.OrderByDescending(i => i.UploadDateUtc).Chunk(3))
                 {
-                    <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+                    <GdsGridRow>
+                    @foreach (DbMediaItem mediaItem in group)
+                    {
+                        <GdsGridColumn Width="GdsGridColumnWidth.OneThird">
+                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+                        </GdsGridColumn>
+                    }
+                    </GdsGridRow>
                 }
             </div>
 
-        </GdsGridRow>
+
         <hr />
     }
     if (videos.Any())
@@ -62,9 +68,9 @@
             <GdsHeading Level="3">Videos</GdsHeading>
             @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
             {
-                <div class="col-12">
+                <GdsGridRow>
                     <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                </div>
+                </GdsGridRow>
             }
         </GdsGridRow>
         <hr />
