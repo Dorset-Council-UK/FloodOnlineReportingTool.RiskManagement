@@ -18,6 +18,7 @@ public partial class Attachments(
     private bool _isLoading = true;
     [Parameter]
     public required string Reference { get; set; }
+    private Database.Models.FloodEvents.FloodEvent? FloodEvent { get; set; }
 
     private readonly CancellationTokenSource _cts = new();
 
