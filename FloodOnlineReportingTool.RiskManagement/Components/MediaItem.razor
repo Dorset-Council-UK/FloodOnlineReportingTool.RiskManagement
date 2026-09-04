@@ -19,17 +19,17 @@
         @if (IsEditable)
         {
             <div class="govuk-button-group">
+                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate left" OnClick="() => RotateImage(-90)" disabled="@_isRotating"></GdsButton>
+                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate right" OnClick="() => RotateImage(90)" disabled="@_isRotating"></GdsButton>
                 <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
-                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate counter clockwise" OnClick="() => RotateImage(-90)" disabled="@_isRotating"></GdsButton>
-                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate clockwise" OnClick="() => RotateImage(90)" disabled="@_isRotating"></GdsButton>
             </div>
         }
-        <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download</GdsLink>
+        <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download image</GdsLink>
         @if (!string.IsNullOrEmpty(Media.Title))
         {
             <p>@Media.Title</p>
         }
-        <small><strong>Upload date:</strong> @(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small>
+        <small><strong>Uploaded:</strong> @(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small>
 
     }
     else if (Media.Format == MediaType.Video)
@@ -40,12 +40,12 @@
             {
                 <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton>
             }
-            <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download</GdsLink>
+            <br /><GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download video</GdsLink>
             @if (!string.IsNullOrEmpty(Media.Title))
             {
                 <p>@Media.Title</p>
             }
-            <small><strong>Upload date:</strong> @(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small>
+            <small><strong>Uploaded:</strong> @(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small>
         </div>
     }
     else
@@ -56,7 +56,7 @@
                     @(string.IsNullOrEmpty(Media.Title) ? new System.IO.FileInfo(Media.URL).Name : Media.Title)
                 </GdsLink>
             </td>
-            <td class="govuk-table__cell"><small><strong>Upload date: </strong>@(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small></td>
+            <td class="govuk-table__cell"><small><strong>Uploaded: </strong>@(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small></td>
             @if (IsEditable)
             {
                 <td class="govuk-table__cell"><GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton></td>
