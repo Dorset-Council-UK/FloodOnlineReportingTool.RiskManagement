@@ -27,18 +27,14 @@
     {
         
         <GdsHeading Level="3">Documents</GdsHeading>
-        <div class="col">
-            <div class="table-responsive">
-                <table class="table table-striped">
-                    <tbody>
-                        @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
-                        {
-                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <table class="govuk-table">
+            <tbody class="govuk-table__body">
+                @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
+                {
+                    <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+                }
+            </tbody>
+        </table>
     }
 
     if (images.Any())
