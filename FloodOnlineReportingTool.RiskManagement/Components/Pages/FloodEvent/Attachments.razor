@@ -11,9 +11,9 @@
 
         <GdsHeading Level="2">@Title</GdsHeading>
 
-        <MediaList FloodEvent="@FloodEvent" Reference="@Reference" IsEditable="true"></MediaList>
+        <GdsButton IsSubmit="false" OnClick="@GoToUpload" Text="Upload Attachments" AdditionalCssClasses="no-print" />
 
-        <GdsButton IsSubmit="false" OnClick="@GoToUpload" Text="Upload Attachments" AdditionalCssClasses="govuk-button--secondary no-print" />
+        <MediaList FloodEvent="@FloodEvent" Reference="@Reference" IsEditable="true"></MediaList>
 
     </Authorized>
     <NotAuthorized>
