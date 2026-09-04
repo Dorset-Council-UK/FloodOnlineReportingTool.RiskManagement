@@ -1,7 +1,6 @@
 ﻿@using FloodOnlineReportingTool.Database.Models.Media
 @using DbMediaItem = FloodOnlineReportingTool.Database.Models.Media.MediaItem
 
-
 @if (FloodEvent is not null && FloodEvent.MediaItems.Any())
 {
     var images = FloodEvent.MediaItems
@@ -25,7 +24,6 @@
 
     if (docs.Any())
     {
-        
         <GdsHeading Level="3">Documents</GdsHeading>
         <table class="govuk-table">
             <tbody class="govuk-table__body">
@@ -53,11 +51,11 @@
                 }
             </section>
         </div>
-        <hr />
+        <br />
     }
+
     if (videos.Any())
     {
-        
         <GdsHeading Level="3">Videos</GdsHeading>
         @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
         {
@@ -65,7 +63,6 @@
                 <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
             </GdsGridRow>
         }
-        <hr />
     }
 }
 else

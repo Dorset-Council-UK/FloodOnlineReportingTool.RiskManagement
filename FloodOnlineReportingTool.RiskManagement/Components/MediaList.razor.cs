@@ -1,5 +1,4 @@
 ﻿using FloodOnlineReportingTool.Database.Models.FloodEvents;
-using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Repositories;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -41,22 +40,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
 
             await base.OnAfterRenderAsync(firstRender);
         }
-
-        //private async Task AddMediaToFloodEvent(List<MediaItem> UploadedMedia, MediaType mediaType)
-        //{
-        //    if (FloodEvent is not null && UploadedMedia.Count != 0)
-        //    {
-        //        try
-        //        {
-        //            await mediaItemReposirory.AddMediaToFloodEvent(FloodEvent, mediaType, UploadedMedia);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            await RefreshComponent();
-        //            logger.LogError(ex, "An error occurred adding media to a flood event");
-        //        }
-        //    }
-        //}
 
         private async Task RefreshComponent()
         { 
