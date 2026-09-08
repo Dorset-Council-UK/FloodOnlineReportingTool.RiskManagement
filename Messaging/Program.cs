@@ -9,8 +9,11 @@ using Microsoft.Extensions.Azure;
 var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services
-    .AddScoped<IActionLogRepository, ActionLogRepository>()
-    .AddScoped<FloodReportCreatedConsumer>();
+    .AddScoped<IActionLogRepository, ActionLogRepository>();
+
+// Consumers
+builder.Services
+    .AddSingleton<IInboxConsumer, FloodReportCreatedConsumer>();
 
 builder.Services.AddHostedService<OutboxWorker>();
 builder.Services.AddHostedService<InboxWorker>();
