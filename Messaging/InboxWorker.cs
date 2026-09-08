@@ -10,8 +10,6 @@ public sealed class InboxWorker(
     ServiceBusClient serviceBusClient
 ) : BackgroundService
 {
-    public const string ActivitySourceName = "InboxWorker";
-
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         string subscriptionName = configuration["Inbox:SubscriptionName"]
