@@ -30,6 +30,12 @@ internal static class AuthenticationExtensions
             var geoserverPublicApiSection = builder.Configuration
                 .GetRequiredSection(DownstreamAPIOptions.SectionName)
                 .GetRequiredSection(DownstreamAPIOptions.GeoServerApiPublic);
+            var azureApiGeoApiSection = builder.Configuration
+                .GetRequiredSection(DownstreamAPIOptions.SectionName)
+                .GetRequiredSection(DownstreamAPIOptions.AzureApiGeoApi);
+            var azureApiGeoApiKey = azureApiGeoApiSection
+                .GetValue<string>("ApiKey")
+                ?? throw new InvalidOperationException($"Configuration value '{DownstreamAPIOptions.SectionName}:{DownstreamAPIOptions.AzureApiGeoApi}:ApiKey' is required.");
 
             // Setup Authentication
             builder.Services
@@ -39,6 +45,33 @@ internal static class AuthenticationExtensions
                 .AddDownstreamApi(RiskManagementOptions.ReportStatusApi, reportStatusApiSection)
                 .AddDownstreamApi(DownstreamAPIOptions.GeoServerApi, geoserverApiSection)
                 .AddDownstreamApi(DownstreamAPIOptions.GeoServerApiPublic, geoserverPublicApiSection)
+                .AddDownstreamApi(
+                    DownstreamAPIOptions.AzureApiGeoApi,
+                    options =>
+                    {
+                        azureApiGeoApiSection.Bind(options);
+                        options.CustomizeHttpRequestMessage = (message) =>
+                        {
+                            const string subscriptionHeaderName = "Ocp-Apim-Subscription-Key";
+                            const string subscriptionQueryParameterName = "subscription-key";
+
+                            if (!message.Headers.Contains(subscriptionHeaderName))
+                            {
+                                message.Headers.Add(subscriptionHeaderName, azureApiGeoApiKey);
+                            }
+
+                            if (message.RequestUri is not null)
+                            {
+                                var requestUri = message.RequestUri.ToString();
+                                if (!requestUri.Contains(subscriptionQueryParameterName, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var separator = requestUri.Contains('?') ? '&' : '?';
+                                    var requestUriWithSubscriptionKey = $"{requestUri}{separator}{subscriptionQueryParameterName}={Uri.EscapeDataString(azureApiGeoApiKey)}";
+                                    message.RequestUri = new Uri(requestUriWithSubscriptionKey, UriKind.RelativeOrAbsolute);
+                                }
+                            }
+                        };
+                    })
                 .AddInMemoryTokenCaches();
 
             builder.Services.AddResilientHttpClients();

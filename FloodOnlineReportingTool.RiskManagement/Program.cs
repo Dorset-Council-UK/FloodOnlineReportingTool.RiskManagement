@@ -19,6 +19,7 @@ builder.AddRiskManagementHealthChecks();
 builder.AddDatabase();
 
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
+builder.Services.AddScoped<IAzureApiClient, AzureApiClient>();
 builder.Services.AddScoped<ISearchOptionsState, SearchOptionsState>();
 builder.Services.AddScoped<IFloodEventState, FloodEventState>();
 builder.Services.AddScoped<ISettingsService, SettingsService>();
