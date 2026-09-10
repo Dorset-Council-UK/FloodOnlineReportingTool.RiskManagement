@@ -19,21 +19,6 @@ public class AzureApiClient(
         Converters = { new GeoJsonConverterFactory() },
     };
 
-    private async Task<PagedResult<T>?> GetSearchResults<T>(string relativePath, CancellationToken ct)
-    {
-        return await downstreamApi
-            .CallApiForUserAsync<PagedResult<T>>(RiskManagementOptions.ReportStatusApi, options =>
-            {
-                options.RelativePath = relativePath;
-                options.Deserializer = (content) =>
-                {
-                    if (content is null) return null;
-                    var stream = content.ReadAsStream(ct);
-                    return JsonSerializer.Deserialize<PagedResult<T>>(stream, _jsonSerializerOptions);
-                };
-            }, cancellationToken: ct);
-    }
-
     public async Task<IReadOnlyCollection<(int Index, int? ParentIndex, (string Classification, int Premises) Data)>?> GetAddressSummary(int epsg, string searchArea, string area, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(area))
@@ -58,7 +43,7 @@ public class AzureApiClient(
 
         try
         {
-            var response = await downstreamApi.CallApiAsync(
+            using var response = await downstreamApi.CallApiAsync(
                 DownstreamAPIOptions.AzureApiGeoApi,
                 options =>
                 {
@@ -78,29 +63,26 @@ public class AzureApiClient(
                 return null;
             }
 
-            using (response)
+            if (!response.IsSuccessStatusCode)
             {
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"Downstream API returned status code {(int)response.StatusCode}.", null, response.StatusCode);
-                }
-
-                if (response.Content is null)
-                {
-                    return null;
-                }
-
-                var responseBodyJson = await response.Content.ReadAsStringAsync(ct);
-                logger.LogInformation("Address summary response body: {ResponseBody}", responseBodyJson);
-
-                var addressSummaryResponse = JsonSerializer.Deserialize<AddressSummaryResponseDto>(responseBodyJson, _jsonSerializerOptions);
-                if (addressSummaryResponse is null)
-                {
-                    return null;
-                }
-
-                return FlattenCategories(addressSummaryResponse);
+                throw new HttpRequestException($"Downstream API returned status code {(int)response.StatusCode}.", null, response.StatusCode);
             }
+
+            if (response.Content is null)
+            {
+                return null;
+            }
+
+            var responseBodyJson = await response.Content.ReadAsStringAsync(ct);
+            logger.LogInformation("Address summary response body: {ResponseBody}", responseBodyJson);
+
+            var addressSummaryResponse = JsonSerializer.Deserialize<AddressSummaryResponseDto>(responseBodyJson, _jsonSerializerOptions);
+            if (addressSummaryResponse is null)
+            {
+                return null;
+            }
+
+            return FlattenCategories(addressSummaryResponse);
         }
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Unauthorized)
         {
@@ -115,7 +97,7 @@ public class AzureApiClient(
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            throw;
+            return null;
         }
         catch (Exception ex)
         {
