@@ -16,7 +16,7 @@ namespace FloodOnlineReportingTool.Database.Models.Media
         {
             get
             {
-                var extension = new System.IO.FileInfo(URL).Extension.ToLower(CultureInfo.InvariantCulture);
+                var extension = System.IO.Path.GetExtension(URL.Split('?', 2)[0]).ToLower(CultureInfo.InvariantCulture);
                 switch (extension ?? "") // URL.Substring(URL.Length - 4).ToLower
                 {
                     case ".gif":
