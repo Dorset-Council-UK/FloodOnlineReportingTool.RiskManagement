@@ -13,7 +13,10 @@
 
         <GdsButton IsSubmit="false" OnClick="@GoToUpload" Text="Upload Attachments" AdditionalCssClasses="no-print" />
 
-        <MediaList FloodEvent="@FloodEvent" Reference="@Reference" IsEditable="true"></MediaList>
+        @if (!_isLoading)
+        {
+            <MediaList FloodEvent="@FloodEvent" Reference="@Reference" IsEditable="true"></MediaList>
+        }
 
     </Authorized>
     <NotAuthorized>
