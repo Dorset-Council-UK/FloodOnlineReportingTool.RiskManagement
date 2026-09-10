@@ -138,9 +138,20 @@ namespace FloodOnlineReportingTool.Database.Repositories
                 // Rotate the image based on degrees
                 image.Mutate(x => x.Rotate(rotationDegrees));
 
-                // Save rotated image to a memory stream
+                // Save rotated image to a memory stream (preserve original format where possible)
                 using var rotatedStream = new MemoryStream();
-                await image.SaveAsJpegAsync(rotatedStream, ct);
+                var uriForMedia = new Uri(mediaItem.URL);
+                var fileNameForMedia = System.IO.Path.GetFileName(uriForMedia.AbsolutePath);
+                var extension = System.IO.Path.GetExtension(fileNameForMedia).ToLowerInvariant();
+                var contentType = string.Equals(extension, ".png", StringComparison.Ordinal) ? "image/png" : "image/jpeg";
+                if (string.Equals(extension, ".png", StringComparison.Ordinal))
+                {
+                    await image.SaveAsPngAsync(rotatedStream, ct);
+                }
+                else
+                {
+                    await image.SaveAsJpegAsync(rotatedStream, ct);
+                }
                 rotatedStream.Position = 0;
 
                 // Upload the rotated image back to blob storage (this will overwrite the existing image)
@@ -150,7 +161,7 @@ namespace FloodOnlineReportingTool.Database.Repositories
                 var segments = uri.Segments;
                 var fileName = segments[^1]; // Get the last segment (filename)
 
-                await blobStorageService.UploadFileToBlobAsync(fileName, "image/jpeg", rotatedStream);
+                await blobStorageService.UploadFileToBlobAsync(fileName, contentType, rotatedStream);
 
                 logger.LogInformation("Successfully rotated media item {MediaItemId} by {RotationDegrees} degrees", mediaItemId, rotationDegrees);
                 return true;
