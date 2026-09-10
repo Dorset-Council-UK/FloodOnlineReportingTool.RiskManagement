@@ -24,7 +24,7 @@
                 <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
             </div>
         }
-        <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank" rel="noopener noreferrer">Download image</GdsLink>
+        <GdsLink Href="@GetImageUrlWithCacheBuster()" alt="@(!string.IsNullOrWhiteSpace(Media.Title) ? Media.Title : "Uploaded image")" download target="_blank" rel="noopener noreferrer">Download image</GdsLink>
         @if (!string.IsNullOrEmpty(Media.Title))
         {
             <p>@Media.Title</p>
