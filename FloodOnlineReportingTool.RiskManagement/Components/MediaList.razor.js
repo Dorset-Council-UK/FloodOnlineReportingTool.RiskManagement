@@ -4,10 +4,11 @@
       var target = event.target;
       var link = target.src ? target.parentNode : target
       var options = {
-        index: link, event: event,
+        index: link,
+        event: event,
         onclosed: function () {
-          // Refresh the page after closing the gallery
-          location.reload();
+          //ensure body scrollbar is shown if hidden
+          document.body.style.overflow = "";
         }
       }
       var links = document.querySelectorAll('#media-gallery .blueimp-img');
