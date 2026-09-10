@@ -26,23 +26,23 @@ public class AzureApiClient(
             throw new ArgumentException("Value cannot be null or whitespace.", nameof(area));
         }
 
-        logger.LogInformation("Checking downstream API for flood summary");
-
-        var relativePath = $"/v1/places/address/summary/geojson?epsg={epsg}&searchArea={searchArea}";
-        var geometry = JsonSerializer.Deserialize<Geometry>(area, _jsonSerializerOptions)
-            ?? throw new ArgumentException("Value must be a valid GeoJSON geometry.", nameof(area));
-
-        geometry.SRID = epsg;
-
-        var featureCollection = new FeatureCollection
-        {
-            new Feature(geometry, new AttributesTable())
-        };
-        var postBodyJson = JsonSerializer.Serialize(featureCollection, _jsonSerializerOptions);
-        logger.LogInformation("Address summary POST body: {PostBody}", postBodyJson);
-
         try
         {
+            logger.LogInformation("Checking downstream API for flood summary");
+
+            var relativePath = $"/v1/places/address/summary/geojson?epsg={epsg}&searchArea={searchArea}";
+            var geometry = JsonSerializer.Deserialize<Geometry>(area, _jsonSerializerOptions)
+                ?? throw new ArgumentException("Value must be a valid GeoJSON geometry.", nameof(area));
+
+            geometry.SRID = epsg;
+
+            var featureCollection = new FeatureCollection
+            {
+                new Feature(geometry, new AttributesTable())
+            };
+            var postBodyJson = JsonSerializer.Serialize(featureCollection, _jsonSerializerOptions);
+            logger.LogInformation("Address summary POST body: {PostBody}", postBodyJson);
+
             using var response = await downstreamApi.CallApiAsync(
                 DownstreamAPIOptions.AzureApiGeoApi,
                 options =>
