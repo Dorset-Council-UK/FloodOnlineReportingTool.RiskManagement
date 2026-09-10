@@ -19,15 +19,18 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
 
         protected override async Task OnInitializedAsync()
         {
-            //get flood event ID by search reference
-            var floodEvent = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
-            if (!floodEvent.IsSuccess || floodEvent.ResultModel is null)
+            if (FloodEvent is null)
             {
-                logger.LogWarning("Flood event could not be found by search reference when loading media items");
-                return;
-            }
+                //get flood event ID by search reference
+                var floodEvent = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+                if (!floodEvent.IsSuccess || floodEvent.ResultModel is null)
+                {
+                    logger.LogWarning("Flood event could not be found by search reference when loading media items");
+                    return;
+                }
 
-            FloodEvent = floodEvent.ResultModel;
+                FloodEvent = floodEvent.ResultModel;
+            }
 
             await base.OnInitializedAsync();
         }
