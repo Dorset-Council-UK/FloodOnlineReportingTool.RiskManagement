@@ -24,7 +24,7 @@
                 <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
             </div>
         }
-        <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download image</GdsLink>
+        <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank" rel="noopener noreferrer">Download image</GdsLink>
         @if (!string.IsNullOrEmpty(Media.Title))
         {
             <p>@Media.Title</p>
@@ -40,7 +40,7 @@
             {
                 <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton>
             }
-            <br /><GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">Download video</GdsLink>
+            <br /><GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank" rel="noopener noreferrer">Download video</GdsLink>
             @if (!string.IsNullOrEmpty(Media.Title))
             {
                 <p>@Media.Title</p>
@@ -52,7 +52,7 @@
     {
         <tr class="govuk-table__row">
             <td class="govuk-table__cell">
-                <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank">
+                <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank" rel="noopener noreferrer">
                     @(string.IsNullOrEmpty(Media.Title) ? new System.IO.FileInfo(Media.URL).Name : Media.Title)
                 </GdsLink>
             </td>
