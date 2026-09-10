@@ -3,9 +3,15 @@
     img.addEventListener('click', (event) => {
       var target = event.target;
       var link = target.src ? target.parentNode : target
-      var options = { index: link, event: event }
+      var options = {
+        index: link, event: event,
+        onclosed: function () {
+          // Refresh the page after closing the gallery
+          location.reload();
+        }
+      }
       var links = document.querySelectorAll('#media-gallery .blueimp-img');
-      blueimp.Gallery(links, options)
+      blueimp.Gallery(links, options);
     });
   });
 }
