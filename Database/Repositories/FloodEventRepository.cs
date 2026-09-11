@@ -219,6 +219,7 @@ public class FloodEventRepository(
         var floodEvent = await context.FloodEvents
             .AsNoTracking()
             .IgnoreAutoIncludes()
+            .Include(e => e.MediaItems)
             .Include(e => e.SavedSearch)
             .Where(e => e.SavedSearch.Reference == searchReference)
             .FirstOrDefaultAsync(cancellationToken);
@@ -246,6 +247,22 @@ public class FloodEventRepository(
         }
 
         return GetResult<FloodEvent>.Success(floodEvent);
+    }
+
+    public async Task<FloodEvent> GetFloodEventById(Guid floodEventId, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var floodEvent = await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Include(e => e.SavedSearch)
+            .Include(e => e.MediaItems)
+            .FirstOrDefaultAsync(e => e.Id == floodEventId, cancellationToken);
+        if (floodEvent is null)
+        {
+            throw new InvalidOperationException($"No flood event found with ID '{floodEventId}'.");
+        }
+        return floodEvent;
     }
 
     private async Task<NetTopologySuite.Geometries.MultiPolygon?> GetTransformedGeometry(

@@ -1,8 +1,7 @@
-using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Media;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.RiskManagement.Services;
+using FloodOnlineReportingTool.Database.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -77,13 +76,13 @@ public partial class Upload(
     private readonly List<RejectedFile> _rejectedFiles = [];
     private string? _uploadLimitError;
 
-    private Models.Event.MediaItem? _renamingFile;
+    private Models.Media.MediaItem? _renamingFile;
     private string _renameText = string.Empty;
     private string? _renameError;
 
     private string previousPage = $"event/details";
 
-    private Models.Event.Media Model { get; set; } = default!;
+    private MediaUpload Model { get; set; } = default!;
 
     protected override void OnInitialized()
     {
@@ -163,7 +162,7 @@ public partial class Upload(
 
         var mediaItems = await mediaItemRepository.GetByEvent(_floodEventId, _cts.Token);
         Model.UploadedFiles = mediaItems
-            .Select(mediaItem => new Models.Event.MediaItem
+            .Select(mediaItem => new Models.Media.MediaItem
             {
                 Id = mediaItem.Id,
                 Name = mediaItem.Title ?? Path.GetFileName(mediaItem.URL),
@@ -224,7 +223,7 @@ public partial class Upload(
 
             if (!string.IsNullOrWhiteSpace(blobUrl))
             {
-                Model.UploadedFiles.Add(new Models.Event.MediaItem
+                Model.UploadedFiles.Add(new Models.Media.MediaItem
                 {
                     Name = Path.GetFileNameWithoutExtension(file.Name),
                     Url = blobUrl,
@@ -265,7 +264,7 @@ public partial class Upload(
             : string.Empty;
     }
 
-    private void StartRename(Models.Event.MediaItem file)
+    private void StartRename(Models.Media.MediaItem file)
     {
         _renamingFile = file;
         _renameText = file.Name;
@@ -281,7 +280,7 @@ public partial class Upload(
 
     private const int MaxRenameTitleLength = 255;
 
-    private async Task SaveRename(Models.Event.MediaItem file)
+    private async Task SaveRename(Models.Media.MediaItem file)
     {
         _renameError = null;
 
@@ -312,7 +311,7 @@ public partial class Upload(
         _renameText = string.Empty;
     }
 
-    private async Task DeleteUploadedFile(Models.Event.MediaItem file)
+    private async Task DeleteUploadedFile(Models.Media.MediaItem file)
     {
         //confirm
         bool confirmDelete = await JS.InvokeAsync<bool>("confirm", _cts.Token, "Are you sure you want to delete this file?");
@@ -436,7 +435,7 @@ public partial class Upload(
 
         var mediaItems = Model.UploadedFiles
             .Where(file => !file.Id.HasValue)
-            .Select(file => new MediaItem
+            .Select(file => new Database.Models.Media.MediaItem
             {
                 UploadDateUtc = DateTimeOffset.UtcNow,
                 URL = file.Url,

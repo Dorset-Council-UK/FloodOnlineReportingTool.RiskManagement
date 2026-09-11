@@ -1,0 +1,68 @@
+﻿@using System.Globalization
+@using FloodOnlineReportingTool.Database.Models.Media
+@using FloodOnlineReportingTool.Database.Repositories
+@using FloodOnlineReportingTool.RiskManagement.Options
+@using Microsoft.Extensions.Options
+@inject IJSRuntime JS
+@inject ILogger<MediaItem> logger
+@inject IMediaItemRepository mediaItemRepository
+@inject IOptions<AzureBlobStorageOptions> blobStorageOptions
+
+@if (Media is not null)
+{
+    @if (Media.Format == MediaType.Image)
+    {
+        <a href="@GetImageUrlWithCacheBuster()" class="blueimp-img">
+            <img src="@GetImageUrlWithCacheBuster()" class="img-fluid" height="200" style="@(_isRotating ? "opacity: 0.5;" : "")" />
+        </a>
+                
+        @if (IsEditable)
+        {
+            <div class="govuk-button-group">
+                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate left" OnClick="() => RotateImage(-90)" disabled="@_isRotating"></GdsButton>
+                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--secondary" Text="Rotate right" OnClick="() => RotateImage(90)" disabled="@_isRotating"></GdsButton>
+                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" disabled="@_isRotating" Text="Delete"></GdsButton>
+            </div>
+        }
+        <GdsLink Href="@GetImageUrlWithCacheBuster()" alt="@(!string.IsNullOrWhiteSpace(Media.Title) ? Media.Title : "Uploaded image")"  download target="_blank" rel="noopener noreferrer">Download image</GdsLink>
+        @if (!string.IsNullOrEmpty(Media.Title))
+        {
+            <p>@Media.Title</p>
+        }
+        <small><strong>Uploaded:</strong> @(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small>
+
+    }
+    else if (Media.Format == MediaType.Video)
+    {
+        <video src="@GetImageUrlWithCacheBuster()" style="max-width:100%;height:300px;max-height:80vh" controls preload="metadata"></video>
+        <div class="my-2">
+            @if (IsEditable)
+            {
+                <GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton>
+            }
+            <br /><GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank" rel="noopener noreferrer">Download video</GdsLink>
+            @if (!string.IsNullOrEmpty(Media.Title))
+            {
+                <p>@Media.Title</p>
+            }
+            <small><strong>Uploaded:</strong> @(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small>
+        </div>
+    }
+    else
+    {
+        <tr class="govuk-table__row">
+            <td class="govuk-table__cell">
+                <GdsLink Href="@GetImageUrlWithCacheBuster()" download target="_blank" rel="noopener noreferrer">
+                    @(string.IsNullOrEmpty(Media.Title) ? new System.IO.FileInfo(Media.URL).Name : Media.Title)
+                </GdsLink>
+            </td>
+            <td class="govuk-table__cell"><small><strong>Uploaded: </strong>@(Media.UploadDateUtc.HasValue ? Media.UploadDateUtc.Value.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture) : "Unknown")</small></td>
+            @if (IsEditable)
+            {
+                <td class="govuk-table__cell"><GdsButton IsSubmit="false" AdditionalCssClasses="govuk-button--warning" OnClick="DeleteMedia" Text="Delete"></GdsButton></td>
+            }
+        </tr>
+    }
+
+}
+
