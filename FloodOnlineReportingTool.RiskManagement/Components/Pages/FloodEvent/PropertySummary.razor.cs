@@ -34,7 +34,7 @@ public partial class PropertySummary(
         Converters = { new GeoJsonConverterFactory() },
     };
 
-    private IReadOnlyCollection<(int Index, int? ParentIndex, (string Classification, int Premises) Data)> premisesTotals = [];
+    private IReadOnlyCollection<(int Index, int? ParentIndex, (string Classification, int Premises) Data)>? premisesTotals;
     
     protected override async Task OnInitializedAsync()
     {
@@ -77,7 +77,7 @@ public partial class PropertySummary(
             }
 
             var area = JsonSerializer.Serialize(ViewModel.Geom, _jsonSerializerOptions);
-            premisesTotals = await azureApiClient.GetAddressSummary(4326, "dorset", area, _cts.Token) ?? [];
+            premisesTotals = await azureApiClient.GetAddressSummary(4326, "dorset", area, _cts.Token);
         }
         catch (HttpRequestException ex)
         {
