@@ -1,8 +1,10 @@
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
+using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.Database.Repositories;
 using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.CSharp.RuntimeBinder;
@@ -15,6 +17,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 public partial class PropertySummary(
     IFloodEventRepository floodEventRepository,
     IAzureApiClient azureApiClient,
+    IAuthorizationService authorizationService,
     ILogger<PropertySummary> logger)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
@@ -54,7 +57,14 @@ public partial class PropertySummary(
             logger.LogWarning("Attempt to access flood event property summary without authentication");
             return;
         }
-                
+
+        var readerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Reader);
+        if (!readerPolicyCheck.Succeeded)
+        {
+            logger.LogWarning("Attempt to access flood event property summary without reader permission");
+            return;
+        }
+                 
         try
         {
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 4326, _cts.Token);

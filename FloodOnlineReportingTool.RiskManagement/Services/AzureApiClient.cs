@@ -41,7 +41,11 @@ public class AzureApiClient(
                 new Feature(geometry, new AttributesTable())
             };
             var postBodyJson = JsonSerializer.Serialize(featureCollection, _jsonSerializerOptions);
-            logger.LogInformation("Address summary POST body: {PostBody}", postBodyJson);
+            logger.LogInformation(
+                "Sending address summary request to {RelativePath} for {SearchArea} with EPSG {Epsg}",
+                relativePath,
+                searchArea,
+                epsg);
 
             using var response = await downstreamApi.CallApiAsync(
                 DownstreamAPIOptions.AzureApiGeoApi,
@@ -74,7 +78,10 @@ public class AzureApiClient(
             }
 
             var responseBodyJson = await response.Content.ReadAsStringAsync(ct);
-            logger.LogInformation("Address summary response body: {ResponseBody}", responseBodyJson);
+            logger.LogInformation(
+                "Received address summary response with status code {StatusCode} and {ResponseLength} characters",
+                (int)response.StatusCode,
+                responseBodyJson.Length);
 
             var addressSummaryResponse = JsonSerializer.Deserialize<AddressSummaryResponseDto>(responseBodyJson, _jsonSerializerOptions);
             if (addressSummaryResponse is null)
@@ -92,7 +99,7 @@ public class AzureApiClient(
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
                                                         or System.Net.HttpStatusCode.NotFound)
         {
-            logger.LogDebug("Downstream API returned {StatusCode} for reference — no matching report exists", ex.StatusCode);
+            logger.LogDebug("Downstream API returned {StatusCode} for reference ï¿½ no matching report exists", ex.StatusCode);
             return null;
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
