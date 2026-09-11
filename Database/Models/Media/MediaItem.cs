@@ -17,55 +17,42 @@ namespace FloodOnlineReportingTool.Database.Models.Media
             get
             {
                 var extension = System.IO.Path.GetExtension(URL.Split('?', 2)[0]).ToLower(CultureInfo.InvariantCulture);
-                switch (extension ?? "") // URL.Substring(URL.Length - 4).ToLower
+                return (extension ?? "") switch // URL.Substring(URL.Length - 4).ToLower
                 {
-                    case ".gif":
-                    case ".jpg":
-                    case ".jpeg":
-                    case ".png":
-                    case ".bmp":
-                    case ".tif":
-                    case ".tiff":
-                    case ".webp":
-                        {
-                            return MediaType.Image;
-                        }
+                    ".gif" or
+                    ".jpg" or
+                    ".jpeg" or
+                    ".png" or
+                    ".bmp" or
+                    ".tif" or
+                    ".tiff" or
+                    ".webp"
+                        => MediaType.Image,
 
-                    case ".wmv":
-                    case ".mov":
-                    case ".mp4":
-                    case ".mpg":
-                    case ".mpeg":
-                    case ".qt":
-                    case ".3gp":
-                    case ".webm":
-                    case ".ogg":
-                        {
-                            return MediaType.Video;
-                        }
+                    ".wmv" or
+                    ".mov" or
+                    ".mp4" or
+                    ".mpg" or
+                    ".mpeg" or
+                    ".qt" or
+                    ".3gp" or
+                    ".webm" or
+                    ".ogg"
+                        => MediaType.Video,
 
-                    case ".pdf":
-                        {
-                            return MediaType.PDF_Document;
-                        }
+                    ".pdf"
+                        => MediaType.PDF_Document,
 
-                    case ".doc":
-                    case ".docx":
-                        {
-                            return MediaType.Word_Document;
-                        }
+                    ".doc" or
+                    ".docx"
+                        => MediaType.Word_Document,
 
-                    case ".xls":
-                    case ".xlsx":
-                        {
-                            return MediaType.Excel_Spreadsheet;
-                        }
+                    ".xls" or
+                    ".xlsx"
+                        => MediaType.Excel_Spreadsheet,
 
-                    default:
-                        {
-                            return MediaType.Unknown;
-                        }
-                }
+                    _ => MediaType.Unknown,
+                };
             }
         }
     }

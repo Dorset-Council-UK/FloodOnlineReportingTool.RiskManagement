@@ -62,10 +62,6 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
                     await _jsModule.DisposeAsync();
                 }
             }
-            catch (JSDisconnectedException)
-            {
-                // Ignore as it doesn't matter
-            }
             finally
             {
                 GC.SuppressFinalize(this);
