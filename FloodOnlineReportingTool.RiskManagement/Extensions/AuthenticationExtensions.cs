@@ -53,22 +53,10 @@ internal static class AuthenticationExtensions
                         options.CustomizeHttpRequestMessage = (message) =>
                         {
                             const string subscriptionHeaderName = "Ocp-Apim-Subscription-Key";
-                            const string subscriptionQueryParameterName = "subscription-key";
 
                             if (!message.Headers.Contains(subscriptionHeaderName))
                             {
                                 message.Headers.Add(subscriptionHeaderName, azureApiGeoApiKey);
-                            }
-
-                            if (message.RequestUri is not null)
-                            {
-                                var requestUri = message.RequestUri.ToString();
-                                if (!requestUri.Contains(subscriptionQueryParameterName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    var separator = requestUri.Contains('?') ? '&' : '?';
-                                    var requestUriWithSubscriptionKey = $"{requestUri}{separator}{subscriptionQueryParameterName}={Uri.EscapeDataString(azureApiGeoApiKey)}";
-                                    message.RequestUri = new Uri(requestUriWithSubscriptionKey, UriKind.RelativeOrAbsolute);
-                                }
                             }
                         };
                     })
