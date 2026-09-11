@@ -41,11 +41,6 @@ public class AzureApiClient(
                 new Feature(geometry, new AttributesTable())
             };
             var postBodyJson = JsonSerializer.Serialize(featureCollection, _jsonSerializerOptions);
-            logger.LogInformation(
-                "Sending address summary request to {RelativePath} for {SearchArea} with EPSG {Epsg}",
-                relativePath,
-                searchArea,
-                epsg);
 
             using var response = await downstreamApi.CallApiAsync(
                 DownstreamAPIOptions.AzureApiGeoApi,
@@ -99,7 +94,7 @@ public class AzureApiClient(
         catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
                                                         or System.Net.HttpStatusCode.NotFound)
         {
-            logger.LogDebug("Downstream API returned {StatusCode} for reference � no matching report exists", ex.StatusCode);
+            logger.LogDebug("Downstream API returned {StatusCode} for reference or no matching report exists", ex.StatusCode);
             return null;
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
