@@ -43,28 +43,14 @@ public partial class PropertySummary(
     {
         Breadcrumbs = CreateBreadcrumbs();
 
-        // Don't get any data if you don't have permission.
-        AuthenticationState? authState;
-        if (AuthenticationState is null)
+        var isAuthorizedReader = await AuthenticationState.TryIsReaderAsync(authorizationService);
+        if (!isAuthorizedReader)
         {
-            logger.LogWarning("Attempt to access flood event property summary without authentication");
-            return;
-        }
-        
-        authState = await AuthenticationState;
-        if (!authState.User.IsAuthenticated)
-        {
-            logger.LogWarning("Attempt to access flood event property summary without authentication");
+            logger.LogWarning("Attempt to access flood event property summary without reader permission");
+            _isLoading = false;
             return;
         }
 
-        var readerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Reader);
-        if (!readerPolicyCheck.Succeeded)
-        {
-            logger.LogWarning("Attempt to access flood event property summary without reader permission");
-            return;
-        }
-                 
         try
         {
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 4326, _cts.Token);
