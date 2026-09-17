@@ -1,4 +1,3 @@
-using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.RiskManagement.Models.Azure;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
@@ -151,6 +150,78 @@ public class AzureApiClient(
                     flattened.Add((childIndex, index, (childCategory.Key, childCategory.Value)));
                 }
             }
+        }
+    }
+
+    public async Task<IReadOnlyCollection<ApiAddress>?> AddressSearch(string postcode, SearchAreaOptions searchArea, Uri? referer, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(postcode))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(postcode));
+        }
+
+        try
+        {
+            var relativePath = $"/v1/Places/Address?query={Uri.EscapeDataString(postcode)}&searchArea={searchArea}";
+
+            using var response = await downstreamApi.CallApiAsync(
+                    DownstreamAPIOptions.AzureApiGeoApi,
+                    options =>
+                    {
+                        options.HttpMethod = HttpMethod.Get.Method;
+                        options.RelativePath = relativePath;
+                    },
+                    cancellationToken: ct);
+
+            if (response is null)
+            {
+                return null;
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException($"Downstream API returned status code {(int)response.StatusCode}.", null, response.StatusCode);
+            }
+
+            if (response.Content is null)
+            {
+                return null;
+            }
+
+            var responseBodyJson = await response.Content.ReadAsStringAsync(ct);
+            logger.LogInformation(
+                "Received address search response with status code {StatusCode} and {ResponseLength} characters",
+                (int)response.StatusCode,
+                responseBodyJson.Length);
+
+            var addressResults = JsonSerializer.Deserialize<IReadOnlyCollection<ApiAddress>?>(responseBodyJson, _jsonSerializerOptions);
+            if (addressResults is null)
+            {
+                return null;
+            }
+
+
+            return addressResults;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Unauthorized)
+        {
+            logger.LogWarning("Downstream API returned {StatusCode} for address search request", ex.StatusCode);
+            return null;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.BadRequest
+                                                        or System.Net.HttpStatusCode.NotFound)
+        {
+            logger.LogDebug("Downstream API returned {StatusCode} for address search request", ex.StatusCode);
+            return null;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error while getting address search results from downstream API");
+            return null;
         }
     }
 }

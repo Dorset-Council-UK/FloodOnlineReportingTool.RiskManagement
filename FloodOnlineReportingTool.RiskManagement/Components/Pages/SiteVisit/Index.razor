@@ -1,0 +1,44 @@
+﻿@page "/visit/"
+
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Site Visits</PageTitle>
+<GdsBreadcrumbs Items="Breadcrumbs" />
+
+<GdsHeading Level="2">Property Site Visits</GdsHeading>
+
+<AuthorizeView Policy="@PolicyNames.Writer">
+    <Authorized>
+        <p>The system allows you to add a site visit against individual properties to track that you attended a property and record any information and media that may be required at a later stage.</p>
+        <p>Records raised in this way will appear as:</p>
+        <ul class ="govuk-list govuk-list--bullet">
+            <li>a new flood report if the property hasn't been reported by the residents; or</li>
+            <li>an additional source of information associated with a given flood report.</li>
+        </ul>
+        <p>Reports follow the same basic format as a report from members of the public with some additional administrative fields</p>
+
+        <GdsStartButton Href="visit/postcode" Text="Start now" />
+
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to log site visits. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        Breadcrumbs = CreateBreadcrumbs();
+    }
+
+    private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
+    {
+        return
+        [
+            new ("./", "Home"),  
+        ];
+    }
+}
