@@ -11,20 +11,39 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
         public bool IsEditable { get; set; }
         [Parameter]
         public EventCallback OnRefreshComponent { get; set; }
-
+        private const string ThumbnailSuffix = ".thumbnail.jpg";
         private readonly CancellationTokenSource _cts = new();
         private long _cacheBuster = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         private bool _isRotating = false;
 
-        private string GetImageUrlWithCacheBuster()
+        private static string GetThumbnailBlobUrl(string imageBlobUrl)
         {
-            if (Media?.URL == null) return string.Empty;
+            return $"{imageBlobUrl}{ThumbnailSuffix}";
+        }
 
-            var urlWithSasToken = string.IsNullOrWhiteSpace(blobStorageOptions.Value.ReadSASToken)
-                ? Media.URL
-                : $"{Media.URL}?{blobStorageOptions.Value.ReadSASToken.TrimStart('?')}";
-            var separator = urlWithSasToken.Contains('?') ? "&" : "?";
-            return $"{urlWithSasToken}{separator}v={_cacheBuster}";
+        private string GetBlobReadUrl(string blobUrl, bool withCacheBust)
+        {
+            var readSasToken = blobStorageOptions.Value.ReadSASToken;
+            var urlWithSasToken = string.IsNullOrWhiteSpace(readSasToken)
+                ? blobUrl
+                : $"{blobUrl}?{readSasToken.TrimStart('?')}";
+            if (withCacheBust)
+            {
+                var separator = urlWithSasToken.Contains('?') ? "&" : "?";
+                return $"{urlWithSasToken}{separator}v={_cacheBuster}";
+            }
+            return urlWithSasToken;
+        }
+
+        private string GetThumbnailReadUrl(string imageBlobUrl)
+        {
+            return GetBlobReadUrl(GetThumbnailBlobUrl(imageBlobUrl), withCacheBust: true);
+        }
+
+        private string GetImagePreviewErrorFallback(string originalImageBlobUrl)
+        {
+            var fallbackUrl = GetBlobReadUrl(originalImageBlobUrl, true).Replace("'", "\\'", StringComparison.Ordinal);
+            return $"this.onerror=null;this.src='{fallbackUrl}';";
         }
 
         private async Task DeleteMedia()

@@ -39,8 +39,8 @@ public partial class Upload(
     private const int MaxNumFiles = 50;
     private const int MaxFileSizeMB = 100;
     private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
-    private const int ThumbnailWidthPixels = 150;
-    private const int ThumbnailHeightPixels = 100;
+    private const int ThumbnailWidthPixels = 300;
+    private const int ThumbnailHeightPixels = 200;
     private const int ThumbnailJpegQuality = 75;
     private const string ThumbnailContentType = "image/jpeg";
     private const string ThumbnailSuffix = ".thumbnail.jpg";
