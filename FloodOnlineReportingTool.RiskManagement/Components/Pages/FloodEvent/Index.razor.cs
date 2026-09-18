@@ -31,25 +31,24 @@ public partial class Index(
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
     [Parameter]
     public required string Reference { get; set; }
-    private string _selfUrl => navigationManager.Uri;
-    private bool _notFound = false;
+    private string SelfUrl => navigationManager.Uri;
 
     private readonly CancellationTokenSource _cts = new();
     private EventOverviewViewModel? ViewModel { get; set; } = default!;
+    private bool _isLoading = false;
     private bool _isExportingJson;
 
     private bool _isExportingCsv;
     private string? _exportErrorMessage;
-    private bool _redirectingToSearchOptions;
 
     protected override async Task OnInitializedAsync()
     {
+        _isLoading = true;
         Breadcrumbs = CreateBreadcrumbs();
 
         if (string.IsNullOrWhiteSpace(Reference))
         {
             logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
-            _redirectingToSearchOptions = true;
             navigationManager.NavigateTo(SearchPages.Options.Url);
         }
 
@@ -136,13 +135,16 @@ public partial class Index(
             }
             else
             {
-                _notFound = true;
                 logger.LogWarning("Flood event details not found for reference");
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred while retrieving the flood event with reference {Reference}.", Reference);
+        }
+        finally
+        {
+            _isLoading = false;
         }
     }
 

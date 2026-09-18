@@ -10,9 +10,9 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader">
     <Authorized>
-        @if (_redirectingToSearchOptions)
+        @if (_isLoading)
         {
-            <GdsSpinner Show ShowMessage Message="Redirecting to search options..." />
+            <GdsSpinner Show ShowMessage Message="Loading data" />
         }
         else if (ViewModel is null)
         {
@@ -246,7 +246,7 @@
                     {
                         <GdsWarning Text="@_exportErrorMessage" />
                     }
-                    <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
+                    <p><GdsLink Href="@SelfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
                     <p><button class="govuk-link" @onclick="ExportToCsv" disabled="@_isExportingCsv"><span class="govuk-visually-hidden">Download </span>CSV</button></p>
                     @if (ViewModel.Geom is not null && ViewModel.Geom.NumGeometries is not 0)
                     {
