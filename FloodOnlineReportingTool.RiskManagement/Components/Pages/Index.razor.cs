@@ -19,7 +19,7 @@ public partial class Index(ILogger<Index> logger,
     private string _userPropertyStyle = "success";
     private int _past30DaysCount;
     private string _userEventStyle = "success";
-
+    private bool _isLoading = false;
     protected override async Task OnInitializedAsync()
     {
         // Don't get any data if you don't have permission
@@ -35,14 +35,28 @@ public partial class Index(ILogger<Index> logger,
             logger.LogWarning("Attempt to access home page without authentication");
             return;
         }
+        _isLoading = true;
 
-        _userActionCount = await actionLogRepository.GetActionCountForUser(_cts.Token);
-        _userPropertyCount = await actionLogRepository.GetPropertyCountForUser(_cts.Token);
-        _past30DaysCount = await floodEventRepository.CountCreatedInPast30Days(_cts.Token);
+        try
+        {
+            _userActionCount = await actionLogRepository.GetActionCountForUser(_cts.Token);
+            _userPropertyCount = await actionLogRepository.GetPropertyCountForUser(_cts.Token);
+            _past30DaysCount = await floodEventRepository.CountCreatedInPast30Days(_cts.Token);
 
-        _userActionStyle = _userActionCount <= 3 ? "success" : (_userActionCount <= 5 ? "warning" : "danger");
-        _userPropertyStyle = _userPropertyCount <= 3 ? "success" : (_userPropertyCount <= 6 ? "warning" : "danger");
-        _userEventStyle = _past30DaysCount <= 3 ? "success" : (_past30DaysCount <= 6 ? "warning" : "danger");
+            _userActionStyle = _userActionCount <= 3 ? "success" : (_userActionCount <= 5 ? "warning" : "danger");
+            _userPropertyStyle = _userPropertyCount <= 3 ? "success" : (_userPropertyCount <= 6 ? "warning" : "danger");
+            _userEventStyle = _past30DaysCount <= 3 ? "success" : (_past30DaysCount <= 6 ? "warning" : "danger");
+        }
+        catch(Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while retrieving the data for the home page.");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+        
+
      }
 
     public void Dispose()
