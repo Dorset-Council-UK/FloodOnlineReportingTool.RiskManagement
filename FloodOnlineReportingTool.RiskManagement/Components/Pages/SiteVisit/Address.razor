@@ -1,0 +1,65 @@
+﻿@page "/visit/address"
+@using Microsoft.AspNetCore.Components.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Authorization
+
+<PageTitle>@Title</PageTitle>
+
+<GdsBackLink Href="@PreviousPage.Url"></GdsBackLink>
+
+<GdsHeading Level="1">@Title</GdsHeading>
+
+<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">
+    <Authorized>
+        <EditForm EditContext="_editContext" OnSubmit="OnSubmit" FormName="Address">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
+
+            <GdsSpinner Show="_isSearching" ShowMessage="true" Message="Searching..." />
+
+            @if (!_isSearching && _addresses.Count == 0 && Model.IsAddress)
+            {
+                <p class="govuk-error-message">
+                    <span class="govuk-visually-hidden">Error:</span> 
+                    <span>No addresses were found, please check the postcode and search again</span>
+                </p>
+            }
+
+            <GdsFormGroup Show="_addresses.Count > 0">
+                <GdsLabel Text="Choose address" />
+                <GdsHint>Select one option.</GdsHint>
+                <GdsErrorMessage />
+                <GdsSelect @bind-Value="Model.UPRN">
+                    <option value=""></option>
+                    @foreach (var address in _addresses)
+                    {
+                        bool selected = address.UPRN == Model.UPRN;
+                        <option value="@address.UPRN" selected="@selected">@address.ConcatenatedAddress</option>
+                    }
+                </GdsSelect>
+            </GdsFormGroup>
+
+            <GdsFormGroup>
+                <GdsLabel Text="Postcode" />
+                @{
+                    if (Model.UPRN is null && (Model.Easting is not null || Model.Northing is not null))
+                    {
+                        <GdsHint>The postcode was added based on the location you selected.</GdsHint>
+                    }
+                    else
+                    {
+                        <GdsHint>If the address is not showing you can search again with a different postcode.</GdsHint>
+                    }
+                }
+                <GdsErrorMessage />
+                <GdsInputText @bind-Value="Model.Postcode" class="govuk-input govuk-input--width-10" autocomplete="postal-code" />
+                <GdsButton IsSubmit="false" PreventDoubleClick OnClick="SearchAgain" AdditionalCssClasses="govuk-button govuk-button--secondary" Text="Search again" />
+            </GdsFormGroup>
+    
+            <p><GdsButton IsSubmit="true" PreventDoubleClick Text="Continue" /></p>
+
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to log site visits. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>

@@ -1,4 +1,4 @@
-import maplibregl from 'maplibre-gl';
+import {AttributionControl, GeoJSONSourceSpecification, MapLayerMouseEvent, Map as MapLibreMap, NavigationControl, Popup} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import proj4 from 'proj4';
 
@@ -9,7 +9,7 @@ interface WmsLayerConfig {
     format: string;
 }
 
-const mapInstances = new Map<string, maplibregl.Map>();
+const mapInstances = new Map<string, MapLibreMap>();
 
 // EPSG:27700 – British National Grid
 const BNG_PROJ4 = '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs';
@@ -34,7 +34,7 @@ interface DotNetObject {
     invokeMethodAsync(methodName: string): Promise<void>;
 }
 
-const activePopups = new Map<string, maplibregl.Popup>();
+const activePopups = new Map<string, Popup>();
 const markerEventsRegistered = new Set<string>();
 
 /**
@@ -58,7 +58,7 @@ export function initMiniMap(
 
     const wgs84Bounds = bngBoundsToWgs84(defaultBounds);
 
-    const map = new maplibregl.Map({
+    const map = new MapLibreMap({
         container: containerId,
         style: styleUrl,
         bounds: wgs84Bounds,
@@ -69,10 +69,10 @@ export function initMiniMap(
     });
 
     map.addControl(
-        new maplibregl.AttributionControl({ customAttribution: attribution, compact: true })
+        new AttributionControl({ customAttribution: attribution, compact: true })
     );
 
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
 
     if (wmsLayers.length > 0) {
         map.on('load', () => {
@@ -243,8 +243,8 @@ function reprojectGeometry(geometry: Record<string, unknown>): Record<string, un
 }
 
 function reprojectGeoJsonToWgs84(
-    data: maplibregl.GeoJSONSourceSpecification['data']
-): maplibregl.GeoJSONSourceSpecification['data'] {
+    data: GeoJSONSourceSpecification['data']
+): GeoJSONSourceSpecification['data'] {
     if (typeof data === 'string' || data === undefined) {
         return data;
     }
@@ -261,7 +261,7 @@ function reprojectGeoJsonToWgs84(
                         : null,
                 };
             }),
-        } as unknown as maplibregl.GeoJSONSourceSpecification['data'];
+        } as unknown as GeoJSONSourceSpecification['data'];
     }
     if (obj.type === 'Feature') {
         return {
@@ -269,13 +269,13 @@ function reprojectGeoJsonToWgs84(
             geometry: obj.geometry
                 ? reprojectGeometry(obj.geometry as Record<string, unknown>)
                 : null,
-        } as unknown as maplibregl.GeoJSONSourceSpecification['data'];
+        } as unknown as GeoJSONSourceSpecification['data'];
     }
-    return reprojectGeometry(obj) as unknown as maplibregl.GeoJSONSourceSpecification['data'];
+    return reprojectGeometry(obj) as unknown as GeoJSONSourceSpecification['data'];
 }
 
 function applyGeometry(
-    map: maplibregl.Map,
+    map: MapLibreMap,
     geoJson: string | null,
     zoomToBounds: boolean
 ): void {
@@ -285,9 +285,9 @@ function applyGeometry(
         return;
     }
 
-    let data: maplibregl.GeoJSONSourceSpecification['data'];
+    let data: GeoJSONSourceSpecification['data'];
     try {
-        data = JSON.parse(geoJson) as maplibregl.GeoJSONSourceSpecification['data'];
+        data = JSON.parse(geoJson) as GeoJSONSourceSpecification['data'];
     } catch {
         console.warn('MiniMap: invalid GeoJSON supplied – geometry will not be rendered.');
         return;
@@ -346,7 +346,7 @@ function applyGeometry(
     }
 }
 
-function removeGeometryLayers(map: maplibregl.Map): void {
+function removeGeometryLayers(map: MapLibreMap): void {
     for (const layerId of [GEOMETRY_FILL_LAYER_ID, GEOMETRY_LINE_LAYER_ID, GEOMETRY_CIRCLE_LAYER_ID]) {
         if (map.getLayer(layerId)) {
             map.removeLayer(layerId);
@@ -360,8 +360,8 @@ function removeGeometryLayers(map: maplibregl.Map): void {
 type Coordinate = number[];
 
 function fitToGeometry(
-    map: maplibregl.Map,
-    data: maplibregl.GeoJSONSourceSpecification['data']
+    map: MapLibreMap,
+    data: GeoJSONSourceSpecification['data']
 ): void {
     if (typeof data === 'string') {
         return;
@@ -383,7 +383,7 @@ function fitToGeometry(
 }
 
 function calculateBounds(
-    data: Exclude<maplibregl.GeoJSONSourceSpecification['data'], string | undefined>
+    data: Exclude<GeoJSONSourceSpecification['data'], string | undefined>
 ): [number, number, number, number] | null {
     let minX = Infinity;
     let minY = Infinity;
@@ -450,7 +450,7 @@ function calculateBounds(
 }
 
 function applyMarkers(
-    map: maplibregl.Map,
+    map: MapLibreMap,
     containerId: string,
     markersJson: string | null
 ): void {
@@ -489,7 +489,7 @@ function applyMarkers(
         data: {
             type: 'FeatureCollection' as const,
             features
-        } as maplibregl.GeoJSONSourceSpecification['data']
+        } as GeoJSONSourceSpecification['data']
     });
 
     map.addLayer({
@@ -513,7 +513,7 @@ function applyMarkers(
             map.getCanvas().style.cursor = '';
         });
 
-        map.on('click', MARKERS_LAYER_ID, (e: maplibregl.MapLayerMouseEvent) => {
+        map.on('click', MARKERS_LAYER_ID, (e: MapLayerMouseEvent) => {
             if (!e.features || e.features.length === 0) return;
 
             const feature = e.features[0];
@@ -524,7 +524,7 @@ function applyMarkers(
             const existing = activePopups.get(containerId);
             if (existing) existing.remove();
 
-            const popup = new maplibregl.Popup({ offset: 10, maxWidth: '300px' })
+            const popup = new Popup({ offset: 10, maxWidth: '300px' })
                 .setLngLat(coords)
                 .setHTML(popupHtml)
                 .addTo(map);
@@ -538,7 +538,7 @@ function applyMarkers(
     fitToMarkerBounds(map, markers);
 }
 
-function removeMarkerLayers(map: maplibregl.Map, containerId: string): void {
+function removeMarkerLayers(map: MapLibreMap, containerId: string): void {
     if (map.getLayer(MARKERS_LAYER_ID)) {
         map.removeLayer(MARKERS_LAYER_ID);
     }
@@ -552,7 +552,7 @@ function removeMarkerLayers(map: maplibregl.Map, containerId: string): void {
     }
 }
 
-function fitToMarkerBounds(map: maplibregl.Map, markers: MarkerData[]): void {
+function fitToMarkerBounds(map: MapLibreMap, markers: MarkerData[]): void {
     if (markers.length === 0) return;
 
     let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;

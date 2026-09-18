@@ -10,6 +10,31 @@
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
         <GdsHeading Level="2">@Title</GdsHeading>
+        
+        @if(premisesTotals is not null)
+        {
+            <DrillDownTable HierarchicalData="premisesTotals">
+                <Title Context="currentParent">
+                    <GdsHeading Level="3">@((currentParent.Classification ?? "All") + " Premises in Affected Area")</GdsHeading>
+                </Title>
+                <ColumnHeadersDisplay>
+                    <th scope="col" class="govuk-table__header">Property type</th>
+                    <th scope="col" class="govuk-table__header">Total</th>
+                </ColumnHeadersDisplay>
+                <TotalDataDisplay Context="totalRow">
+                    <td scope="row" class="govuk-table__cell">
+                        <strong>Total</strong>
+                    </td>
+                    <td class="govuk-table__cell">
+                        <strong>@totalRow.Sum(x => x.Premises)</strong>
+                    </td>
+                </TotalDataDisplay>
+                <RowDataDisplay Context="row">
+                    <td scope="row" class="govuk-table__cell">@row.Classification</td>
+                    <td class="govuk-table__cell">@row.Premises</td>
+                </RowDataDisplay>
+            </DrillDownTable>
+        }
 
     </Authorized>
     <NotAuthorized>

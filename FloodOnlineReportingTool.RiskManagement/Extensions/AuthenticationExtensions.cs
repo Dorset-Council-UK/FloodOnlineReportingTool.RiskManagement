@@ -30,6 +30,12 @@ internal static class AuthenticationExtensions
             var geoserverPublicApiSection = builder.Configuration
                 .GetRequiredSection(DownstreamAPIOptions.SectionName)
                 .GetRequiredSection(DownstreamAPIOptions.GeoServerApiPublic);
+            var azureApiGeoApiSection = builder.Configuration
+                .GetRequiredSection(DownstreamAPIOptions.SectionName)
+                .GetRequiredSection(DownstreamAPIOptions.AzureApiGeoApi);
+            var azureApiGeoApiKey = azureApiGeoApiSection
+                .GetValue<string>("ApiKey")
+                ?? throw new InvalidOperationException($"Configuration value '{DownstreamAPIOptions.SectionName}:{DownstreamAPIOptions.AzureApiGeoApi}:ApiKey' is required.");
 
             // Setup Authentication
             builder.Services
@@ -39,6 +45,21 @@ internal static class AuthenticationExtensions
                 .AddDownstreamApi(RiskManagementOptions.ReportStatusApi, reportStatusApiSection)
                 .AddDownstreamApi(DownstreamAPIOptions.GeoServerApi, geoserverApiSection)
                 .AddDownstreamApi(DownstreamAPIOptions.GeoServerApiPublic, geoserverPublicApiSection)
+                .AddDownstreamApi(
+                    DownstreamAPIOptions.AzureApiGeoApi,
+                    options =>
+                    {
+                        azureApiGeoApiSection.Bind(options);
+                        options.CustomizeHttpRequestMessage = (message) =>
+                        {
+                            const string subscriptionHeaderName = "Ocp-Apim-Subscription-Key";
+
+                            if (!message.Headers.Contains(subscriptionHeaderName))
+                            {
+                                message.Headers.Add(subscriptionHeaderName, azureApiGeoApiKey);
+                            }
+                        };
+                    })
                 .AddInMemoryTokenCaches();
 
             builder.Services.AddResilientHttpClients();

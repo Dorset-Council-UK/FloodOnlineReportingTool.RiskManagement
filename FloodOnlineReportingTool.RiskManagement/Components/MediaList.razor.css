@@ -1,10 +1,4 @@
-﻿/*#media-gallery{
-  column-width:250px;
-  orphans:1;
-  widows:1;
-}*/
-
-.cards {
+﻿.cards {
     display: flex;
     gap: 24px;
     justify-content: flex-start;
@@ -12,9 +6,9 @@
     flex-wrap: wrap;
 }
 
-    .cards media-image {
-        flex: 1 1 220px;
-        padding: 24px;
-        background: #fbfbfb;
-        border: 1px solid #d4d4d4;
-    }
+.cards media-image {
+    flex: 1 1 220px;
+    padding: 24px;
+    background: #fbfbfb;
+    border: 1px solid #d4d4d4;
+}
