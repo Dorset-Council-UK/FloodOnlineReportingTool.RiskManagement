@@ -11,10 +11,15 @@
     align-items: stretch;
     flex-wrap: wrap;
 }
+@supports (flex-wrap: balance) {
+  .cards {
+    flex-wrap: balance;
+  }
+}
 
-    .cards media-image {
-        flex: 1 1 220px;
-        padding: 24px;
-        background: #fbfbfb;
-        border: 1px solid #d4d4d4;
-    }
+.cards media-image {
+    flex: 1 1 220px;
+    padding: 24px;
+    background: #fbfbfb;
+    border: 1px solid #d4d4d4;
+}
