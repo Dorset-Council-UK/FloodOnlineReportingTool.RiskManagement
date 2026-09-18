@@ -24,7 +24,7 @@
 
     if (docs.Any())
     {
-        <GdsHeading Level="3">Documents</GdsHeading>
+        <GdsHeading Level="@HeadingLevel">Documents</GdsHeading>
         <table class="govuk-table">
             <tbody class="govuk-table__body">
                 @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
@@ -37,7 +37,7 @@
 
     if (images.Any())
     {
-        <GdsHeading Level="3">Images</GdsHeading>
+        <GdsHeading Level="@HeadingLevel">Images</GdsHeading>
         <div id="media-gallery">
             <section class="cards">
                 @foreach (var group in images.OrderByDescending(i => i.UploadDateUtc).Chunk(3))
@@ -56,7 +56,7 @@
 
     if (videos.Any())
     {
-        <GdsHeading Level="3">Videos</GdsHeading>
+        <GdsHeading Level="@HeadingLevel">Videos</GdsHeading>
         @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
         {
             <GdsGridRow>
