@@ -174,18 +174,14 @@ public partial class Address(
     /// </summary>
     private async Task<IList<ApiAddress>> AddressSearch()
     {
-        if (string.IsNullOrWhiteSpace(Model.Postcode) && !Model.IsAddress)
-        {
-            logger.LogDebug("Non address query so not searching");
-            _isSearching = false;
-            return [];
-        }
-
-        if (string.IsNullOrWhiteSpace(Model.Postcode))
-        {
-            logger.LogDebug("No postcode, not searching");
-            _isSearching = false;
-            return [];
+        if (string.IsNullOrWhiteSpace(Model.Postcode)) { 
+            if (!Model.IsAddress) {
+                logger.LogDebug("Non address query so not searching");
+            } else {
+                logger.LogDebug("No postcode, not searching"); 
+            } 
+            _isSearching = false; 
+            return new List<ApiAddress>(); 
         }
 
         try
@@ -206,7 +202,7 @@ public partial class Address(
             _isSearching = false;
         }
 
-        return [];
+        return new List<ApiAddress>();
     }
 
     private async Task SearchAgain()

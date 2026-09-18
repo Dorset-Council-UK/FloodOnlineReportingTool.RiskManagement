@@ -56,22 +56,12 @@ public class AzureApiClient(
                 },
                 cancellationToken: ct);
 
-            if (response is null)
+            var responseBodyJson = await TryReadResponseBodyAsync(response, ct);
+            if (responseBodyJson is null)
             {
                 return null;
             }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpRequestException($"Downstream API returned status code {(int)response.StatusCode}.", null, response.StatusCode);
-            }
-
-            if (response.Content is null)
-            {
-                return null;
-            }
-
-            var responseBodyJson = await response.Content.ReadAsStringAsync(ct);
             logger.LogInformation(
                 "Received address summary response with status code {StatusCode} and {ResponseLength} characters",
                 (int)response.StatusCode,
@@ -153,6 +143,26 @@ public class AzureApiClient(
         }
     }
 
+    private static async Task<string?> TryReadResponseBodyAsync(HttpResponseMessage? response, CancellationToken ct)
+    {
+        if (response is null)
+        {
+            return null;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new HttpRequestException($"Downstream API returned status code {(int)response.StatusCode}.", null, response.StatusCode);
+        }
+
+        if (response.Content is null)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadAsStringAsync(ct);
+    }
+
     public async Task<IReadOnlyCollection<ApiAddress>?> AddressSearch(string postcode, SearchAreaOptions searchArea, Uri? referer, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(postcode))
@@ -173,22 +183,12 @@ public class AzureApiClient(
                     },
                     cancellationToken: ct);
 
-            if (response is null)
+            var responseBodyJson = await TryReadResponseBodyAsync(response, ct);
+            if (responseBodyJson is null)
             {
                 return null;
             }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new HttpRequestException($"Downstream API returned status code {(int)response.StatusCode}.", null, response.StatusCode);
-            }
-
-            if (response.Content is null)
-            {
-                return null;
-            }
-
-            var responseBodyJson = await response.Content.ReadAsStringAsync(ct);
             logger.LogInformation(
                 "Received address search response with status code {StatusCode} and {ResponseLength} characters",
                 (int)response.StatusCode,
