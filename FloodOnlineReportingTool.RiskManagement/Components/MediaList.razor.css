@@ -1,20 +1,9 @@
-﻿/*#media-gallery{
-  column-width:250px;
-  orphans:1;
-  widows:1;
-}*/
-
-.cards {
+﻿.cards {
     display: flex;
     gap: 24px;
     justify-content: flex-start;
     align-items: stretch;
     flex-wrap: wrap;
-}
-@supports (flex-wrap: balance) {
-  .cards {
-    flex-wrap: balance;
-  }
 }
 
 .cards media-image {
