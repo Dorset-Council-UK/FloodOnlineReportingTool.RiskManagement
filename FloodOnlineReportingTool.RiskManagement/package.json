@@ -8,28 +8,29 @@
   "scripts": {
     "audit": "npm audit",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --node-env production --config webpack.prod.js",
-    "build:dev": "webpack --node-env development --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
+    "build:dev": "webpack --config webpack.dev.js",
+    "outdated": "npm outdated",
     "watch": "webpack --config webpack.dev.js --watch"
   },
   "author": "Dorset Council",
   "dependencies": {
-    "maplibre-gl": "5.19.0",
-    "proj4": "2.20.4"
+    "maplibre-gl": "6.10.0",
+    "proj4": "2.22.0"
   },
   "devDependencies": {
-    "@types/node": "20.19.37",
-    "copy-webpack-plugin": "^14.0.0",
-    "css-loader": "6.11.0",
-    "eslint": "9.39.4",
+    "@types/node": "22.20.3",
+    "copy-webpack-plugin": "14.0.0",
+    "css-loader": "7.1.5",
+    "eslint": "10.10.0",
     "glob": "13.0.6",
     "mini-css-extract-plugin": "2.10.0",
-    "sass": "1.97.3",
-    "sass-loader": "14.2.1",
-    "ts-loader": "9.5.4",
-    "typescript": "5.9.3",
-    "webpack": "5.105.4",
-    "webpack-cli": "5.1.4",
-    "webpack-merge": "5.10.0"
+    "sass": "1.104.1",
+    "sass-loader": "17.0.1",
+    "ts-loader": "9.6.2",
+    "typescript": "6.0.3",
+    "webpack": "5.111.0",
+    "webpack-cli": "7.2.3",
+    "webpack-merge": "6.0.1"
   }
 }

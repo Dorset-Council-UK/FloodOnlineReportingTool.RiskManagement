@@ -1,14 +1,18 @@
 ﻿using FloodOnlineReportingTool.Database.DbContexts;
 using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
 
 namespace FloodOnlineReportingTool.Database.Repositories
 {
     public class MediaItemRepository(
         ILogger<MediaItemRepository> logger,
-        IDbContextFactory<RiskManagementDbContext> contextFactory
+        IDbContextFactory<RiskManagementDbContext> contextFactory,
+        IBlobStorageService blobStorageService
     ) : IMediaItemRepository
     {
         public async Task<int> GetCountByEvent(Guid floodEventId, CancellationToken cancellationToken)
@@ -104,6 +108,88 @@ namespace FloodOnlineReportingTool.Database.Repositories
             await context.SaveChangesAsync(cancellationToken);
 
             return DeleteResult<MediaItem>.Success();
+        }
+
+        public async Task<bool> RotateMediaImage(Guid mediaItemId, int rotationDegrees, CancellationToken ct = default)
+        {
+            try
+            {
+                const string thumbnailSuffix = ".thumbnail.jpg";
+
+                await using var context = await contextFactory.CreateDbContextAsync(ct);
+                var mediaItem = await context.MediaItems.Where(m => m.Id == mediaItemId).FirstOrDefaultAsync(ct);
+
+                if (mediaItem is null)
+                {
+                    logger.LogWarning("Media item with ID {MediaItemId} not found", mediaItemId);
+                    return false;
+                }
+
+                var mediaRotated = await RotateImageByUrlAsync(mediaItem.URL, rotationDegrees, ct);
+                if (!mediaRotated)
+                {
+                    return false;
+                }
+
+                var thumbnailUrl = $"{mediaItem.URL}{thumbnailSuffix}";
+                var thumbnailRotated = await RotateImageByUrlAsync(thumbnailUrl, rotationDegrees, ct, isOptional: true);
+                if (thumbnailRotated)
+                {
+                    logger.LogInformation("Successfully rotated thumbnail for media item {MediaItemId}", mediaItemId);
+                }
+                else
+                {
+                    logger.LogInformation("Thumbnail not found for media item {MediaItemId}; skipping thumbnail rotation", mediaItemId);
+                }
+
+                logger.LogInformation("Successfully rotated media item {MediaItemId} by {RotationDegrees} degrees", mediaItemId, rotationDegrees);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred rotating media item {MediaItemId}", mediaItemId);
+                return false;
+            }
+
+            async Task<bool> RotateImageByUrlAsync(string imageUrl, int degrees, CancellationToken cancellationToken, bool isOptional = false)
+            {
+                var imageStream = await blobStorageService.DownloadFileFromBlobByURLAsync(imageUrl);
+                if (imageStream is null)
+                {
+                    if (!isOptional)
+                    {
+                        logger.LogWarning("Failed to download image from blob storage for media item {MediaItemId}", mediaItemId);
+                    }
+
+                    return false;
+                }
+
+                using (imageStream)
+                {
+                    using var image = await Image.LoadAsync(imageStream, cancellationToken);
+                    image.Mutate(x => x.Rotate(degrees));
+
+                    using var rotatedStream = new MemoryStream();
+                    var uriForMedia = new Uri(imageUrl);
+                    var fileNameForMedia = System.IO.Path.GetFileName(uriForMedia.AbsolutePath);
+                    var extension = System.IO.Path.GetExtension(fileNameForMedia).ToLowerInvariant();
+                    var contentType = string.Equals(extension, ".png", StringComparison.Ordinal) ? "image/png" : "image/jpeg";
+
+                    if (string.Equals(extension, ".png", StringComparison.Ordinal))
+                    {
+                        await image.SaveAsPngAsync(rotatedStream, cancellationToken);
+                    }
+                    else
+                    {
+                        await image.SaveAsJpegAsync(rotatedStream, cancellationToken);
+                    }
+
+                    rotatedStream.Position = 0;
+                    await blobStorageService.UploadFileToBlobAsync(fileNameForMedia, contentType, rotatedStream);
+                }
+
+                return true;
+            }
         }
 
         public async Task<Result<MediaItem>> UpdateTitle(Guid mediaItemId, string title, CancellationToken cancellationToken)

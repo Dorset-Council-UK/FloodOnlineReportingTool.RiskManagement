@@ -1,3 +1,4 @@
+using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
@@ -8,7 +9,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
 public partial class Attachments(
     ILogger<Attachments> logger,
-    NavigationManager navigationManager)
+    NavigationManager navigationManager,
+    IFloodEventRepository floodEventRepository)
 {
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
     private string Title => EventPages.Attachments.Title;
@@ -18,6 +20,7 @@ public partial class Attachments(
     private bool _isLoading = true;
     [Parameter]
     public required string Reference { get; set; }
+    private Database.Models.FloodEvents.FloodEvent? FloodEvent { get; set; }
 
     private readonly CancellationTokenSource _cts = new();
 
@@ -41,6 +44,16 @@ public partial class Attachments(
                 return;
             }
         }
+
+        var result = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+        if (!result.IsSuccess)
+        {
+            logger.LogWarning("Unable to load flood event attachments for reference {Reference}", Reference);
+            _isLoading = false;
+            return;
+        }
+
+        FloodEvent = result.ResultModel;
 
         _isLoading = false;
     }

@@ -32,5 +32,11 @@ namespace FloodOnlineReportingTool.Database.Repositories
         /// </summary>
         /// <returns>A result pattern indicating success, or a list of errors.</returns>
         Task<DeleteResult<MediaItem>> Delete(Guid mediaItemId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Rotates a media item image by the specified degrees (90, 180, 270).
+        /// </summary>
+        /// <returns>A result pattern indicating success, or a list of errors.</returns>
+        Task<bool> RotateMediaImage(Guid mediaItemId, int rotationDegrees, CancellationToken ct = default);
     }
 }

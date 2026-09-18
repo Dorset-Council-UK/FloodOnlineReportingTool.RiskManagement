@@ -11,9 +11,12 @@
 
         <GdsHeading Level="2">@Title</GdsHeading>
 
-        Insert the attachments component here. This is a placeholder for the actual attachments functionality.
+        <GdsButton IsSubmit="false" OnClick="@GoToUpload" Text="Upload Attachments" AdditionalCssClasses="no-print" />
 
-        <GdsButton IsSubmit="false" OnClick="@GoToUpload" Text="Upload Attachments" AdditionalCssClasses="govuk-button--secondary no-print" />
+        @if (!_isLoading)
+        {
+            <MediaList FloodEvent="@FloodEvent" Reference="@Reference" IsEditable="true"></MediaList>
+        }
 
     </Authorized>
     <NotAuthorized>

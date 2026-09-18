@@ -1,0 +1,101 @@
+﻿@using FloodOnlineReportingTool.Database.Models.Media
+@using DbMediaItem = FloodOnlineReportingTool.Database.Models.Media.MediaItem
+
+@if (FloodEvent is not null && FloodEvent.MediaItems.Any())
+{
+    var images = FloodEvent.MediaItems
+        .Where(m => m.Format == MediaType.Image)
+        .OrderByDescending(i => i.UploadDateUtc)
+        .ToList();
+
+    var videos = FloodEvent.MediaItems
+        .Where(m => m.Format == MediaType.Video)
+        .OrderByDescending(i => i.UploadDateUtc)
+        .ToList();
+
+    var docs = FloodEvent.MediaItems
+        .Where(m =>
+            m.Format == MediaType.PDF_Document ||
+            m.Format == MediaType.Word_Document ||
+            m.Format == MediaType.Excel_Spreadsheet ||
+            m.Format == MediaType.Unknown)
+        .OrderByDescending(i => i.UploadDateUtc)
+        .ToList();
+
+    if (docs.Any())
+    {
+        <GdsHeading Level="3">Documents</GdsHeading>
+        <table class="govuk-table">
+            <tbody class="govuk-table__body">
+                @foreach (DbMediaItem mediaItem in docs.OrderByDescending(i => i.UploadDateUtc))
+                {
+                    <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+                }
+            </tbody>
+        </table>
+    }
+
+    if (images.Any())
+    {
+        <GdsHeading Level="3">Images</GdsHeading>
+        <div id="media-gallery">
+            <section class="cards">
+                @foreach (var group in images.OrderByDescending(i => i.UploadDateUtc).Chunk(3))
+                {
+                    @foreach (DbMediaItem mediaItem in group)
+                    {                                
+                        <media-image>
+                            <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>   
+                        </media-image>
+                    }
+                }
+            </section>
+        </div>
+        <br />
+    }
+
+    if (videos.Any())
+    {
+        <GdsHeading Level="3">Videos</GdsHeading>
+        @foreach (DbMediaItem mediaItem in videos.OrderByDescending(i => i.UploadDateUtc))
+        {
+            <GdsGridRow>
+                <MediaItem Media="@mediaItem" IsEditable="@IsEditable" OnRefreshComponent="RefreshComponent"></MediaItem>
+            </GdsGridRow>
+        }
+    }
+}
+else
+{
+    <p>There is no related media</p>
+}
+
+<!--lightbox-->
+<div id="blueimp-gallery"
+     class="blueimp-gallery blueimp-gallery-controls"
+     aria-label="image gallery"
+     aria-modal="true"
+     role="dialog">
+    <div class="slides" aria-live="polite"></div>
+    <h3 class="title"></h3>
+    <a class="prev"
+       aria-controls="blueimp-gallery"
+       aria-label="previous slide"
+       aria-keyshortcuts="ArrowLeft"></a>
+    <a class="next"
+       aria-controls="blueimp-gallery"
+       aria-label="next slide"
+       aria-keyshortcuts="ArrowRight"></a>
+    <a class="close"
+       aria-controls="blueimp-gallery"
+       aria-label="close"
+       aria-keyshortcuts="Escape"></a>
+    <a class="play-pause"
+       aria-controls="blueimp-gallery"
+       aria-label="play slideshow"
+       aria-keyshortcuts="Space"
+       aria-pressed="false"
+       role="button"></a>
+    <ol class="indicator"></ol>
+</div>
+
