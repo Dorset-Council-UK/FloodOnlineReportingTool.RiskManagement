@@ -114,6 +114,8 @@ namespace FloodOnlineReportingTool.Database.Repositories
         {
             try
             {
+                const string thumbnailSuffix = ".thumbnail.jpg";
+
                 await using var context = await contextFactory.CreateDbContextAsync(ct);
                 var mediaItem = await context.MediaItems.Where(m => m.Id == mediaItemId).FirstOrDefaultAsync(ct);
 
@@ -123,45 +125,22 @@ namespace FloodOnlineReportingTool.Database.Repositories
                     return false;
                 }
 
-                // Download the image from blob storage
-                var imageStream = await blobStorageService.DownloadFileFromBlobByURLAsync(mediaItem.URL);
-                if (imageStream is null)
+                var mediaRotated = await RotateImageByUrlAsync(mediaItem.URL, rotationDegrees, ct);
+                if (!mediaRotated)
                 {
-                    logger.LogWarning("Failed to download image from blob storage for media item {MediaItemId}", mediaItemId);
                     return false;
                 }
 
-                // Load and rotate the image
-                using var image = await Image.LoadAsync(imageStream, ct);
-                imageStream.Dispose();
-
-                // Rotate the image based on degrees
-                image.Mutate(x => x.Rotate(rotationDegrees));
-
-                // Save rotated image to a memory stream (preserve original format where possible)
-                using var rotatedStream = new MemoryStream();
-                var uriForMedia = new Uri(mediaItem.URL);
-                var fileNameForMedia = System.IO.Path.GetFileName(uriForMedia.AbsolutePath);
-                var extension = System.IO.Path.GetExtension(fileNameForMedia).ToLowerInvariant();
-                var contentType = string.Equals(extension, ".png", StringComparison.Ordinal) ? "image/png" : "image/jpeg";
-                if (string.Equals(extension, ".png", StringComparison.Ordinal))
+                var thumbnailUrl = $"{mediaItem.URL}{thumbnailSuffix}";
+                var thumbnailRotated = await RotateImageByUrlAsync(thumbnailUrl, rotationDegrees, ct, isOptional: true);
+                if (thumbnailRotated)
                 {
-                    await image.SaveAsPngAsync(rotatedStream, ct);
+                    logger.LogInformation("Successfully rotated thumbnail for media item {MediaItemId}", mediaItemId);
                 }
                 else
                 {
-                    await image.SaveAsJpegAsync(rotatedStream, ct);
+                    logger.LogInformation("Thumbnail not found for media item {MediaItemId}; skipping thumbnail rotation", mediaItemId);
                 }
-                rotatedStream.Position = 0;
-
-                // Upload the rotated image back to blob storage (this will overwrite the existing image)
-                var uri = new Uri(mediaItem.URL);
-
-                // Extract just the filename from the URL
-                var segments = uri.Segments;
-                var fileName = segments[^1]; // Get the last segment (filename)
-
-                await blobStorageService.UploadFileToBlobAsync(fileName, contentType, rotatedStream);
 
                 logger.LogInformation("Successfully rotated media item {MediaItemId} by {RotationDegrees} degrees", mediaItemId, rotationDegrees);
                 return true;
@@ -170,6 +149,46 @@ namespace FloodOnlineReportingTool.Database.Repositories
             {
                 logger.LogError(ex, "An error occurred rotating media item {MediaItemId}", mediaItemId);
                 return false;
+            }
+
+            async Task<bool> RotateImageByUrlAsync(string imageUrl, int degrees, CancellationToken cancellationToken, bool isOptional = false)
+            {
+                var imageStream = await blobStorageService.DownloadFileFromBlobByURLAsync(imageUrl);
+                if (imageStream is null)
+                {
+                    if (!isOptional)
+                    {
+                        logger.LogWarning("Failed to download image from blob storage for media item {MediaItemId}", mediaItemId);
+                    }
+
+                    return false;
+                }
+
+                using (imageStream)
+                {
+                    using var image = await Image.LoadAsync(imageStream, cancellationToken);
+                    image.Mutate(x => x.Rotate(degrees));
+
+                    using var rotatedStream = new MemoryStream();
+                    var uriForMedia = new Uri(imageUrl);
+                    var fileNameForMedia = System.IO.Path.GetFileName(uriForMedia.AbsolutePath);
+                    var extension = System.IO.Path.GetExtension(fileNameForMedia).ToLowerInvariant();
+                    var contentType = string.Equals(extension, ".png", StringComparison.Ordinal) ? "image/png" : "image/jpeg";
+
+                    if (string.Equals(extension, ".png", StringComparison.Ordinal))
+                    {
+                        await image.SaveAsPngAsync(rotatedStream, cancellationToken);
+                    }
+                    else
+                    {
+                        await image.SaveAsJpegAsync(rotatedStream, cancellationToken);
+                    }
+
+                    rotatedStream.Position = 0;
+                    await blobStorageService.UploadFileToBlobAsync(fileNameForMedia, contentType, rotatedStream);
+                }
+
+                return true;
             }
         }
 
