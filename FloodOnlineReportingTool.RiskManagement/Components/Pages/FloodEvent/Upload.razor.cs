@@ -42,6 +42,8 @@ public partial class Upload(
     private const int ThumbnailWidthPixels = 300;
     private const int ThumbnailHeightPixels = 200;
     private const int ThumbnailJpegQuality = 75;
+    private const int MaxThumbnailSourceDimensionPixels = 10000;
+    private const long MaxThumbnailSourcePixels = 40_000_000;
     private const string ThumbnailContentType = "image/jpeg";
     private const string ThumbnailSuffix = ".thumbnail.jpg";
     private int RemainingSlots => MaxNumFiles - Model.UploadedFiles.Count;
@@ -324,6 +326,18 @@ public partial class Upload(
 
     private async Task UploadThumbnailAsync(IBrowserFile file, string trustedFileNameForFileStorage)
     {
+        await using var identifyStream = file.OpenReadStream(MaxFileSize, _cts.Token);
+        var imageInfo = await Image.IdentifyAsync(identifyStream, _cts.Token)
+            ?? throw new InvalidOperationException("Unable to read image metadata for thumbnail generation.");
+
+        if (imageInfo.Width > MaxThumbnailSourceDimensionPixels
+            || imageInfo.Height > MaxThumbnailSourceDimensionPixels
+            || (long)imageInfo.Width * imageInfo.Height > MaxThumbnailSourcePixels)
+        {
+            throw new InvalidOperationException(
+                $"Image dimensions {imageInfo.Width}x{imageInfo.Height} exceed thumbnail safety limits.");
+        }
+
         await using var sourceStream = file.OpenReadStream(MaxFileSize, _cts.Token);
         using var image = await Image.LoadAsync(sourceStream, _cts.Token);
 
