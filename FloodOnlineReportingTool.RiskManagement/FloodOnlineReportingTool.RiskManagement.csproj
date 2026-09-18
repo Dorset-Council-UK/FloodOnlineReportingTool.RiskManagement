@@ -12,29 +12,29 @@
 
 	<ItemGroup>
 		<PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
-		<PackageReference Include="Azure.Core" Version="1.60.0" />
-		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
+		<PackageReference Include="Azure.Core" Version="1.62.0" />
+		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.2" />
 		<PackageReference Include="Azure.Identity" Version="1.21.0" />
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.29.1" />
+		<PackageReference Include="Azure.Storage.Blobs" Version="12.29.2" />
 		<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
 		<PackageReference Include="CsvHelper" Version="33.1.0" />
-		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="4.0.0" />
+		<PackageReference Include="Dorset-Council-UK.GdsBlazorComponents" Version="4.1.0" />
 		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
 		<PackageReference Include="Humanizer.Core" Version="3.0.10" />
-		<PackageReference Include="Meziantou.Analyzer" Version="3.0.123">
+		<PackageReference Include="Meziantou.Analyzer" Version="3.0.259">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="10.0.10" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10">
+		<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="10.0.12" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.10" />
-		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="4.13.2" />
-		<PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="4.13.2" />
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.0.12" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.10.0" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="4.14.2" />
+		<PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="4.14.2" />
 		<PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.0.0" />
 	</ItemGroup>
 
