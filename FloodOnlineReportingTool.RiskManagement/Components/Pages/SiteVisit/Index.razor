@@ -1,10 +1,11 @@
 ﻿@page "/visit/"
 
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Site Visits</PageTitle>
-<GdsBreadcrumbs Items="Breadcrumbs" />
+<GdsBackLink Href="@PreviousPage.Url"></GdsBackLink>
 
 <GdsHeading Level="2">Property Site Visits</GdsHeading>
 
@@ -27,18 +28,5 @@
 </AuthorizeView>
 
 @code {
-    private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        Breadcrumbs = CreateBreadcrumbs();
-    }
-
-    private IReadOnlyCollection<GdsBreadcrumb> CreateBreadcrumbs()
-    {
-        return
-        [
-            new ("./", "Home"),  
-        ];
-    }
+    private PageInfo PreviousPage => GeneralPages.Home;
 }

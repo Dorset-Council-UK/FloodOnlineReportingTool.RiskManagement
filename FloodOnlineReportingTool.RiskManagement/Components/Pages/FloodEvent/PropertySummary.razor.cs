@@ -1,14 +1,11 @@
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
-using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using FloodOnlineReportingTool.Database.Repositories;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.CSharp.RuntimeBinder;
-using System.Security.Claims;
 using NetTopologySuite.IO.Converters;
 using System.Text.Json;
 
@@ -46,7 +43,7 @@ public partial class PropertySummary(
         var isAuthorizedReader = await AuthenticationState.TryIsReaderAsync(authorizationService);
         if (!isAuthorizedReader)
         {
-            logger.LogWarning("Attempt to access flood event property summary without reader permission");
+            logger.LogWarning("Attempt to access a page without correct permission");
             _isLoading = false;
             return;
         }

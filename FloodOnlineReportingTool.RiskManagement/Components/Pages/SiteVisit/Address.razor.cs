@@ -1,7 +1,10 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Models.Azure;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
@@ -10,21 +13,25 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.SiteVisit;
 public partial class Address(
     ILogger<Address> logger,
     IAzureApiClient azureApiClient,
+    IAuthorizationService authorizationService,
     ProtectedSessionStorage protectedSessionStorage,
     NavigationManager navigationManager
 ) : IAsyncDisposable
 {
     // Page order properties
-    public string Title { get; set; } = "";
+    public string Title { get; set; } = "Select an Address";
+
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
 
     [SupplyParameterFromQuery]
     private bool FromSummary { get; set; }
-    //private PageInfo NextPage => FromSummary
-    //    ? FloodReportCreatePages.Summary
-    //    : FloodReportCreatePages.PropertyType;
-    //private PageInfo PreviousPage => FromSummary
-    //    ? FloodReportCreatePages.Summary
-    //    : FloodReportCreatePages.Postcode;
+    private PageInfo NextPage => FromSummary
+        ? VisitPages.Summary
+        : VisitPages.PropertyType;
+    private PageInfo PreviousPage => FromSummary
+        ? VisitPages.Summary
+        : VisitPages.Postcode;
     private Models.Visit.Address Model { get; set; } = default!;
 
     private EditContext _editContext = default!;
@@ -46,8 +53,16 @@ public partial class Address(
         GC.SuppressFinalize(this);
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var isAuthorizedReader = await AuthenticationState.TryIsWriterAsync(authorizationService);
+        if (!isAuthorizedReader)
+        {
+            logger.LogWarning("Attempt to access a page without correct permission");
+            _isSearching = false;
+            return;
+        }
+
         // Setup model and edit context
         Model ??= new();
         _editContext = new(Model);
@@ -56,6 +71,14 @@ public partial class Address(
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        var isAuthorizedReader = await AuthenticationState.TryIsWriterAsync(authorizationService);
+        if (!isAuthorizedReader)
+        {
+            logger.LogWarning("Attempt to access a page without correct permission");
+            _isSearching = false;
+            return;
+        }
+
         if (firstRender)
         {
             // Set any previously entered data
@@ -112,7 +135,7 @@ public partial class Address(
             //await protectedSessionStorage.SetAsync(SessionConstants.EligibilityCheck_ExtraData, updatedExtraData);
 
             // Go to the next page or back to the summary
-            //navigationManager.NavigateTo(NextPage.Url);
+            navigationManager.NavigateTo(NextPage.Url);
         }
     }
 

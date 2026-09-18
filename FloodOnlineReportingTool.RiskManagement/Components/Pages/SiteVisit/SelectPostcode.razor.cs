@@ -1,5 +1,8 @@
-﻿using GdsBlazorComponents;
+﻿using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
@@ -8,24 +11,27 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.SiteVisit;
 public partial class SelectPostcode(
     ILogger<SelectPostcode> logger,
     NavigationManager navigationManager,
+    IAuthorizationService authorizationService,
     ProtectedSessionStorage protectedSessionStorage
 ) : IAsyncDisposable
 {
     // Page order properties
-    public string Title { get; set; } = "";
+    public string Title { get; set; } = "Select by Postcode";
 
     [SupplyParameterFromQuery]
     private bool FromSummary { get; set; }
-    //private PageInfo NextPage => FromSummary
-    //    ? FloodReportCreatePages.Summary
-    //    : Model.PostcodeKnown == true ? FloodReportCreatePages.Address : FloodReportCreatePages.Location;
-    //private PageInfo PreviousPage => FromSummary
-    //    ? FloodReportCreatePages.Summary
-    //    : FloodReportCreatePages.Home;
+    private PageInfo NextPage => FromSummary
+        ? VisitPages.Summary
+        : Model.PostcodeKnown == true ? VisitPages.Address : VisitPages.Location;
+    private PageInfo PreviousPage => FromSummary
+        ? VisitPages.Summary
+        : VisitPages.Home;
 
     private Models.Visit.SelectPostcode Model { get; set; } = default!;
 
-    private EditContext editContext = default!;
+    private EditContext _editContext = default!;
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
     private readonly CancellationTokenSource _cts = new();
     private bool _isLoading = true;
     private IReadOnlyCollection<GdsOptionItem<bool>> _postcodeKnownOptions = [
@@ -33,16 +39,32 @@ public partial class SelectPostcode(
         new("postcode-known-no", "No", value: false),
     ];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        var isAuthorizedReader = await AuthenticationState.TryIsWriterAsync(authorizationService);
+        if (!isAuthorizedReader)
+        {
+            logger.LogWarning("Attempt to access a page without correct permission");
+            _isLoading = false;
+            return;
+        }
+
         // Setup model and edit context
         Model ??= new();
-        editContext = new(Model);
-        editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        _editContext = new(Model);
+        _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        var isAuthorizedReader = await AuthenticationState.TryIsWriterAsync(authorizationService);
+        if (!isAuthorizedReader)
+        {
+            logger.LogWarning("Attempt to access a page without correct permission");
+            _isLoading = false;
+            return;
+        }
+
         if (firstRender)
         {
             // Set any previously entered data
@@ -75,7 +97,7 @@ public partial class SelectPostcode(
 
     private async Task OnSubmit()
     {
-        if (editContext.Validate())
+        if (_editContext.Validate())
         {
             await OnValidSubmit();
         }
@@ -93,7 +115,7 @@ public partial class SelectPostcode(
         //await protectedSessionStorage.SetAsync(SessionConstants.EligibilityCheck_ExtraData, updatedExtraData);
 
         // Go to the next page or back to the summary
-        //navigationManager.NavigateTo(NextPage.Url);
+        navigationManager.NavigateTo(NextPage.Url);
     }
 
     //private async Task<ExtraData> GetCreateExtraData()

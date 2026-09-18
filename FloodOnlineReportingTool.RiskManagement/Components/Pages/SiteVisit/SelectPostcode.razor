@@ -1,49 +1,58 @@
 ﻿@page "/visit/postcode"
+@using Microsoft.AspNetCore.Components.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Authorization
 
 <PageTitle>@Title</PageTitle>
 
-@* <GdsBackLink Href="@PreviousPage.Url"></GdsBackLink> *@
+<GdsBackLink Href="@PreviousPage.Url"></GdsBackLink> 
 
-<EditForm EditContext="editContext" OnSubmit="OnSubmit" FormName="CreateFloodReport">
-    <FluentValidationValidator />
-    <GdsErrorSummary />
+<AuthorizeView Policy="@PolicyNames.Writer" Context="authContext">
+    <Authorized>
+        <EditForm EditContext="_editContext" OnSubmit="OnSubmit" FormName="CreateFloodReport">
+            <FluentValidationValidator />
+            <GdsErrorSummary />
 
-    <GdsSpinner Show="_isLoading" ShowMessage="true" />
+            <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-    <GdsFormGroup Show="!_isLoading">
-        <GdsFieldsetGroup>
-            <GdsFieldsetLegend>
-                <GdsFieldsetHeading Level="1">Do you know the postcode for the property?</GdsFieldsetHeading>
-            </GdsFieldsetLegend>
+            <GdsFormGroup Show="!_isLoading">
+                <GdsFieldsetGroup>
+                    <GdsFieldsetLegend>
+                        <GdsFieldsetHeading Level="1">Do you know the postcode for the property?</GdsFieldsetHeading>
+                    </GdsFieldsetLegend>
 
-            <GdsHint>Select one option.</GdsHint>
-            <GdsErrorMessage />
+                    <GdsHint>Select one option.</GdsHint>
+                    <GdsErrorMessage />
 
-            <GdsRadios @bind-Value="Model.PostcodeKnown">
-                <GdsRadioItem>
-                    <GdsInputRadio Value="@true" ConditionalId="conditional-known" />
-                    <GdsRadioLabel Text="Yes" />
-                </GdsRadioItem>
-                <GdsRadioConditional Id="conditional-known">
-                    <GdsFormGroup>
-                        <GdsLabel Text="Please provide the postcode for the property if known" />
-                        <GdsErrorMessage />
-                        <GdsInputText @bind-Value="Model.Postcode" class="govuk-input govuk-input--width-10" />
-                    </GdsFormGroup>
-                </GdsRadioConditional>
+                    <GdsRadios @bind-Value="Model.PostcodeKnown">
+                        <GdsRadioItem>
+                            <GdsInputRadio Value="@true" ConditionalId="conditional-known" />
+                            <GdsRadioLabel Text="Yes" />
+                        </GdsRadioItem>
+                        <GdsRadioConditional Id="conditional-known">
+                            <GdsFormGroup>
+                                <GdsLabel Text="Please provide the postcode for the property if known" />
+                                <GdsErrorMessage />
+                                <GdsInputText @bind-Value="Model.Postcode" class="govuk-input govuk-input--width-10" />
+                            </GdsFormGroup>
+                        </GdsRadioConditional>
 
-                <GdsRadioItem>
-                    <GdsInputRadio Value="@false" />
-                    <GdsRadioLabel Text="No" />
-                </GdsRadioItem>
-            </GdsRadios>
+                        <GdsRadioItem>
+                            <GdsInputRadio Value="@false" />
+                            <GdsRadioLabel Text="No" />
+                        </GdsRadioItem>
+                    </GdsRadios>
 
-        </GdsFieldsetGroup>
-    </GdsFormGroup>
+                </GdsFieldsetGroup>
+            </GdsFormGroup>
 
-    @if (!_isLoading)
-    {
-        <p><GdsButton IsSubmit="true" PreventDoubleClick Text="Continue" /></p>
-    }
+            @if (!_isLoading)
+            {
+                <p><GdsButton IsSubmit="true" PreventDoubleClick Text="Continue" /></p>
+            }
 
-</EditForm>
+        </EditForm>
+    </Authorized>
+    <NotAuthorized>
+        <GdsWarning Text="You do not have permission to log site visits. Contact your administrator to request permission." />
+    </NotAuthorized>
+</AuthorizeView>
