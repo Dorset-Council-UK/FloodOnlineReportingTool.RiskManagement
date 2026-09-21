@@ -1,12 +1,16 @@
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.Database.Services;
 using FloodOnlineReportingTool.RiskManagement.Models.Media;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.Database.Services;
 using GdsBlazorComponents;
+using Humanizer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 using System.Globalization;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
@@ -35,7 +39,13 @@ public partial class Upload(
     private const int MaxNumFiles = 50;
     private const int MaxFileSizeMB = 100;
     private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
-
+    private const int ThumbnailWidthPixels = 300;
+    private const int ThumbnailHeightPixels = 200;
+    private const int ThumbnailJpegQuality = 75;
+    private const int MaxThumbnailSourceDimensionPixels = 10000;
+    private const long MaxThumbnailSourcePixels = 40_000_000;
+    private const string ThumbnailContentType = "image/jpeg";
+    private const string ThumbnailSuffix = ".thumbnail.jpg";
     private int RemainingSlots => MaxNumFiles - Model.UploadedFiles.Count;
     private static readonly string[] ImageFileTypes = [
         "image/jpeg",
@@ -223,6 +233,17 @@ public partial class Upload(
 
             if (!string.IsNullOrWhiteSpace(blobUrl))
             {
+                if (IsImageFileType(file.ContentType))
+                {
+                    try
+                    {
+                        await UploadThumbnailAsync(file, trustedFileNameForFileStorage);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "An error occurred while creating thumbnail for file {FileName}", file.Name);
+                    }
+                }
                 Model.UploadedFiles.Add(new Models.Media.MediaItem
                 {
                     Name = Path.GetFileNameWithoutExtension(file.Name),
@@ -262,6 +283,80 @@ public partial class Upload(
         return _extensionToContentType.TryGetValue(extension, out var contentType)
             ? contentType
             : string.Empty;
+    }
+
+    private static bool IsImageFileType(string contentType)
+    {
+        return ImageFileTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool IsVideoFileType(string contentType)
+    {
+        return VideoFileTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static bool IsDocumentFileType(string contentType)
+    {
+        return DocumentFileTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string GetThumbnailBlobUrl(string imageBlobUrl)
+    {
+        return $"{imageBlobUrl}{ThumbnailSuffix}";
+    }
+
+    private string GetBlobReadUrl(string blobUrl)
+    {
+        var readSasToken = blobStorageOptions.Value.ReadSASToken;
+        return string.IsNullOrWhiteSpace(readSasToken)
+            ? blobUrl
+            : $"{blobUrl}?{readSasToken.TrimStart('?')}";
+    }
+
+    private string GetThumbnailReadUrl(string imageBlobUrl)
+    {
+        return GetBlobReadUrl(GetThumbnailBlobUrl(imageBlobUrl));
+    }
+
+    private string GetImagePreviewErrorFallback(string originalImageBlobUrl)
+    {
+        var fallbackUrl = GetBlobReadUrl(originalImageBlobUrl).Replace("'", "\\'", StringComparison.Ordinal);
+        return $"this.onerror=null;this.src='{fallbackUrl}';";
+    }
+
+    private async Task UploadThumbnailAsync(IBrowserFile file, string trustedFileNameForFileStorage)
+    {
+        await using var identifyStream = file.OpenReadStream(MaxFileSize, _cts.Token);
+        var imageInfo = await Image.IdentifyAsync(identifyStream, _cts.Token)
+            ?? throw new InvalidOperationException("Unable to read image metadata for thumbnail generation.");
+
+        if (imageInfo.Width > MaxThumbnailSourceDimensionPixels
+            || imageInfo.Height > MaxThumbnailSourceDimensionPixels
+            || (long)imageInfo.Width * imageInfo.Height > MaxThumbnailSourcePixels)
+        {
+            throw new InvalidOperationException(
+                $"Image dimensions {imageInfo.Width}x{imageInfo.Height} exceed thumbnail safety limits.");
+        }
+
+        await using var sourceStream = file.OpenReadStream(MaxFileSize, _cts.Token);
+        using var image = await Image.LoadAsync(sourceStream, _cts.Token);
+
+        image.Mutate(context => context.Resize(new ResizeOptions
+        {
+            Mode = ResizeMode.Max,
+            Size = new Size(ThumbnailWidthPixels, ThumbnailHeightPixels),
+        }));
+
+        await using var thumbnailStream = new MemoryStream();
+        await image.SaveAsJpegAsync(
+            thumbnailStream,
+            new JpegEncoder { Quality = ThumbnailJpegQuality },
+            _cts.Token);
+
+        thumbnailStream.Position = 0;
+
+        var thumbnailFileName = $"{trustedFileNameForFileStorage}{ThumbnailSuffix}";
+        await blobStorageService.UploadFileToBlobAsync(thumbnailFileName, ThumbnailContentType, thumbnailStream);
     }
 
     private void StartRename(Models.Media.MediaItem file)
@@ -340,6 +435,16 @@ public partial class Upload(
                 {
                     logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
                 }
+
+                if (IsImageFileType(file.ContentType))
+                {
+                    var thumbnailBlobUrl = GetThumbnailBlobUrl(file.Url);
+                    if (!await blobStorageService.DeleteFileFromBlobByURLAsync(thumbnailBlobUrl))
+                    {
+                        logger.LogWarning("An error occurred deleting media thumbnail with URL {url} from blob storage", thumbnailBlobUrl);
+                    }
+                }
+
             } catch (Exception ex)
             {
                 logger.LogError(ex, "An error occurred deleting media item with URL {url} from blob storage", file.Url);
