@@ -22,23 +22,23 @@ public partial class Index(ILogger<Index> logger,
     private bool _isLoading = false;
     protected override async Task OnInitializedAsync()
     {
-        // Don't get any data if you don't have permission
-        if (AuthenticationState is null)
-        {
-            logger.LogWarning("Attempt to access home page without authentication");
-            return;
-        }
-
-        var authState = await AuthenticationState;
-        if (!authState.User.IsAuthenticated)
-        {
-            logger.LogWarning("Attempt to access home page without authentication");
-            return;
-        }
         _isLoading = true;
-
         try
         {
+            // Don't get any data if you don't have permission
+            if (AuthenticationState is null)
+            {
+                logger.LogWarning("Attempt to access home page without authentication");
+                return;
+            }
+
+            var authState = await AuthenticationState;
+            if (!authState.User.IsAuthenticated)
+            {
+                logger.LogWarning("Attempt to access home page without authentication");
+                return;
+            }
+
             _userActionCount = await actionLogRepository.GetActionCountForUser(_cts.Token);
             _userPropertyCount = await actionLogRepository.GetPropertyCountForUser(_cts.Token);
             _past30DaysCount = await floodEventRepository.CountCreatedInPast30Days(_cts.Token);
@@ -50,6 +50,7 @@ public partial class Index(ILogger<Index> logger,
         catch(Exception ex)
         {
             logger.LogError(ex, "An error occurred while retrieving the data for the home page.");
+            throw; // Rethrow the exception to be handled by the global error handler
         }
         finally
         {
