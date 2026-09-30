@@ -5,20 +5,28 @@
 }
 
 .info_panel__item {
-    padding: 15px;
+    padding: 0;
 }
 
 .info_panel__content {
     color: var(--govuk-color-white);
 }
 
+.info_panel__title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--govuk-color-white);
+}
+
 .info_panel__link {
-    position: absolute;
-    top: 0;
-    left: 0;
+    display: block;
+    box-sizing: border-box;
+    padding: 15px;
     width: 100%;
     height: 100%;
-    z-index: 1;
+    color: inherit;
+    text-decoration: none;
 }
 
 .info-panel-info {

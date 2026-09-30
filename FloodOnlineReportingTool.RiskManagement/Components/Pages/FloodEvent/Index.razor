@@ -6,13 +6,13 @@
 <PageTitle>Flood Event Details</PageTitle>
 <GdsBreadcrumbs Items="Breadcrumbs" />
 
-<GdsHeading Level="2">View flood event summary</GdsHeading>
+<GdsHeading Level="1">View flood event summary</GdsHeading>
 
 <AuthorizeView Policy="@PolicyNames.Reader">
     <Authorized>
-        @if (_redirectingToSearchOptions)
+        @if (_isLoading)
         {
-            <GdsSpinner Show ShowMessage Message="Redirecting to search options..." />
+            <GdsSpinner Show ShowMessage Message="Loading data" />
         }
         else if (ViewModel is null)
         {
@@ -30,7 +30,7 @@
                         <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary no-print" />
                     </div>
 
-                    <GdsHeading Level="3">Basic details</GdsHeading>
+                    <GdsHeading Level="2">Basic details</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -101,7 +101,7 @@
                         </div>
                     </dl>
 
-                    <GdsHeading Level="3">About the flood</GdsHeading>
+                    <GdsHeading Level="2">About the flood</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -145,7 +145,7 @@
                         </div>
                     </dl>
 
-                    <GdsHeading Level="3">Organisations</GdsHeading>
+                    <GdsHeading Level="2">Organisations</GdsHeading>
                     <dl class="govuk-summary-list page-break">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -168,7 +168,7 @@
                         </div>
                     </dl>
 
-                    <GdsHeading Level="3">Total Estimated Impacts</GdsHeading>
+                    <GdsHeading Level="2">Total Estimated Impacts</GdsHeading>
                     <table class="govuk-table">
                         <thead class="govuk-table__head">
                             <tr class="govuk-table__row">
@@ -201,7 +201,7 @@
 
                     <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Full details for all affected properties</GdsLink></p>
 
-                    <GdsHeading Level="3">Location</GdsHeading>
+                    <GdsHeading Level="2">Location</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -234,19 +234,19 @@
 
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
 
-                    <GdsHeading Level="4">Further details</GdsHeading>
+                    <GdsHeading Level="2" Size="GdsSize.Medium">Further details</GdsHeading>
                     <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Affected properties</GdsLink></p>
                     <p><GdsLink Href="@($"event/impactsummary/{Reference}")">Flood impacts</GdsLink></p>
                     <p><GdsLink Href="@($"event/attachments/{Reference}")">Attachments</GdsLink></p>
                     <p><GdsLink Href="@($"event/comments/{Reference}")">Comments</GdsLink></p>
                     <hr class="govuk-section-break govuk-section-break--m" />
 
-                    <GdsHeading Level="4">Download the data</GdsHeading>
+                    <GdsHeading Level="2" Size="GdsSize.Medium">Download the data</GdsHeading>
                     @if (!string.IsNullOrEmpty(_exportErrorMessage))
                     {
                         <GdsWarning Text="@_exportErrorMessage" />
                     }
-                    <p><GdsLink Href="@_selfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
+                    <p><GdsLink Href="@SelfUrl" OnClick="PrintPageAsync" PreventDefault>Print/Save page</GdsLink></p>
                     <p><button class="govuk-link" @onclick="ExportToCsv" disabled="@_isExportingCsv"><span class="govuk-visually-hidden">Download </span>CSV</button></p>
                     @if (ViewModel.Geom is not null && ViewModel.Geom.NumGeometries is not 0)
                     {

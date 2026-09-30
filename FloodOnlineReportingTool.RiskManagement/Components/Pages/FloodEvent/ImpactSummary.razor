@@ -7,9 +7,10 @@
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
-        <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
-        <GdsHeading Level="2">@Title</GdsHeading>
+        <GdsHeading Level="1">@Title</GdsHeading>
+
+        <GdsSpinner Show="_isLoading" ShowMessage="true" />
 
     </Authorized>
     <NotAuthorized>

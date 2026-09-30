@@ -13,6 +13,11 @@ namespace FloodOnlineReportingTool.RiskManagement.Components
         public bool IsEditable { get; set; }
         [Parameter]
         public required string Reference { get; set; }
+        /// <summary>
+        /// Defines the heading level that each media section should use. Defaults to h2
+        /// </summary>
+        [Parameter]
+        public int HeadingLevel { get; set; } = 2;
         private readonly CancellationTokenSource _cts = new();
 
         private IJSObjectReference? _jsModule;

@@ -5,23 +5,55 @@
 
 <PageTitle>Flood Reporting Admin</PageTitle>
 
-<GdsHeading Level="1" Size="GdsSize.Large">Flood Reporting Admin</GdsHeading>
+<GdsHeading Level="1">Flood Reporting Admin</GdsHeading>
 
 <AuthorizeView Policy="@PolicyNames.Reader" Context="authContext">
     <Authorized>
-        <GdsContainer>
-            <GdsGridRow>
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flood events recorded in the last 30 days" HeaderText="@_past30DaysCount.ToString()" CardStyle="@_userEventStyle" />
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Flooded properties recorded in the last 30 days" HeaderText="@_userPropertyCount.ToString()" CardStyle="@_userPropertyStyle" />
-            </GdsGridRow>
-            <GdsGridRow>
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Action waiting for you" HeaderText="@_userActionCount.ToString()" CardStyle="@_userActionStyle" LinkURL="action" />
-                <GridCard CardSize="GridCard.CardSizes.OneHalf" BodyText="Create a new search" HeaderText="Search for records" CardStyle="info" LinkURL="search" />
-            </GdsGridRow>
+        @if (_isLoading)
+        {
+            <GdsSpinner Show ShowMessage Message="Loading data" />
+        }
+        else
+        {
+            <GdsHeading Level="2">Your dashboard</GdsHeading>
+            <GdsContainer>
+                <GdsGridRow>
+                    <GridCard 
+                        CardSize="GridCard.CardSizes.OneHalf" 
+                        BodyText="Flood events recorded in the last 30 days" 
+                        HeaderText="@_past30DaysCount.ToString()" 
+                        CardStyle="@_userEventStyle"
+                        AriaLabel="@_floodEventsFriendlyText" />
 
-            <GdsGridRow>
-                <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                    <GdsHeading Level="3">Other tasks</GdsHeading>
+                    <GridCard 
+                        CardSize="GridCard.CardSizes.OneHalf" 
+                        BodyText="Flooded properties recorded in the last 30 days" 
+                        HeaderText="@_userPropertyCount.ToString()" 
+                        CardStyle="@_userPropertyStyle"
+                        AriaLabel="@_floodedPropertiesFriendlyText" />
+
+                </GdsGridRow>
+                <GdsGridRow>
+                    <GridCard 
+                        CardSize="GridCard.CardSizes.OneHalf" 
+                        BodyText="Action waiting for you" 
+                        HeaderText="@_userActionCount.ToString()" 
+                        CardStyle="@_userActionStyle" 
+                        LinkURL="action"
+                        AriaLabel="@_userActionsFriendlyText" />
+
+                    <GridCard 
+                        CardSize="GridCard.CardSizes.OneHalf" 
+                        BodyText="Create a new search" 
+                        HeaderText="Search for records" 
+                        CardStyle="info" 
+                        LinkURL="search"
+                        AriaLabel="Search for records" />
+                </GdsGridRow>
+
+                <GdsGridRow AdditionalCssClasses="govuk-!-margin-top-2">
+                    <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                        <GdsHeading Level="2" Size="GdsSize.Medium">Other tasks</GdsHeading>
 
                     <ul class="govuk-list">
                         <li>
@@ -33,12 +65,14 @@
                     </ul>
                 </GdsGridColumn>
 
-                <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
-                    <GdsHeading Level="3">Pick up where you left off</GdsHeading>
-                    <RecentWorkList />
-                </GdsGridColumn>
-            </GdsGridRow>
-        </GdsContainer>
+                    <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
+                        <GdsHeading Level="2" Size="GdsSize.Medium">Pick up where you left off</GdsHeading>
+                        <RecentWorkList />
+                    </GdsGridColumn>
+                </GdsGridRow>
+            </GdsContainer>
+        }
+        
     </Authorized>
     <NotAuthorized>
             <GdsWarning Text="Please sign in to view your dashboard" />
