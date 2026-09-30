@@ -6,7 +6,9 @@ using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
+using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
 
@@ -19,6 +21,9 @@ public partial class Index(
     NavigationManager navigationManager
 )
 {
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; }
+
     // Static reverse lookup: OrganisationIds Guid → display name.
     // This avoids an extra DB call since organisation names are defined as constants in the contracts.
     private static readonly IReadOnlyDictionary<Guid, string> _organisationNames = new Dictionary<Guid, string>
@@ -27,7 +32,6 @@ public partial class Index(
         [OrganisationIds.Wessex] = "Wessex Water",
         [OrganisationIds.DevonCornwall] = "Devon & Cornwall",
     };
-
     private IReadOnlyCollection<GdsBreadcrumb> Breadcrumbs { get; set; } = [];
     [Parameter]
     public required string Reference { get; set; }
@@ -48,12 +52,26 @@ public partial class Index(
 
         if (string.IsNullOrWhiteSpace(Reference))
         {
-            logger.LogInformation("No search reference provided in query parameters. Unable to load search results.");
+            logger.LogInformation("No search reference provided in query parameters. Unable to load flood event details page.");
             navigationManager.NavigateTo(SearchPages.Options.Url);
         }
 
         try
         {
+            // Don't get any data if you don't have permission
+            if (AuthenticationState is null)
+            {
+                logger.LogWarning("Attempt to access flood event details page without authentication");
+                return;
+            }
+
+            var authState = await AuthenticationState;
+            if (!authState.User.IsAuthenticated)
+            {
+                logger.LogWarning("Attempt to access flood event details page without authentication");
+                return;
+            }
+
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
             if (eventResult.IsSuccess && eventResult.ResultModel is not null)
             {
