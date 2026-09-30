@@ -19,6 +19,9 @@ public partial class Index(ILogger<Index> logger,
     private string _userPropertyStyle = "success";
     private int _past30DaysCount;
     private string _userEventStyle = "success";
+    private string _floodEventsFriendlyText = "";
+    private string _floodedPropertiesFriendlyText = "";
+    private string _userActionsFriendlyText = "";
     private bool _isLoading = false;
     protected override async Task OnInitializedAsync()
     {
@@ -46,6 +49,10 @@ public partial class Index(ILogger<Index> logger,
             _userActionStyle = _userActionCount <= 3 ? "success" : (_userActionCount <= 5 ? "warning" : "danger");
             _userPropertyStyle = _userPropertyCount <= 3 ? "success" : (_userPropertyCount <= 6 ? "warning" : "danger");
             _userEventStyle = _past30DaysCount <= 3 ? "success" : (_past30DaysCount <= 6 ? "warning" : "danger");
+
+            _floodEventsFriendlyText = $"{_past30DaysCount} flood events recorded in the last 30 days";
+            _floodedPropertiesFriendlyText = $"{_userPropertyCount} flooded properties recorded in the last 30 days";
+            _userActionsFriendlyText = $"{_userActionCount} actions waiting for you";
         }
         catch(Exception ex)
         {

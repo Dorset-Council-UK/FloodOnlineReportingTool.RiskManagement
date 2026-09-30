@@ -19,6 +19,10 @@ public partial class GridCard
     [Parameter]
     public string CardStyle { get; set; } = "info";
 
+    [Parameter]
+    public string AriaLabel { get; set; } = "";
+
+    private string? ComputedAriaLabel => string.IsNullOrWhiteSpace(AriaLabel) ? null : AriaLabel;
     private string? SizeOption { get; set; }
     private string? SelectedStyle { get; set; }
     private string? CardTag { get; set; }
