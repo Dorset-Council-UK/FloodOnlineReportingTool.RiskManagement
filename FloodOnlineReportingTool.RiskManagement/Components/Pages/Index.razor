@@ -1,6 +1,7 @@
 ﻿@attribute [AllowAnonymous]
 @page "/"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Flood Reporting Admin</PageTitle>
@@ -57,10 +58,10 @@
 
                     <ul class="govuk-list">
                         <li>
-                            <GdsLink Href="flood-event">Create a new flood event</GdsLink>
+                            <GdsLink Href="@SearchPages.Options.Url">Create a new flood event</GdsLink>
                         </li>
                         <li>
-                            <GdsLink Href="visit">Record property site visits</GdsLink>
+                            <GdsLink Href="@VisitPages.Home.Url">Record property site visits</GdsLink>
                         </li>
                     </ul>
                 </GdsGridColumn>
