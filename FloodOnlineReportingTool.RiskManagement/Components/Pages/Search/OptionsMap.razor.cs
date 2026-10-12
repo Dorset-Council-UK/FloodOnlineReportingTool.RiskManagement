@@ -225,6 +225,11 @@ public partial class OptionsMap(
 
         var geometry = await geoServerClient.GetGeometryFromSourceBySearch(source, selected, user, _cts.Token);
 
+        if (geometry is Polygon polygon)
+        {
+            geometry = new MultiPolygon(new Polygon[] { polygon });
+        }
+
         if (geometry is MultiPolygon multiPolygon)
         {
             var merged = MergePolygon(multiPolygon);
