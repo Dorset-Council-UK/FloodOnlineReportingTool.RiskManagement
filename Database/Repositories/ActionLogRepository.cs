@@ -48,7 +48,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
-        // TODO insert user filter
+        // TODO insert user filter and cache it per user to avoid multiple queries for the same user
 
         return await context.ActionLogs.Where(a => a.ActionedAt == null).CountAsync(ct);
     }
@@ -60,7 +60,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
-        // TODO insert user filter
+        // TODO insert user filter and cache it per user to avoid multiple queries for the same user
         var thirtyDaysAgo = DateTimeOffset.UtcNow.AddDays(-30);
         return await context.ActionLogs
             .Where(a => a.Action.Name == "ReportNew")
@@ -74,7 +74,7 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
     {
         await using var context = await contextFactory.CreateDbContextAsync(ct);
 
-        // TODO insert user filter
+        // TODO insert user filter and cache it per user to avoid multiple queries for the same user
 
         var actionLogs = await context.ActionLogs
             .Include(al => al.Action)
