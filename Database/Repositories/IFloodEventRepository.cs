@@ -43,4 +43,6 @@ public interface IFloodEventRepository
     Task<GetResult<FloodEvent>> GetBySearchReference(string searchReference, int targetSrid, CancellationToken cancellationToken);
 
     Task<FloodEvent> GetFloodEventById(Guid floodEventId, CancellationToken cancellationToken);
+
+    Task<Result<FloodEvent?>> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
 }

@@ -149,6 +149,9 @@ public partial class Index(
                     PrimaryFloodCauses = primaryCauseNames,
                     SecondaryFloodCauses = secondaryCauseNames,
                     ResponsibleOrganisations = responsibleOrganisationNames,
+                    MediaReference = floodEvent.MediaReference,
+                    MediaReferenceExpiration = floodEvent.MediaReferenceExpiration,
+                    MediaUploadLock = floodEvent.MediaUploadLock,
                 };
             }
             else
@@ -175,6 +178,21 @@ public partial class Index(
             await settingsService.AddRecentWork($"{Reference}", "Flood Event", string.Empty, $"event/{Reference}");
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task CreatePublicMediaUrl()
+    {
+        var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+
+        if (eventResult.IsSuccess && eventResult.ResultModel != null)
+        {
+            var updatedEvent = await floodEventRepository.CreateMediaUrl(eventResult.ResultModel.Id, DateTimeOffset.UtcNow.AddDays(14), _cts.Token);
+
+            // Redirect to manage public media page
+        }
+
+        logger.LogWarning("Attempt to add media URL failed");
+        return;
     }
 
     private async Task PrintPageAsync()

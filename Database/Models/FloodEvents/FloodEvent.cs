@@ -54,5 +54,8 @@ public record FloodEvent
     /// All media items associated with the flood report.
     /// </summary>
     public ICollection<MediaItem> MediaItems { get; set; } = [];
+    public string? MediaReference { get; set; }
+    public DateTimeOffset? MediaReferenceExpiration { get; set; }
+    public Boolean MediaUploadLock { get; set; } = false;
 
 }

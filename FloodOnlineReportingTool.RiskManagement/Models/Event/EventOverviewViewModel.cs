@@ -47,4 +47,9 @@ public record EventOverviewViewModel
 
     // Notes
     public string StatusNote { get; init; } = string.Empty;
+
+    // Media settings
+    public string? MediaReference { get; set; }
+    public DateTimeOffset? MediaReferenceExpiration { get; set; }
+    public Boolean MediaUploadLock { get; set; } = false;
 }

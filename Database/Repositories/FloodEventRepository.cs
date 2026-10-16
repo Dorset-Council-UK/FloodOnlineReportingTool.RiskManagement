@@ -1,12 +1,14 @@
-﻿using System.Data;
-using FloodOnlineReportingTool.Contracts;
+﻿using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Migrations;
 using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace FloodOnlineReportingTool.Database.Repositories;
@@ -197,6 +199,33 @@ public class FloodEventRepository(
 
         // update event log?
         return Result<FloodEvent?>.Success(updatedFloodEvent);
+    }
+
+    public async Task<Result<FloodEvent?>> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent is null)
+        {
+            return Result<FloodEvent?>.Failure([$"No flood event found with ID '{floodEventId}'."]);
+        }
+
+        if (!string.IsNullOrEmpty(existingFloodEvent.MediaReference))
+        {
+            return Result<FloodEvent?>.Failure([$"No flood event already has Media URL."]);
+        }
+
+        existingFloodEvent.MediaReference = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
+        existingFloodEvent.MediaReferenceExpiration = mediaExpiry;
+        existingFloodEvent.MediaUploadLock = false;
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return Result<FloodEvent?>.Success(existingFloodEvent);
     }
 
     public async Task<IList<EventStatus>> GetEventStatuses(CancellationToken cancellationToken)
