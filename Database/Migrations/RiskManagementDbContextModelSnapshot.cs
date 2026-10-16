@@ -19,7 +19,7 @@ namespace FloodOnlineReportingTool.Database.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("fortriskmanagement")
-                .HasAnnotation("ProductVersion", "10.0.10")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
@@ -152,6 +152,15 @@ namespace FloodOnlineReportingTool.Database.Migrations
 
                     b.Property<Guid>("InvestigationStatus")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("MediaReference")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("MediaReferenceExpiration")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("MediaUploadLock")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("MitigationTaken")
                         .HasColumnType("integer");
@@ -1105,19 +1114,16 @@ namespace FloodOnlineReportingTool.Database.Migrations
                     b.Property<Guid?>("FloodEventId")
                         .HasColumnType("uuid");
 
-                    b.PrimitiveCollection<Guid[]>("FloodSources")
-                        .IsRequired()
+                    b.Property<Guid[]>("FloodSources")
                         .HasColumnType("uuid[]");
 
                     b.Property<MultiPolygon>("Geom")
                         .HasColumnType("geometry(multipolygon, 27700)");
 
-                    b.PrimitiveCollection<Guid[]>("LimitByOrganisation")
-                        .IsRequired()
+                    b.Property<Guid[]>("LimitByOrganisation")
                         .HasColumnType("uuid[]");
 
-                    b.PrimitiveCollection<Guid[]>("LimitByStatus")
-                        .IsRequired()
+                    b.Property<Guid[]>("LimitByStatus")
                         .HasColumnType("uuid[]");
 
                     b.Property<int?>("PagingSize")
@@ -1150,8 +1156,9 @@ namespace FloodOnlineReportingTool.Database.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("SortBy")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");

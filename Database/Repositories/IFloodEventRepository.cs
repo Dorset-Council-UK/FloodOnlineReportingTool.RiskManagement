@@ -44,5 +44,15 @@ public interface IFloodEventRepository
 
     Task<FloodEvent> GetFloodEventById(Guid floodEventId, CancellationToken cancellationToken);
 
-    Task<Result<FloodEvent?>> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
+    Task<(bool IsSuccess, string? MediaReference)> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sets whether public media upload is locked for the flood event.
+    /// </summary>
+    Task<bool> SetMediaUploadLock(Guid floodEventId, bool isLocked, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Updates the public media URL expiry for the flood event.
+    /// </summary>
+    Task<bool> UpdateMediaUrlExpiry(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
 }

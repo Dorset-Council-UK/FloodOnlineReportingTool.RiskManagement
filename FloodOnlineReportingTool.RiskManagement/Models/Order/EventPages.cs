@@ -9,6 +9,7 @@ internal static class EventPages
     public static readonly PageInfo Estimates = new(BaseUrl, "/estimates", "Update event estimates");
     public static readonly PageInfo Delete = new(BaseUrl, "/delete", "Archive / delete a flood event");
     public static readonly PageInfo Upload = new(BaseUrl, "/upload", "Upload attachments");
+    public static readonly PageInfo MediaUpload = new(BaseUrl, "/mediaupload", "Public upload");
     public static readonly PageInfo Attachments = new(BaseUrl, "/attachments", "View event attachments");
     public static readonly PageInfo Comments = new(BaseUrl, "/comments", "View event comments");
     public static readonly PageInfo PropertySummary = new(BaseUrl, "/propertysummary", "View event property summary");
