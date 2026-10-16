@@ -1,6 +1,8 @@
-import {AttributionControl, GeoJSONSourceSpecification, MapLayerMouseEvent, Map as MapLibreMap, NavigationControl, Popup} from 'maplibre-gl';
+import {AttributionControl, GeoJSONSourceSpecification, MapLayerMouseEvent, Map as MapLibreMap, NavigationControl, Popup, setWorkerUrl} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import proj4 from 'proj4';
+
+setWorkerUrl(new URL('js/workers/maplibre-gl-worker.mjs', document.baseURI).toString());
 
 interface WmsLayerConfig {
     id: string;
@@ -10,6 +12,8 @@ interface WmsLayerConfig {
 }
 
 const mapInstances = new Map<string, MapLibreMap>();
+const styleReadyMaps = new WeakSet<MapLibreMap>();
+const visibilityObservers = new Map<string, MutationObserver>();
 
 // EPSG:27700 – British National Grid
 const BNG_PROJ4 = '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs';
@@ -66,6 +70,14 @@ export function initMiniMap(
         attributionControl: false,
         maxPitch: 0,
         dragRotate: false,
+        transformRequest: (url) => {
+            const resourceUrl = new URL(url, document.baseURI);
+            if (resourceUrl.origin === 'https://api.os.uk') {
+                resourceUrl.searchParams.set('key', apiKey);
+                return { url: resourceUrl.toString() };
+            }
+            return { url };
+        },
     });
 
     map.addControl(
@@ -74,24 +86,24 @@ export function initMiniMap(
 
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
 
-    if (wmsLayers.length > 0) {
-        map.on('load', () => {
-            wmsLayers.forEach(layer => {
-                map.addSource(layer.id, {
-                    type: 'raster',
-                    tiles: [buildWmsTileUrl(layer)],
-                    tileSize: 256,
-                });
-                map.addLayer({
-                    id: layer.id,
-                    type: 'raster',
-                    source: layer.id,
-                });
+    map.once('style.load', () => {
+        styleReadyMaps.add(map);
+        wmsLayers.forEach(layer => {
+            map.addSource(layer.id, {
+                type: 'raster',
+                tiles: [buildWmsTileUrl(layer)],
+                tileSize: 256,
+            });
+            map.addLayer({
+                id: layer.id,
+                type: 'raster',
+                source: layer.id,
             });
         });
-    }
+    });
 
     mapInstances.set(containerId, map);
+    watchVisibility(containerId);
 }
 
 /**
@@ -112,10 +124,10 @@ export function updateGeometry(
         return;
     }
 
-    if (map.loaded()) {
+    if (styleReadyMaps.has(map)) {
         applyGeometry(map, geoJson, zoomToBounds);
     } else {
-        map.once('load', () => applyGeometry(map, geoJson, zoomToBounds));
+        map.once('style.load', () => applyGeometry(map, geoJson, zoomToBounds));
     }
 }
 
@@ -134,10 +146,10 @@ export function updateMarkers(
         return;
     }
 
-    if (map.loaded()) {
+    if (styleReadyMaps.has(map)) {
         applyMarkers(map, containerId, markersJson);
     } else {
-        map.once('load', () => applyMarkers(map, containerId, markersJson));
+        map.once('style.load', () => applyMarkers(map, containerId, markersJson));
     }
 }
 
@@ -154,33 +166,42 @@ export function observeVisibility(
     dotNetRef: DotNetObject,
     callbackMethod: string
 ): void {
+    watchVisibility(containerId, () => {
+        void dotNetRef.invokeMethodAsync(callbackMethod);
+    });
+}
+
+function watchVisibility(containerId: string, onFirstVisible?: () => void): void {
+    visibilityObservers.get(containerId)?.disconnect();
+    visibilityObservers.delete(containerId);
+
     const container = document.getElementById(containerId);
     if (!container) {
         return;
     }
 
     const tabPanel = container.closest('.govuk-tabs__panel');
-    if (!tabPanel) {
-        // Not inside a GDS tabs panel – invoke immediately
-        dotNetRef.invokeMethodAsync(callbackMethod);
-        return;
-    }
-
-    // If the panel is already visible, invoke immediately
-    if (!tabPanel.classList.contains('govuk-tabs__panel--hidden')) {
-        dotNetRef.invokeMethodAsync(callbackMethod);
-        return;
-    }
-
-    // Watch for the hidden class being removed
-    const observer = new MutationObserver(() => {
-        if (!tabPanel.classList.contains('govuk-tabs__panel--hidden')) {
-            dotNetRef.invokeMethodAsync(callbackMethod);
-            observer.disconnect();
+    let notified = false;
+    const handleVisibility = () => {
+        if (tabPanel?.classList.contains('govuk-tabs__panel--hidden')) {
+            return;
         }
-    });
 
+        mapInstances.get(containerId)?.resize();
+        if (!notified) {
+            notified = true;
+            onFirstVisible?.();
+        }
+    };
+
+    handleVisibility();
+    if (!tabPanel) {
+        return;
+    }
+
+    const observer = new MutationObserver(handleVisibility);
     observer.observe(tabPanel, { attributes: true, attributeFilter: ['class'] });
+    visibilityObservers.set(containerId, observer);
 }
 
 /**
@@ -189,6 +210,8 @@ export function observeVisibility(
  * @param containerId  The id of the map container element.
  */
 export function destroyMap(containerId: string): void {
+    visibilityObservers.get(containerId)?.disconnect();
+    visibilityObservers.delete(containerId);
     const map = mapInstances.get(containerId);
     if (map) {
         map.remove();
