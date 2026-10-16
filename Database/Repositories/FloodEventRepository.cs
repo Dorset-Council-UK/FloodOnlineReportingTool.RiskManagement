@@ -7,7 +7,6 @@ using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
 namespace FloodOnlineReportingTool.Database.Repositories;
@@ -15,28 +14,15 @@ namespace FloodOnlineReportingTool.Database.Repositories;
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
     IEventLogRepository eventLogRepository,
-    ISavedSearchRepository savedSearchRepository,
-    IMemoryCache memoryCache
+    ISavedSearchRepository savedSearchRepository
 ) : IFloodEventRepository
 {
-    private const string CountCacheKey = "FloodEvents:Count";
-    private const string CountPast30DaysCacheKey = "FloodEvents:CountCreatedInPast30Days";
-    private static readonly TimeSpan CountCacheDuration = TimeSpan.FromMinutes(5);
-
     private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
 
     public async Task<int> Count(CancellationToken cancellationToken)
     {
-        if (memoryCache.TryGetValue(CountCacheKey, out int cachedCount))
-        {
-            return cachedCount;
-        }
-
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var count = await context.FloodEvents.CountAsync(cancellationToken);
-
-        memoryCache.Set(CountCacheKey, count, CountCacheDuration);
-        return count;
+        return await context.FloodEvents.CountAsync(cancellationToken);
     }
 
     public async Task<int> Count(string userId, CancellationToken cancellationToken)
@@ -51,19 +37,11 @@ public class FloodEventRepository(
 
     public async Task<int> CountCreatedInPast30Days(CancellationToken cancellationToken)
     {
-        if (memoryCache.TryGetValue(CountPast30DaysCacheKey, out int cachedCount))
-        {
-            return cachedCount;
-        }
-
         var now = DateTimeOffset.UtcNow;
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        var count = await context.FloodEvents
+        return await context.FloodEvents
             .Where(fe => fe.CreatedAt >= now.AddDays(-30) && fe.CreatedAt <= now)
             .CountAsync(cancellationToken);
-
-        memoryCache.Set(CountPast30DaysCacheKey, count, CountCacheDuration);
-        return count;
     }
 
     public async Task<bool> Exists(Guid floodEventId, CancellationToken cancellationToken)
@@ -90,8 +68,8 @@ public class FloodEventRepository(
         }
 
         var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
-        if (linkedSavedSearch is not null 
-            && linkedSavedSearch.ResultsFrom is not null 
+        if (linkedSavedSearch is not null
+            && linkedSavedSearch.ResultsFrom is not null
             && linkedSavedSearch.ResultsTo is not null
             && linkedSavedSearch.FloodSources.Count > 0)
         {
@@ -106,9 +84,9 @@ public class FloodEventRepository(
             floodEvent.InvestigationStatus,
             linkedSavedSearch.ResultsFrom.Value,
             linkedSavedSearch.ResultsTo.Value,
-            [..linkedSavedSearch.FloodSources],
-            [..linkedSavedSearch.LimitByOrganisation],
-            [..linkedSavedSearch.LimitByStatus],
+            [.. linkedSavedSearch.FloodSources],
+            [.. linkedSavedSearch.LimitByOrganisation],
+            [.. linkedSavedSearch.LimitByStatus],
             []
             );
             OutboxMessage outboxMessage = new()
@@ -129,7 +107,8 @@ public class FloodEventRepository(
                     return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
                 }
             }
-        } else
+        }
+        else
         {
             return Result<FloodEvent?>.Failure([$"A flood event must have a start / end date and at least one source of flooding."]);
         }
@@ -152,8 +131,8 @@ public class FloodEventRepository(
         }
         FloodEvent? updatedFloodEvent = null;
         var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
-        if (linkedSavedSearch is not null 
-            && linkedSavedSearch.ResultsFrom is not null 
+        if (linkedSavedSearch is not null
+            && linkedSavedSearch.ResultsFrom is not null
             && linkedSavedSearch.ResultsTo is not null
             && linkedSavedSearch.FloodSources.Count > 0
             )
@@ -188,7 +167,7 @@ public class FloodEventRepository(
             };
 
             context.FloodEvents.Update(updatedFloodEvent);
-        
+
             // Send a message to trigger the FloodEventUpdated message
             var outMessage = new FloodEventUpdated(
                 linkedSavedSearch.Reference,
@@ -212,7 +191,8 @@ public class FloodEventRepository(
             };
             context.OutboxMessages.Add(outboxMessage);
             await context.SaveChangesAsync(cancellationToken);
-        } else
+        }
+        else
         {
             return Result<FloodEvent?>.Failure([$"A flood event must have a start / end date and at least one source of flooding."]);
         }
@@ -255,8 +235,8 @@ public class FloodEventRepository(
         if (targetSrid != 27700 && floodEvent.SavedSearch.Geom is not null)
         {
             var transformedGeom = await GetTransformedGeometry(
-                floodEvent.SavedSearchId, 
-                targetSrid, 
+                floodEvent.SavedSearchId,
+                targetSrid,
                 cancellationToken);
 
             floodEvent = floodEvent with
