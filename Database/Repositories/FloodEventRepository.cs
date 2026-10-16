@@ -7,6 +7,7 @@ using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 
 namespace FloodOnlineReportingTool.Database.Repositories;
@@ -14,15 +15,28 @@ namespace FloodOnlineReportingTool.Database.Repositories;
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
     IEventLogRepository eventLogRepository,
-    ISavedSearchRepository savedSearchRepository
+    ISavedSearchRepository savedSearchRepository,
+    IMemoryCache memoryCache
 ) : IFloodEventRepository
 {
+    private const string CountCacheKey = "FloodEvents:Count";
+    private const string CountPast30DaysCacheKey = "FloodEvents:CountCreatedInPast30Days";
+    private static readonly TimeSpan CountCacheDuration = TimeSpan.FromMinutes(5);
+
     private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
 
     public async Task<int> Count(CancellationToken cancellationToken)
     {
+        if (memoryCache.TryGetValue(CountCacheKey, out int cachedCount))
+        {
+            return cachedCount;
+        }
+
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await context.FloodEvents.CountAsync(cancellationToken);
+        var count = await context.FloodEvents.CountAsync(cancellationToken);
+
+        memoryCache.Set(CountCacheKey, count, CountCacheDuration);
+        return count;
     }
 
     public async Task<int> Count(string userId, CancellationToken cancellationToken)
@@ -37,11 +51,19 @@ public class FloodEventRepository(
 
     public async Task<int> CountCreatedInPast30Days(CancellationToken cancellationToken)
     {
+        if (memoryCache.TryGetValue(CountPast30DaysCacheKey, out int cachedCount))
+        {
+            return cachedCount;
+        }
+
         var now = DateTimeOffset.UtcNow;
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
-        return await context.FloodEvents
+        var count = await context.FloodEvents
             .Where(fe => fe.CreatedAt >= now.AddDays(-30) && fe.CreatedAt <= now)
             .CountAsync(cancellationToken);
+
+        memoryCache.Set(CountPast30DaysCacheKey, count, CountCacheDuration);
+        return count;
     }
 
     public async Task<bool> Exists(Guid floodEventId, CancellationToken cancellationToken)

@@ -18,6 +18,7 @@ var (riskManagementOptions, proxyOptions) = builder.AddRiskManagementOptions();
 builder.AddAuthentication();
 builder.AddRiskManagementHealthChecks();
 builder.AddDatabase();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IReportStatusClient, ReportStatusClient>();
 builder.Services.AddScoped<IAzureApiClient, AzureApiClient>();
