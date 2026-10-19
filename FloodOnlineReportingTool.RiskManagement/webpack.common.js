@@ -1,6 +1,7 @@
 ﻿const path = require('path');
 const { globSync } = require('glob');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Dynamically load all *.razor.ts files under the Components folder
 const componentEntries = Object.fromEntries(
@@ -73,6 +74,20 @@ module.exports = {
         ]
     },
     plugins: [
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: require.resolve('maplibre-gl/dist/maplibre-gl-worker.mjs'),
+                    to: 'js/workers/maplibre-gl-worker.mjs',
+                    info: { minimized: true }
+                },
+                {
+                    from: require.resolve('maplibre-gl/dist/maplibre-gl-shared.mjs'),
+                    to: 'js/workers/maplibre-gl-shared.mjs',
+                    info: { minimized: true }
+                }
+            ]
+        }),
         // Extract the CSS into a separate file
         new MiniCssExtractPlugin({
             filename: 'css/[name].css'
