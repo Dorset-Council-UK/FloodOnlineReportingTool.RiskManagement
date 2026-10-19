@@ -68,8 +68,8 @@ public class FloodEventRepository(
         }
 
         var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
-        if (linkedSavedSearch is not null 
-            && linkedSavedSearch.ResultsFrom is not null 
+        if (linkedSavedSearch is not null
+            && linkedSavedSearch.ResultsFrom is not null
             && linkedSavedSearch.ResultsTo is not null
             && linkedSavedSearch.FloodSources.Count > 0)
         {
@@ -84,9 +84,9 @@ public class FloodEventRepository(
             floodEvent.InvestigationStatus,
             linkedSavedSearch.ResultsFrom.Value,
             linkedSavedSearch.ResultsTo.Value,
-            [..linkedSavedSearch.FloodSources],
-            [..linkedSavedSearch.LimitByOrganisation],
-            [..linkedSavedSearch.LimitByStatus],
+            [.. linkedSavedSearch.FloodSources],
+            [.. linkedSavedSearch.LimitByOrganisation],
+            [.. linkedSavedSearch.LimitByStatus],
             []
             );
             OutboxMessage outboxMessage = new()
@@ -107,7 +107,8 @@ public class FloodEventRepository(
                     return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
                 }
             }
-        } else
+        }
+        else
         {
             return Result<FloodEvent?>.Failure([$"A flood event must have a start / end date and at least one source of flooding."]);
         }
@@ -130,8 +131,8 @@ public class FloodEventRepository(
         }
         FloodEvent? updatedFloodEvent = null;
         var linkedSavedSearch = await savedSearchRepository.Get(floodEvent.SavedSearchId, cancellationToken);
-        if (linkedSavedSearch is not null 
-            && linkedSavedSearch.ResultsFrom is not null 
+        if (linkedSavedSearch is not null
+            && linkedSavedSearch.ResultsFrom is not null
             && linkedSavedSearch.ResultsTo is not null
             && linkedSavedSearch.FloodSources.Count > 0
             )
@@ -166,7 +167,7 @@ public class FloodEventRepository(
             };
 
             context.FloodEvents.Update(updatedFloodEvent);
-        
+
             // Send a message to trigger the FloodEventUpdated message
             var outMessage = new FloodEventUpdated(
                 linkedSavedSearch.Reference,
@@ -190,7 +191,8 @@ public class FloodEventRepository(
             };
             context.OutboxMessages.Add(outboxMessage);
             await context.SaveChangesAsync(cancellationToken);
-        } else
+        }
+        else
         {
             return Result<FloodEvent?>.Failure([$"A flood event must have a start / end date and at least one source of flooding."]);
         }
@@ -233,8 +235,8 @@ public class FloodEventRepository(
         if (targetSrid != 27700 && floodEvent.SavedSearch.Geom is not null)
         {
             var transformedGeom = await GetTransformedGeometry(
-                floodEvent.SavedSearchId, 
-                targetSrid, 
+                floodEvent.SavedSearchId,
+                targetSrid,
                 cancellationToken);
 
             floodEvent = floodEvent with
