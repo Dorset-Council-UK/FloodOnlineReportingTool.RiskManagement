@@ -65,6 +65,13 @@ public partial class MiniMap : IAsyncDisposable
     public bool ZoomToGeometry { get; set; } = true;
 
     /// <summary>
+    /// Clusters nearby markers and geometry points. Defaults to <see langword="true"/>.
+    /// Lines and polygons are not clustered.
+    /// </summary>
+    [Parameter]
+    public bool UseClustering { get; set; } = true;
+
+    /// <summary>
     /// Callback invoked the first time the map container becomes visible (e.g. when
     /// a GDS tabs panel is shown). Useful for deferring expensive data loads until the
     /// map is actually viewed.
@@ -76,7 +83,8 @@ public partial class MiniMap : IAsyncDisposable
     private IJSObjectReference? _jsModule;
     private DotNetObjectReference<MiniMap>? _dotNetRef;
     private bool _mapInitialized;
-    private string? _lastRenderedGeoJson;
+    private bool _lastUseClustering;
+    private string? _lastParameterGeoJson;
 
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -102,8 +110,10 @@ public partial class MiniMap : IAsyncDisposable
             options.OsApiKey,
             attribution,
             bounds,
-            wmsLayerConfigs);
+            wmsLayerConfigs,
+            UseClustering);
 
+        _lastUseClustering = UseClustering;
         _mapInitialized = true;
 
         if (OnBecameVisible.HasDelegate)
@@ -115,7 +125,7 @@ public partial class MiniMap : IAsyncDisposable
         var geoJson = GetGeoJson();
         if (geoJson is not null)
         {
-            _lastRenderedGeoJson = geoJson;
+            _lastParameterGeoJson = geoJson;
             await _jsModule.InvokeVoidAsync("updateGeometry", _mapId, geoJson, ZoomToGeometry);
         }
     }
@@ -128,13 +138,19 @@ public partial class MiniMap : IAsyncDisposable
             return;
         }
 
+        if (_lastUseClustering != UseClustering)
+        {
+            await _jsModule.InvokeVoidAsync("updateClustering", _mapId, UseClustering);
+            _lastUseClustering = UseClustering;
+        }
+
         var geoJson = GetGeoJson();
-        if (string.Equals(geoJson, _lastRenderedGeoJson, StringComparison.Ordinal))
+        if (string.Equals(geoJson, _lastParameterGeoJson, StringComparison.Ordinal))
         {
             return;
         }
 
-        _lastRenderedGeoJson = geoJson;
+        _lastParameterGeoJson = geoJson;
         await _jsModule.InvokeVoidAsync("updateGeometry", _mapId, geoJson, ZoomToGeometry);
     }
 
@@ -155,7 +171,6 @@ public partial class MiniMap : IAsyncDisposable
         }
 
         var geoJson = geometry is not null ? SerializeGeometry(geometry) : null;
-        _lastRenderedGeoJson = geoJson;
         await _jsModule.InvokeVoidAsync("updateGeometry", _mapId, geoJson, zoomToGeometry);
     }
 
@@ -175,7 +190,6 @@ public partial class MiniMap : IAsyncDisposable
             return;
         }
 
-        _lastRenderedGeoJson = geoJson;
         await _jsModule.InvokeVoidAsync("updateGeometry", _mapId, geoJson, zoomToGeometry);
     }
 

@@ -1,6 +1,7 @@
-import {AttributionControl, GeoJSONSourceSpecification, MapLayerMouseEvent, Map as MapLibreMap, NavigationControl, Popup, setWorkerUrl} from 'maplibre-gl';
+import {AttributionControl, GeoJSONSource, GeoJSONSourceSpecification, MapLayerMouseEvent, Map as MapLibreMap, NavigationControl, Popup, setWorkerUrl} from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import proj4 from 'proj4';
+import type { Feature, FeatureCollection, GeoJSON, Geometry, Point } from 'geojson';
 
 setWorkerUrl(new URL('js/workers/maplibre-gl-worker.mjs', document.baseURI).toString());
 
@@ -15,6 +16,19 @@ const mapInstances = new Map<string, MapLibreMap>();
 const styleReadyMaps = new WeakSet<MapLibreMap>();
 const visibilityObservers = new Map<string, MutationObserver>();
 
+interface MapDataState {
+    useClustering: boolean;
+    geoJson: string | null;
+    markersJson: string | null;
+    zoomToGeometry: boolean;
+    geometryQueued: boolean;
+    markersQueued: boolean;
+    clusterClickVersion: number;
+}
+
+const mapDataStates = new WeakMap<MapLibreMap, MapDataState>();
+const clusterEventsRegistered = new WeakMap<MapLibreMap, Set<string>>();
+
 // EPSG:27700 – British National Grid
 const BNG_PROJ4 = '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs';
 const WGS84_PROJ4 = '+proj=longlat +datum=WGS84 +no_defs';
@@ -23,9 +37,12 @@ const GEOMETRY_SOURCE_ID = 'mini-map-geometry';
 const GEOMETRY_FILL_LAYER_ID = 'mini-map-geometry-fill';
 const GEOMETRY_LINE_LAYER_ID = 'mini-map-geometry-line';
 const GEOMETRY_CIRCLE_LAYER_ID = 'mini-map-geometry-circle';
+const GEOMETRY_POINTS_SOURCE_ID = 'mini-map-geometry-points';
 
 const MARKERS_SOURCE_ID = 'mini-map-markers';
 const MARKERS_LAYER_ID = 'mini-map-markers-circle';
+
+const CLUSTER_OPTIONS = { cluster: true, clusterRadius: 50, clusterMaxZoom: 14, clusterMinPoints: 2 };
 
 interface MarkerData {
     id: string;
@@ -50,13 +67,15 @@ const markerEventsRegistered = new Set<string>();
  * @param attribution  Attribution string added to the compact attribution control.
  * @param defaultBounds  Initial viewport bounds [minEasting, minNorthing, maxEasting, maxNorthing] in British National Grid (EPSG:27700).
  * @param wmsLayers    Optional WMS overlay layers to add once the map has loaded.
+ * @param useClustering Whether nearby markers and geometry points should be clustered.
  */
 export function initMiniMap(
     containerId: string,
     apiKey: string,
     attribution: string,
     defaultBounds: [number, number, number, number],
-    wmsLayers: WmsLayerConfig[]
+    wmsLayers: WmsLayerConfig[],
+    useClustering = true
 ): void {
     const styleUrl = `https://api.os.uk/maps/vector/v1/vts/resources/styles?key=${encodeURIComponent(apiKey)}&srs=3857`;
 
@@ -80,6 +99,12 @@ export function initMiniMap(
         },
     });
 
+    mapDataStates.set(map, {
+        useClustering, geoJson: null, markersJson: null, zoomToGeometry: true,
+        geometryQueued: false, markersQueued: false,
+        clusterClickVersion: 0,
+    });
+
     map.addControl(
         new AttributionControl({ customAttribution: attribution, compact: true })
     );
@@ -87,6 +112,7 @@ export function initMiniMap(
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
 
     map.once('style.load', () => {
+        if (mapInstances.get(containerId) !== map) return;
         styleReadyMaps.add(map);
         wmsLayers.forEach(layer => {
             map.addSource(layer.id, {
@@ -124,10 +150,19 @@ export function updateGeometry(
         return;
     }
 
+    const state = mapDataStates.get(map)!;
+    state.geoJson = geoJson;
+    state.zoomToGeometry = zoomToBounds;
     if (styleReadyMaps.has(map)) {
         applyGeometry(map, geoJson, zoomToBounds);
-    } else {
-        map.once('style.load', () => applyGeometry(map, geoJson, zoomToBounds));
+    } else if (!state.geometryQueued) {
+        state.geometryQueued = true;
+        map.once('style.load', () => {
+            state.geometryQueued = false;
+            if (mapInstances.get(containerId) === map) {
+                applyGeometry(map, state.geoJson, state.zoomToGeometry);
+            }
+        });
     }
 }
 
@@ -146,10 +181,31 @@ export function updateMarkers(
         return;
     }
 
+    const state = mapDataStates.get(map)!;
+    state.markersJson = markersJson;
     if (styleReadyMaps.has(map)) {
         applyMarkers(map, containerId, markersJson);
-    } else {
-        map.once('style.load', () => applyMarkers(map, containerId, markersJson));
+    } else if (!state.markersQueued) {
+        state.markersQueued = true;
+        map.once('style.load', () => {
+            state.markersQueued = false;
+            if (mapInstances.get(containerId) === map) {
+                applyMarkers(map, containerId, state.markersJson);
+            }
+        });
+    }
+}
+
+export function updateClustering(containerId: string, useClustering: boolean): void {
+    const map = mapInstances.get(containerId);
+    if (!map) return;
+
+    const state = mapDataStates.get(map)!;
+    if (state.useClustering === useClustering) return;
+    state.useClustering = useClustering;
+    if (styleReadyMaps.has(map)) {
+        applyGeometry(map, state.geoJson, false);
+        applyMarkers(map, containerId, state.markersJson, false);
     }
 }
 
@@ -212,10 +268,14 @@ function watchVisibility(containerId: string, onFirstVisible?: () => void): void
 export function destroyMap(containerId: string): void {
     visibilityObservers.get(containerId)?.disconnect();
     visibilityObservers.delete(containerId);
+    activePopups.get(containerId)?.remove();
     const map = mapInstances.get(containerId);
     if (map) {
         map.remove();
         mapInstances.delete(containerId);
+        mapDataStates.delete(map);
+        styleReadyMaps.delete(map);
+        clusterEventsRegistered.delete(map);
     }
     activePopups.delete(containerId);
     markerEventsRegistered.delete(containerId);
@@ -297,6 +357,46 @@ function reprojectGeoJsonToWgs84(
     return reprojectGeometry(obj) as unknown as GeoJSONSourceSpecification['data'];
 }
 
+function splitGeometryPoints(data: GeoJSON): { points: FeatureCollection<Point>; other: FeatureCollection } {
+    const points: FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
+    const other: FeatureCollection = { type: 'FeatureCollection', features: [] };
+    const features: Feature[] = data.type === 'FeatureCollection' ? data.features
+        : data.type === 'Feature' ? [data]
+        : [{ type: 'Feature', properties: {}, geometry: data }];
+
+    for (const feature of features) {
+        function extract(geometry: Geometry, path: number[] = []): Geometry | null {
+            if (geometry.type === 'Point') {
+                const point: Feature<Point> = { ...feature, geometry };
+                if (feature.id !== undefined && path.length > 0) {
+                    point.id = JSON.stringify([feature.id, path]);
+                }
+                points.features.push(point);
+                return null;
+            }
+            if (geometry.type === 'MultiPoint') {
+                geometry.coordinates.forEach((coordinates, index) => {
+                    extract({ type: 'Point', coordinates }, [...path, index]);
+                });
+                return null;
+            }
+            if (geometry.type === 'GeometryCollection') {
+                const geometries = geometry.geometries
+                    .map((child, index) => extract(child, [...path, index]))
+                    .filter((child): child is Geometry => child !== null);
+                return geometries.length > 0 ? { ...geometry, geometries } : null;
+            }
+            return geometry;
+        }
+
+        const geometry = feature.geometry ? extract(feature.geometry) : null;
+        if (geometry) {
+            other.features.push({ ...feature, geometry });
+        }
+    }
+    return { points, other };
+}
+
 function applyGeometry(
     map: MapLibreMap,
     geoJson: string | null,
@@ -317,8 +417,14 @@ function applyGeometry(
     }
 
     const wgs84Data = reprojectGeoJsonToWgs84(data);
+    const useClustering = mapDataStates.get(map)!.useClustering;
+    const split = useClustering ? splitGeometryPoints(wgs84Data as GeoJSON) : null;
 
-    map.addSource(GEOMETRY_SOURCE_ID, { type: 'geojson', data: wgs84Data });
+    map.addSource(GEOMETRY_SOURCE_ID, { type: 'geojson', data: split?.other ?? wgs84Data });
+    if (split) {
+        map.addSource(GEOMETRY_POINTS_SOURCE_ID, { type: 'geojson', data: split.points, ...CLUSTER_OPTIONS });
+        addClusterLayers(map, GEOMETRY_POINTS_SOURCE_ID, '#1d70b8');
+    }
 
     // Fill layer for polygon geometry
     map.addLayer({
@@ -354,8 +460,9 @@ function applyGeometry(
     map.addLayer({
         id: GEOMETRY_CIRCLE_LAYER_ID,
         type: 'circle',
-        source: GEOMETRY_SOURCE_ID,
-        filter: ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false],
+        source: split ? GEOMETRY_POINTS_SOURCE_ID : GEOMETRY_SOURCE_ID,
+        filter: split ? ['!', ['has', 'point_count']]
+            : ['match', ['geometry-type'], ['Point', 'MultiPoint'], true, false],
         paint: {
             'circle-color': '#1d70b8',
             'circle-radius': 6,
@@ -370,13 +477,16 @@ function applyGeometry(
 }
 
 function removeGeometryLayers(map: MapLibreMap): void {
+    removeClusterLayers(map, GEOMETRY_POINTS_SOURCE_ID);
     for (const layerId of [GEOMETRY_FILL_LAYER_ID, GEOMETRY_LINE_LAYER_ID, GEOMETRY_CIRCLE_LAYER_ID]) {
         if (map.getLayer(layerId)) {
             map.removeLayer(layerId);
         }
     }
-    if (map.getSource(GEOMETRY_SOURCE_ID)) {
-        map.removeSource(GEOMETRY_SOURCE_ID);
+    for (const sourceId of [GEOMETRY_SOURCE_ID, GEOMETRY_POINTS_SOURCE_ID]) {
+        if (map.getSource(sourceId)) {
+            map.removeSource(sourceId);
+        }
     }
 }
 
@@ -472,10 +582,93 @@ function calculateBounds(
     return [minX, minY, maxX, maxY];
 }
 
+function addClusterLayers(map: MapLibreMap, sourceId: string, color: string): void {
+    const textFont = map.getStyle().layers?.flatMap(layer => {
+        if (layer.type !== 'symbol') return [];
+        const font = layer.layout?.['text-font'];
+        return Array.isArray(font) && font.length > 0 && font.every(value => typeof value === 'string')
+            ? [font as string[]] : [];
+    })[0];
+
+    map.addLayer({
+        id: `${sourceId}-clusters`,
+        type: 'circle',
+        source: sourceId,
+        filter: ['has', 'point_count'],
+        paint: {
+            'circle-color': color,
+            'circle-radius': ['step', ['get', 'point_count'], 18, 10, 22, 100, 28],
+            'circle-stroke-color': '#ffffff',
+            'circle-stroke-width': 2,
+        },
+    });
+    map.addLayer({
+        id: `${sourceId}-cluster-count`,
+        type: 'symbol',
+        source: sourceId,
+        filter: ['has', 'point_count'],
+        layout: {
+            'text-field': ['get', 'point_count_abbreviated'],
+            'text-size': 12,
+            'text-allow-overlap': true,
+            ...(textFont ? { 'text-font': textFont } : {}),
+        },
+        paint: { 'text-color': '#ffffff' },
+    });
+    registerClusterEvents(map, sourceId);
+}
+
+function registerClusterEvents(map: MapLibreMap, sourceId: string): void {
+    const registered = clusterEventsRegistered.get(map) ?? new Set<string>();
+    if (registered.has(sourceId)) return;
+    registered.add(sourceId);
+    clusterEventsRegistered.set(map, registered);
+
+    const layerId = `${sourceId}-clusters`;
+    map.on('mouseenter', layerId, () => {
+        map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', layerId, () => {
+        map.getCanvas().style.cursor = '';
+    });
+    map.on('click', layerId, event => {
+        void expandCluster(map, sourceId, event);
+    });
+}
+
+async function expandCluster(map: MapLibreMap, sourceId: string, event: MapLayerMouseEvent): Promise<void> {
+    const feature = event.features?.[0];
+    const clusterId: unknown = feature?.properties?.cluster_id;
+    const source = map.getSource<GeoJSONSource>(sourceId);
+    const state = mapDataStates.get(map);
+    if (!state || !source || feature?.geometry.type !== 'Point' || typeof clusterId !== 'number') return;
+
+    const center = feature.geometry.coordinates.slice(0, 2) as [number, number];
+    const version = ++state.clusterClickVersion;
+    try {
+        const zoom = await source.getClusterExpansionZoom(clusterId);
+        if (mapDataStates.get(map) !== state || map.getSource(sourceId) !== source
+            || state.clusterClickVersion !== version) return;
+        map.easeTo({ center, zoom });
+    } catch (error) {
+        if (mapDataStates.get(map) === state && map.getSource(sourceId) === source) {
+            console.warn('MiniMap: unable to expand cluster.', error);
+        }
+    }
+}
+
+function removeClusterLayers(map: MapLibreMap, sourceId: string): void {
+    for (const layerId of [`${sourceId}-cluster-count`, `${sourceId}-clusters`]) {
+        if (map.getLayer(layerId)) map.removeLayer(layerId);
+    }
+    map.getCanvas().style.cursor = '';
+}
+
 function applyMarkers(
     map: MapLibreMap,
     containerId: string,
-    markersJson: string | null
+    markersJson: string | null,
+    zoomToBounds = true
 ): void {
     removeMarkerLayers(map, containerId);
 
@@ -507,18 +700,25 @@ function applyMarkers(
         }
     }));
 
+    const useClustering = mapDataStates.get(map)!.useClustering;
     map.addSource(MARKERS_SOURCE_ID, {
         type: 'geojson',
+        ...(useClustering ? CLUSTER_OPTIONS : {}),
         data: {
             type: 'FeatureCollection' as const,
             features
         } as GeoJSONSourceSpecification['data']
     });
 
+    if (useClustering) {
+        addClusterLayers(map, MARKERS_SOURCE_ID, '#d4351c');
+    }
+
     map.addLayer({
         id: MARKERS_LAYER_ID,
         type: 'circle',
         source: MARKERS_SOURCE_ID,
+        ...(useClustering ? { filter: ['!', ['has', 'point_count']] as const } : {}),
         paint: {
             'circle-color': '#d4351c',
             'circle-radius': 7,
@@ -558,10 +758,13 @@ function applyMarkers(
         markerEventsRegistered.add(containerId);
     }
 
-    fitToMarkerBounds(map, markers);
+    if (zoomToBounds) {
+        fitToMarkerBounds(map, markers);
+    }
 }
 
 function removeMarkerLayers(map: MapLibreMap, containerId: string): void {
+    removeClusterLayers(map, MARKERS_SOURCE_ID);
     if (map.getLayer(MARKERS_LAYER_ID)) {
         map.removeLayer(MARKERS_LAYER_ID);
     }
