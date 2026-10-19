@@ -1,10 +1,12 @@
 using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Converters;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
@@ -20,6 +22,7 @@ public partial class Index(
     ISettingsService settingsService,
     IFloodEventRepository floodEventRepository,
     ICommonRepository commonRepository,
+    IAuthorizationService authorizationService,
     NavigationManager navigationManager
 )
 {
@@ -45,6 +48,7 @@ public partial class Index(
     private bool _isExportingJson;
 
     private bool _isExportingCsv;
+    private bool _canWrite = false;
     private string? _exportErrorMessage;
     private string? _mediaUrlQrCodeDataUrl;
     private bool _showMediaUrlQrCode;
@@ -78,6 +82,9 @@ public partial class Index(
                 logger.LogWarning("Attempt to access flood event details page without authentication");
                 return;
             }
+
+            var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
+            _canWrite = writerPolicyCheck.Succeeded;
 
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
             if (eventResult.IsSuccess && eventResult.ResultModel is not null)
@@ -192,6 +199,11 @@ public partial class Index(
 
     private async Task CreatePublicMediaUrl()
     {
+        if (!_canWrite)
+        {
+            return;
+        }
+
         var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
 
         if (eventResult.IsSuccess && eventResult.ResultModel != null)
@@ -276,7 +288,7 @@ public partial class Index(
 
     private async Task ToggleMediaUploadLock()
     {
-        if (ViewModel is null || string.IsNullOrWhiteSpace(ViewModel.MediaReference))
+        if (!_canWrite || ViewModel is null || string.IsNullOrWhiteSpace(ViewModel.MediaReference))
         {
             return;
         }
@@ -303,7 +315,7 @@ public partial class Index(
     {
         _mediaUrlExtensionError = null;
 
-        if (ViewModel is null || string.IsNullOrWhiteSpace(ViewModel.MediaReference))
+        if (!_canWrite || ViewModel is null || string.IsNullOrWhiteSpace(ViewModel.MediaReference))
         {
             return;
         }
