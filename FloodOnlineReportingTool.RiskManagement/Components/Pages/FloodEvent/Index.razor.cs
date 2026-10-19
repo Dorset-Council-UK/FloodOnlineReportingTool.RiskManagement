@@ -308,9 +308,9 @@ public partial class Index(
             return;
         }
 
-        if (!int.TryParse(_mediaUrlExtensionWeeksText, out var extensionWeeks) || extensionWeeks <= 0)
+        if (!int.TryParse(_mediaUrlExtensionWeeksText, out var extensionWeeks) || extensionWeeks <= 0 || extensionWeeks > 52)
         {
-            _mediaUrlExtensionError = "Enter a valid number of weeks greater than 0.";
+            _mediaUrlExtensionError = "Enter a valid number of weeks between 1 and 52.";
             return;
         }
 
