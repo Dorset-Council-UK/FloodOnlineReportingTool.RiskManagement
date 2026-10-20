@@ -51,6 +51,13 @@ interface MarkerData {
     popupHtml: string;
 }
 
+const markerSelections = new WeakMap<MapLibreMap, { markers: MarkerData[]; groups: Map<string, MarkerData[]> }>();
+const MARKER_INDEX = '__miniMapMarkerIndex';
+
+function markerLocationKey(longitude: number, latitude: number): string {
+    return JSON.stringify([longitude, latitude]);
+}
+
 interface DotNetObject {
     invokeMethodAsync(methodName: string): Promise<void>;
 }
@@ -274,6 +281,7 @@ export function destroyMap(containerId: string): void {
         map.remove();
         mapInstances.delete(containerId);
         mapDataStates.delete(map);
+        markerSelections.delete(map);
         styleReadyMaps.delete(map);
         clusterEventsRegistered.delete(map);
     }
@@ -688,13 +696,23 @@ function applyMarkers(
         return;
     }
 
-    const features = markers.map(m => ({
+    const groups = new Map<string, MarkerData[]>();
+    for (const marker of markers) {
+        const key = markerLocationKey(marker.longitude, marker.latitude);
+        const group = groups.get(key) ?? [];
+        group.push(marker);
+        groups.set(key, group);
+    }
+    markerSelections.set(map, { markers, groups });
+
+    const features = markers.map((m, index) => ({
         type: 'Feature' as const,
         geometry: {
             type: 'Point' as const,
             coordinates: [m.longitude, m.latitude] as [number, number]
         },
         properties: {
+            [MARKER_INDEX]: index,
             id: m.id,
             popupHtml: m.popupHtml
         }
@@ -740,17 +758,24 @@ function applyMarkers(
             if (!e.features || e.features.length === 0) return;
 
             const feature = e.features[0];
-            const geom = feature.geometry as { type: string; coordinates: number[] };
-            const coords = geom.coordinates.slice() as [number, number];
-            const popupHtml = (feature.properties?.popupHtml as string) ?? '';
+            const selection = markerSelections.get(map);
+            const index = feature.properties?.[MARKER_INDEX];
+            const marker = typeof index === 'number' ? selection?.markers[index] : undefined;
+            if (!marker) return;
+            const group = selection!.groups.get(markerLocationKey(marker.longitude, marker.latitude))!;
+            const coords: [number, number] = [group[0]!.longitude, group[0]!.latitude];
 
             const existing = activePopups.get(containerId);
             if (existing) existing.remove();
 
             const popup = new Popup({ offset: 10, maxWidth: '300px' })
-                .setLngLat(coords)
-                .setHTML(popupHtml)
-                .addTo(map);
+                .setLngLat(coords);
+            if (group.length === 1) {
+                popup.setHTML(group[0]!.popupHtml);
+            } else {
+                addMarkerNavigation(popup, group);
+            }
+            popup.addTo(map);
 
             activePopups.set(containerId, popup);
         });
@@ -763,7 +788,51 @@ function applyMarkers(
     }
 }
 
+function addMarkerNavigation(popup: Popup, markers: MarkerData[]): void {
+    const root = document.createElement('div');
+    const content = document.createElement('div');
+    const navigation = document.createElement('div');
+    navigation.setAttribute('role', 'group');
+    navigation.setAttribute('aria-label', 'Markers at this location');
+    const previous = document.createElement('button');
+    previous.type = 'button';
+    previous.textContent = 'Previous';
+    previous.setAttribute('aria-label', 'Previous marker');
+    const position = document.createElement('span');
+    position.setAttribute('aria-live', 'polite');
+    position.setAttribute('aria-atomic', 'true');
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.textContent = 'Next';
+    next.setAttribute('aria-label', 'Next marker');
+    navigation.append(previous, position, next);
+    root.append(content, navigation);
+
+    let index = 0;
+    const render = () => {
+        content.innerHTML = markers[index]!.popupHtml;
+        position.textContent = ` ${index + 1} of ${markers.length} `;
+        previous.disabled = index === 0;
+        next.disabled = index === markers.length - 1;
+        if (previous.disabled && document.activeElement === previous) next.focus();
+        if (next.disabled && document.activeElement === next) previous.focus();
+    };
+    previous.onclick = () => {
+        if (index > 0) { index--; render(); }
+    };
+    next.onclick = () => {
+        if (index < markers.length - 1) { index++; render(); }
+    };
+    render();
+    popup.setDOMContent(root);
+    popup.on('close', () => {
+        previous.onclick = null;
+        next.onclick = null;
+    });
+}
+
 function removeMarkerLayers(map: MapLibreMap, containerId: string): void {
+    markerSelections.delete(map);
     removeClusterLayers(map, MARKERS_SOURCE_ID);
     if (map.getLayer(MARKERS_LAYER_ID)) {
         map.removeLayer(MARKERS_LAYER_ID);

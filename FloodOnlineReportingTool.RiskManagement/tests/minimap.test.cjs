@@ -23,6 +23,20 @@ function createMap({ inTab = false, hidden = false, useClustering } = {}) {
     let workerConfigurations = 0;
     const panel = { classList: { contains: () => hidden } };
     const container = { closest: () => inTab ? panel : null };
+    const document = {
+        baseURI: 'https://reports.example/app/',
+        getElementById: () => container,
+        activeElement: null,
+        createElement(tagName) {
+            return {
+                tagName, children: [], attributes: {}, disabled: false, onclick: null,
+                append(...children) { this.children.push(...children); },
+                setAttribute(name, value) { this.attributes[name] = value; },
+                focus() { document.activeElement = this; },
+                click() { if (!this.disabled) { this.focus(); this.onclick?.(); } },
+            };
+        },
+    };
 
     class FakeMap {
         constructor(options) {
@@ -92,11 +106,13 @@ function createMap({ inTab = false, hidden = false, useClustering } = {}) {
     }
 
     class FakePopup {
-        constructor(options) { this.options = options; popups.push(this); }
+        constructor(options) { this.options = options; this.events = new Map(); popups.push(this); }
         setLngLat(coordinates) { this.coordinates = coordinates; return this; }
         setHTML(html) { this.html = html; return this; }
+        setDOMContent(root) { this.root = root; return this; }
+        on(event, callback) { this.events.set(event, callback); return this; }
         addTo(map) { this.map = map; return this; }
-        remove() { this.removed = true; }
+        remove() { this.removed = true; this.events.get('close')?.(); }
     }
 
     class FakeObserver {
@@ -124,10 +140,7 @@ function createMap({ inTab = false, hidden = false, useClustering } = {}) {
             if (name.endsWith('.css')) return {};
             return require(name);
         },
-        document: {
-            baseURI: 'https://reports.example/app/',
-            getElementById: () => container,
-        },
+        document,
         MutationObserver: FakeObserver,
         URL,
         console: { ...console, warn: (...args) => warnings.push(args) },
@@ -143,6 +156,7 @@ function createMap({ inTab = false, hidden = false, useClustering } = {}) {
         instances,
         popups,
         warnings,
+        document,
         getWorkerConfigurations: () => workerConfigurations,
         setHidden(value) {
             hidden = value;
@@ -532,4 +546,141 @@ test('clears all clustering layers and sources for empty, null, and malformed up
     api.updateClustering('map', false);
     assert.equal(map.sources.size, 1);
     assert.equal(warnings.length, 4);
+});
+
+const colocatedMarkers = JSON.stringify([
+    { id: 'duplicate', longitude: -2.4, latitude: 50.7, popupHtml: '<a href="/reports/1">First report</a>' },
+    { id: 'duplicate', longitude: -2.4, latitude: 50.7, popupHtml: '<strong>Second report</strong>' },
+    { longitude: -2.4, latitude: 50.7, popupHtml: 'Third report' },
+    { id: 'nearby', longitude: -2.4000001, latitude: 50.7, popupHtml: 'Nearby report' },
+]);
+
+function clickMarker(map, index = 0, quantized = false) {
+    const feature = plain(map.getSource('mini-map-markers').data.features[index]);
+    if (quantized) feature.geometry.coordinates = [-2.40001, 50.70001];
+    map.trigger('click', 'mini-map-markers-circle', { features: [feature] });
+}
+
+function popupControls(popup) {
+    const [content, navigation] = popup.root.children;
+    const [previous, position, next] = navigation.children;
+    return { content, navigation, previous, position, next };
+}
+
+test('navigates exact-coordinate groups in stable order without moving markers or the camera', () => {
+    for (const useClustering of [true, false]) {
+        const { api, map, popups } = createMap({ useClustering });
+        map.emit('style.load');
+        api.updateMarkers('map', colocatedMarkers);
+        const original = plain(map.getSource('mini-map-markers').data);
+        const cameraChanges = map.cameraChanges;
+        clickMarker(map, 2, true);
+        const popup = popups[0];
+        const { content, navigation, previous, position, next } = popupControls(popup);
+        assert.equal(content.innerHTML, '<a href="/reports/1">First report</a>');
+        assert.equal(position.textContent.trim(), '1 of 3');
+        assert.equal(previous.disabled, true);
+        assert.equal(next.disabled, false);
+        assert.equal(previous.type, 'button');
+        assert.equal(next.type, 'button');
+        assert.equal(navigation.attributes['aria-label'], 'Markers at this location');
+        assert.equal(position.attributes['aria-live'], 'polite');
+        previous.click();
+        assert.equal(position.textContent.trim(), '1 of 3');
+        next.click();
+        assert.equal(content.innerHTML, '<strong>Second report</strong>');
+        assert.equal(position.textContent.trim(), '2 of 3');
+        next.click();
+        assert.equal(content.innerHTML, 'Third report');
+        assert.equal(position.textContent.trim(), '3 of 3');
+        assert.equal(next.disabled, true);
+        next.click();
+        assert.equal(position.textContent.trim(), '3 of 3');
+        previous.click();
+        previous.click();
+        assert.equal(content.innerHTML, '<a href="/reports/1">First report</a>');
+        assert.equal(popups.length, 1);
+        assert.deepEqual(plain(popup.coordinates), [-2.4, 50.7]);
+        assert.deepEqual(plain(map.getSource('mini-map-markers').data), original);
+        assert.equal(map.cameraChanges, cameraChanges);
+        assert.equal(popup.root.children[1], navigation);
+    }
+});
+
+test('transfers focus to an enabled navigation button at boundaries', () => {
+    const { api, map, popups, document } = createMap();
+    map.emit('style.load');
+    api.updateMarkers('map', colocatedMarkers);
+    clickMarker(map);
+    const { previous, next } = popupControls(popups[0]);
+    next.click();
+    assert.equal(document.activeElement, next);
+    next.click();
+    assert.equal(next.disabled, true);
+    assert.equal(document.activeElement, previous);
+    previous.click();
+    previous.click();
+    assert.equal(previous.disabled, true);
+    assert.equal(document.activeElement, next);
+});
+
+test('nearby distinct markers and singleton markers retain HTML popups without navigation', () => {
+    const { api, map, popups } = createMap();
+    map.emit('style.load');
+    api.updateMarkers('map', colocatedMarkers);
+    clickMarker(map, 3, true);
+    assert.equal(popups[0].html, 'Nearby report');
+    assert.equal(popups[0].root, undefined);
+    api.updateMarkers('map', markers);
+    clickMarker(map);
+    assert.equal(popups[1].html, 'Report');
+    assert.equal(popups[1].root, undefined);
+});
+
+test('closes navigation and removes callbacks on rebuilds, clearing, toggles, manual close and disposal', () => {
+    const actions = [
+        (api) => api.updateMarkers('map', markers),
+        (api) => api.updateMarkers('map', null),
+        (api) => api.updateMarkers('map', '[]'),
+        (api) => api.updateMarkers('map', 'invalid'),
+        (api) => api.updateClustering('map', false),
+        (api, popup) => popup.remove(),
+        (api) => api.destroyMap('map'),
+    ];
+    for (const action of actions) {
+        const { api, map, popups } = createMap();
+        map.emit('style.load');
+        api.updateMarkers('map', colocatedMarkers);
+        clickMarker(map);
+        const popup = popups[0];
+        const { previous, next } = popupControls(popup);
+        action(api, popup);
+        assert.equal(popup.removed, true);
+        assert.equal(previous.onclick, null);
+        assert.equal(next.onclick, null);
+        assert.ok([...map.handlers.values()].every(callbacks => callbacks.length === 1));
+    }
+});
+
+test('navigation state is independent between maps and popup replacements', () => {
+    const { api, map, popups, instances } = createMap();
+    api.initMiniMap('second', 'test-key', 'OS', [330000, 67000, 423000, 133000], [], false);
+    const second = instances[1];
+    map.emit('style.load');
+    second.emit('style.load');
+    api.updateMarkers('map', colocatedMarkers);
+    api.updateMarkers('second', colocatedMarkers);
+    clickMarker(map);
+    clickMarker(second);
+    const first = popupControls(popups[0]);
+    const other = popupControls(popups[1]);
+    first.next.click();
+    assert.equal(first.position.textContent.trim(), '2 of 3');
+    assert.equal(other.position.textContent.trim(), '1 of 3');
+    clickMarker(map);
+    assert.equal(first.next.onclick, null);
+    assert.equal(popupControls(popups[2]).position.textContent.trim(), '1 of 3');
+    api.destroyMap('map');
+    other.next.click();
+    assert.equal(other.position.textContent.trim(), '2 of 3');
 });
