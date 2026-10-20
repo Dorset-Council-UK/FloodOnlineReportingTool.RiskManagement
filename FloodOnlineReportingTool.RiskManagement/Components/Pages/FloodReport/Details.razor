@@ -1,5 +1,6 @@
 ﻿@page "/report/details/{Reference}"
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Flood report</PageTitle>
@@ -14,13 +15,19 @@
         }
         else if (_notFound)
         {
-            <GdsWarning Text="Flood report not found." />
+            <GdsHeading Level="1">The flood report could not be found</GdsHeading>
+            <p>If you typed the web address, check it is correct.</p>
+            <p>If you pasted the web address, check you copied the entire address.</p>
+            <p>If the web address is correct or you selected a link or button, contact the site administrators to get help.</p>
+            <GdsHeading Level="2">Next steps</GdsHeading>
+            <p><GdsLink Href="@(GeneralPages.Home.Url)">Go back to the home page</GdsLink></p>
+            <p><GdsLink Href="@(SearchPages.Home.Url)">Search for another report</GdsLink></p>
         }
         else if (!_isLoading && ViewModel is not null)
         {
             var firstSource = ViewModel.SourceRecords?.FirstOrDefault();
 
-            <GdsHeading Level="2">View flood report summary</GdsHeading>
+            <GdsHeading Level="1">Flood report @ViewModel.Reference</GdsHeading>
 
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
                 <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds" AdditionalCssClasses="print-main-column">
@@ -43,7 +50,7 @@
                         </EditForm>
                     </div>
 
-                    <GdsHeading Level="3">Basic details</GdsHeading>
+                    <GdsHeading Level="2">Basic details</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -90,7 +97,7 @@
                         </div>
                     </dl>
 
-                    <GdsHeading Level="3">About the flood</GdsHeading>
+                    <GdsHeading Level="2">About the flood</GdsHeading>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -122,7 +129,7 @@
                     }
                     else
                     {
-                        <GdsHeading Level="3">Source Records</GdsHeading>
+                        <GdsHeading Level="2">Source Records</GdsHeading>
                         <GdsTabs Title="Options">
                             @foreach (var source in ViewModel.SourceRecords)
                             {
@@ -136,12 +143,12 @@
                 </GdsGridColumn>
 
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
-                    <GdsHeading Level="4">Further details</GdsHeading>
+                    <GdsHeading Level="2" Size="GdsSize.Small">Further details</GdsHeading>
                     <p><GdsLink Href="@($"report/attachments/{Reference}")">Attached Documents</GdsLink></p>
                     <p><GdsLink Href="@($"report/comments/{Reference}")">Comments</GdsLink></p>
                     <hr class="govuk-section-break govuk-section-break--m" />
 
-                    <GdsHeading Level="4">Download the data</GdsHeading>
+                    <GdsHeading Level="2" Size="GdsSize.Small">Download the data</GdsHeading>
                     @if (!string.IsNullOrEmpty(_exportErrorMessage))
                     {
                         <GdsWarning Text="@_exportErrorMessage" />
