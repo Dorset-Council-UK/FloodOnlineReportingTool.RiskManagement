@@ -1,12 +1,14 @@
-﻿using System.Data;
-using FloodOnlineReportingTool.Contracts;
+﻿using FloodOnlineReportingTool.Contracts;
 using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.Migrations;
 using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace FloodOnlineReportingTool.Database.Repositories;
@@ -199,6 +201,77 @@ public class FloodEventRepository(
 
         // update event log?
         return Result<FloodEvent?>.Success(updatedFloodEvent);
+    }
+
+    public async Task<(bool IsSuccess, string? MediaReference)> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent is null)
+        {
+            return (false, null);
+        }
+
+        if (!string.IsNullOrEmpty(existingFloodEvent.MediaReference))
+        {
+            return (false, existingFloodEvent.MediaReference);
+        }
+
+        existingFloodEvent.MediaReference = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
+        existingFloodEvent.MediaReferenceExpiration = mediaExpiry;
+        existingFloodEvent.MediaUploadLock = false;
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        return (true, existingFloodEvent.MediaReference);
+    }
+
+    /// <summary>
+    /// Sets whether public media upload is locked for the flood event.
+    /// </summary>
+    public async Task<bool> SetMediaUploadLock(Guid floodEventId, bool isLocked, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent is null || string.IsNullOrWhiteSpace(existingFloodEvent.MediaReference))
+        {
+            return false;
+        }
+
+        existingFloodEvent.MediaUploadLock = isLocked;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Updates the public media URL expiry for the flood event.
+    /// </summary>
+    public async Task<bool> UpdateMediaUrlExpiry(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent is null || string.IsNullOrWhiteSpace(existingFloodEvent.MediaReference))
+        {
+            return false;
+        }
+
+        existingFloodEvent.MediaReferenceExpiration = mediaExpiry;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 
     public async Task<IList<EventStatus>> GetEventStatuses(CancellationToken cancellationToken)

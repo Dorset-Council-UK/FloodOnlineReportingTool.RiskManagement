@@ -25,10 +25,81 @@
 
                     @* TODO - add action buttons functionality once decided *@
                     <div class="govuk-button-group">
-                        <GdsButton IsSubmit="false" Text="Action 1" AdditionalCssClasses="govuk-button--secondary no-print" />
-                        <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary no-print" />
-                        <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary no-print" />
+                        @if (_canWrite && string.IsNullOrEmpty(ViewModel.MediaReference))
+                        {
+                            <GdsButton IsSubmit="false" Text="Generate Public Upload URL" AdditionalCssClasses="govuk-button--secondary no-print" OnClick="CreatePublicMediaUrl" />
+                        }
                     </div>
+
+                    @if (!string.IsNullOrEmpty(ViewModel.MediaReference))
+                    {
+                        if (DateTimeOffset.UtcNow <= ViewModel.MediaReferenceExpiration)
+                        {
+                            <GdsNotificationBanner NotificationType="GdsNotificationBanner.NotificationTypeOption.info"
+                                                   BannerHeadingLevel="2"
+                                                   BannerTitle="Public upload available">
+                                <p class="govuk-body">
+                                    Public upload available until @(ViewModel.MediaReferenceExpiration.GdsReadable()).
+                                </p>
+                                @if (ViewModel.MediaUploadLock)
+                                {
+                                    <GdsWarning Text="This upload is currently locked"></GdsWarning>
+                                }
+                                else
+                                {
+                                    <p class="govuk-body">
+                                        <GdsLink Href="@GetMediaUrl()" target="_blank" rel="noopener noreferrer">@GetDisplayMediaUrl()</GdsLink>
+                                    </p>
+                                    @if (!_showMediaUrlQrCode)
+                                    {
+                                        <p class="govuk-body">
+                                            <GdsLink Href="#" OnClick="ShowMediaUrlQrCode" PreventDefault>Show QR code for this link</GdsLink>
+                                        </p>
+                                    }
+                                    @if (_showMediaUrlQrCode && !string.IsNullOrWhiteSpace(_mediaUrlQrCodeDataUrl))
+                                    {
+                                        <p class="govuk-body govuk-!-margin-bottom-2">QR code for the public link:</p>
+                                        <img src="@_mediaUrlQrCodeDataUrl" alt="QR code for public media upload link" width="180" height="180" />
+                                    }
+                                }
+                                @if (_canWrite)
+                                {
+                                    <div class="govuk-button-group">
+                                        <GdsButton IsSubmit="false"
+                                                   Text="@GetMediaUploadLockButtonText()"
+                                                   AdditionalCssClasses="no-print"
+                                                   OnClick="ToggleMediaUploadLock" />
+                                    </div>
+                                }
+                            </GdsNotificationBanner>
+                        } else
+                        {
+                            <GdsNotificationBanner NotificationType="GdsNotificationBanner.NotificationTypeOption.info"
+                                                   BannerHeadingLevel="2"
+                                                   BannerTitle="Public upload expired">
+                                <GdsWarning Text="This upload has expired"></GdsWarning>
+                                @if (_canWrite)
+                                {
+                                    <GdsFormGroup>
+                                        <GdsLabel Text="Extend by weeks" />
+                                        <GdsInputNumber @bind-Value="_mediaUrlExtensionWeeksText"
+                                                        @bind-NumberValue="_mediaUrlExtensionWeeks"
+                                                        class="govuk-input govuk-input--width-3" />
+                                    </GdsFormGroup>
+                                    @if (!string.IsNullOrWhiteSpace(_mediaUrlExtensionError))
+                                    {
+                                        <GdsWarning Text="@_mediaUrlExtensionError" />
+                                    }
+                                    <div class="govuk-button-group">
+                                        <GdsButton IsSubmit="false"
+                                                   Text="Extend public upload URL"
+                                                   AdditionalCssClasses="no-print"
+                                                   OnClick="ExtendMediaUrlExpiry" />
+                                    </div>
+                                }
+                            </GdsNotificationBanner>
+                        }
+                    }
 
                     <GdsHeading Level="2">Basic details</GdsHeading>
                     <dl class="govuk-summary-list">

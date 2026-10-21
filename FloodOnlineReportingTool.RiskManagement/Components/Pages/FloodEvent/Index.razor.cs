@@ -1,13 +1,17 @@
 using FloodOnlineReportingTool.Contracts.Shared;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Converters;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.JSInterop;
+using QRCoder;
+using System.Net;
 using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent;
@@ -18,6 +22,7 @@ public partial class Index(
     ISettingsService settingsService,
     IFloodEventRepository floodEventRepository,
     ICommonRepository commonRepository,
+    IAuthorizationService authorizationService,
     NavigationManager navigationManager
 )
 {
@@ -43,7 +48,13 @@ public partial class Index(
     private bool _isExportingJson;
 
     private bool _isExportingCsv;
+    private bool _canWrite = false;
     private string? _exportErrorMessage;
+    private string? _mediaUrlQrCodeDataUrl;
+    private bool _showMediaUrlQrCode;
+    private int _mediaUrlExtensionWeeks = 2;
+    private string _mediaUrlExtensionWeeksText = "2";
+    private string? _mediaUrlExtensionError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,6 +82,9 @@ public partial class Index(
                 logger.LogWarning("Attempt to access flood event details page without authentication");
                 return;
             }
+
+            var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
+            _canWrite = writerPolicyCheck.Succeeded;
 
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
             if (eventResult.IsSuccess && eventResult.ResultModel is not null)
@@ -149,7 +163,13 @@ public partial class Index(
                     PrimaryFloodCauses = primaryCauseNames,
                     SecondaryFloodCauses = secondaryCauseNames,
                     ResponsibleOrganisations = responsibleOrganisationNames,
+                    MediaReference = floodEvent.MediaReference,
+                    MediaReferenceExpiration = floodEvent.MediaReferenceExpiration,
+                    MediaUploadLock = floodEvent.MediaUploadLock,
                 };
+
+                _mediaUrlQrCodeDataUrl = null;
+                _showMediaUrlQrCode = false;
             }
             else
             {
@@ -175,6 +195,155 @@ public partial class Index(
             await settingsService.AddRecentWork($"{Reference}", "Flood Event", string.Empty, $"event/{Reference}");
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task CreatePublicMediaUrl()
+    {
+        if (!_canWrite)
+        {
+            return;
+        }
+
+        var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+
+        if (eventResult.IsSuccess && eventResult.ResultModel != null)
+        {
+            var mediaExpiry = DateTimeOffset.UtcNow.AddDays(14);
+            var (isSuccess, mediaReference) = await floodEventRepository.CreateMediaUrl(eventResult.ResultModel.Id, mediaExpiry, _cts.Token);
+
+            if (isSuccess && ViewModel is not null && !string.IsNullOrWhiteSpace(mediaReference))
+            {
+                ViewModel.MediaReference = mediaReference;
+                ViewModel.MediaReferenceExpiration = mediaExpiry;
+                ViewModel.MediaUploadLock = false;
+                _mediaUrlQrCodeDataUrl = null;
+                _showMediaUrlQrCode = false;
+                return;
+            }
+        }
+
+        logger.LogWarning("Attempt to add media URL failed");
+        return;
+    }
+
+    private string GetMediaUrl()
+    {
+        if (ViewModel is null || string.IsNullOrEmpty(ViewModel.MediaReference))
+        {
+            return "";
+        }
+
+        var mediaPath = $"{EventPages.MediaUpload.Url.TrimEnd('/')}/{ViewModel.MediaReference}";
+        return navigationManager.ToAbsoluteUri(mediaPath).ToString();
+    }
+
+    private MarkupString GetDisplayMediaUrl()
+    {
+        var mediaUrl = GetMediaUrl();
+        if (string.IsNullOrWhiteSpace(mediaUrl))
+        {
+            return new MarkupString(string.Empty);
+        }
+
+        var encodedMediaUrl = WebUtility.HtmlEncode(mediaUrl)
+            .Replace("/", "/<wbr>")
+            .Replace("-", "-<wbr>")
+            .Replace("_", "_<wbr>")
+            .Replace("?", "?<wbr>")
+            .Replace("&", "&<wbr>");
+
+        return new MarkupString(encodedMediaUrl);
+    }
+
+    private string GetMediaUploadLockButtonText()
+    {
+        return ViewModel?.MediaUploadLock == true ? "Unlock media upload" : "Lock media upload";
+    }
+
+    private string? CreateMediaUrlQrCode(string mediaUrl)
+    {
+        if (string.IsNullOrWhiteSpace(mediaUrl))
+        {
+            return null;
+        }
+
+        using var qrGenerator = new QRCodeGenerator();
+        using var qrCodeData = qrGenerator.CreateQrCode(mediaUrl, QRCodeGenerator.ECCLevel.Q);
+        var pngQrCode = new PngByteQRCode(qrCodeData);
+        var qrCodeBytes = pngQrCode.GetGraphic(8);
+
+        return $"data:image/png;base64,{Convert.ToBase64String(qrCodeBytes)}";
+    }
+
+    private Task ShowMediaUrlQrCode()
+    {
+        if (!_showMediaUrlQrCode)
+        {
+            _mediaUrlQrCodeDataUrl ??= CreateMediaUrlQrCode(GetMediaUrl());
+            _showMediaUrlQrCode = true;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task ToggleMediaUploadLock()
+    {
+        if (!_canWrite || ViewModel is null || string.IsNullOrWhiteSpace(ViewModel.MediaReference))
+        {
+            return;
+        }
+
+        var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+        if (!eventResult.IsSuccess || eventResult.ResultModel is null)
+        {
+            logger.LogWarning("Attempt to toggle media upload lock failed while retrieving flood event for reference {Reference}", Reference);
+            return;
+        }
+
+        var targetLockState = !ViewModel.MediaUploadLock;
+        var isSuccess = await floodEventRepository.SetMediaUploadLock(eventResult.ResultModel.Id, targetLockState, _cts.Token);
+        if (!isSuccess)
+        {
+            logger.LogWarning("Attempt to toggle media upload lock failed for flood event {FloodEventId}", eventResult.ResultModel.Id);
+            return;
+        }
+
+        ViewModel.MediaUploadLock = targetLockState;
+    }
+
+    private async Task ExtendMediaUrlExpiry()
+    {
+        _mediaUrlExtensionError = null;
+
+        if (!_canWrite || ViewModel is null || string.IsNullOrWhiteSpace(ViewModel.MediaReference))
+        {
+            return;
+        }
+
+        if (!int.TryParse(_mediaUrlExtensionWeeksText, out var extensionWeeks) || extensionWeeks <= 0 || extensionWeeks > 52)
+        {
+            _mediaUrlExtensionError = "Enter a valid number of weeks between 1 and 52.";
+            return;
+        }
+
+        _mediaUrlExtensionWeeks = extensionWeeks;
+
+        var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+        if (!eventResult.IsSuccess || eventResult.ResultModel is null)
+        {
+            logger.LogWarning("Attempt to extend media URL expiry failed while retrieving flood event for reference {Reference}", Reference);
+            return;
+        }
+
+        var mediaExpiry = DateTimeOffset.UtcNow.AddDays(_mediaUrlExtensionWeeks * 7);
+        var isSuccess = await floodEventRepository.UpdateMediaUrlExpiry(eventResult.ResultModel.Id, mediaExpiry, _cts.Token);
+        if (!isSuccess)
+        {
+            logger.LogWarning("Attempt to extend media URL expiry failed for flood event {FloodEventId}", eventResult.ResultModel.Id);
+            return;
+        }
+
+        ViewModel.MediaReferenceExpiration = mediaExpiry;
     }
 
     private async Task PrintPageAsync()
