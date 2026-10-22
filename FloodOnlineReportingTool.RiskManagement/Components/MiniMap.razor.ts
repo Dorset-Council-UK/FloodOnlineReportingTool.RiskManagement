@@ -794,6 +794,7 @@ function addMarkerNavigation(popup: Popup, markers: MarkerData[]): void {
     const navigation = document.createElement('div');
     navigation.setAttribute('role', 'group');
     navigation.setAttribute('aria-label', 'Markers at this location');
+    navigation.style.marginTop = '.5rem';
     const previous = document.createElement('button');
     previous.type = 'button';
     previous.textContent = 'Previous';
