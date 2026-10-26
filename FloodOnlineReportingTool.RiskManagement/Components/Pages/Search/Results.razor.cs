@@ -262,6 +262,20 @@ public partial class Results(
                     BuildPopupHtml(r)))
                 .ToList();
 
+            // FORE TESTING: duplicate the first marker to test popup navigation; comment out to disable test
+            //if (markers.Count > 0)
+            //{
+            //    var firstMarker = markers[0];
+            //    for (var duplicate = 1; duplicate <= 2; duplicate++)
+            //    {
+            //        markers.Add(firstMarker with
+            //        {
+            //            Id = $"{firstMarker.Id}-test-duplicate-{duplicate}",
+            //            PopupHtml = $"<p><strong>Temporary test duplicate {duplicate}</strong></p>{firstMarker.PopupHtml}"
+            //        });
+            //    }
+            //}
+
             if (_miniMapRef is not null)
             {
                 await _miniMapRef.UpdateMarkersAsync(markers);
