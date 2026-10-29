@@ -279,6 +279,9 @@ public partial class Results(
             if (_miniMapRef is not null)
             {
                 await _miniMapRef.UpdateMarkersAsync(markers);
+                //Add the area used as part of the search (if there is one).
+                if (SearchResultsViewModel.ByPolygon is not null)
+                    await _miniMapRef.UpdateGeometryAsync(SearchResultsViewModel.ByPolygon);
             }
             _mapDataLoaded = true;
         }
