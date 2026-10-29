@@ -2,7 +2,10 @@ using FloodOnlineReportingTool.Contracts.Shared.Search;
 using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
+using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
+using System.Net;
+using System.Text;
 
 namespace FloodOnlineReportingTool.RiskManagement.Extensions;
 
@@ -155,5 +158,50 @@ internal static class SearchMappingExtensions
         }
 
         return savedSearch;
+    }
+
+
+    internal static List<MapMarkerData>? ToMarkers(this IEnumerable<FloodResultItem> floodResults)
+    {
+        return [.. floodResults
+            .Where(r => r.Latitude != 0 || r.Longitude != 0)
+            .Select(r => new MapMarkerData(
+                r.Id.ToString(),
+                r.Latitude,
+                r.Longitude,
+                r.BuildPopupHtml())
+            )];
+    }
+
+    internal static string BuildPopupHtml(this FloodResultItem report)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"<div class=\"govuk-body-s govuk-!-margin-bottom-0\"><strong>{WebUtility.HtmlEncode(report.Reference)}</strong><br/>");
+        sb.Append($"<strong>Report status:</strong> {WebUtility.HtmlEncode(report.RecordStatus)}<br/>");
+
+        if (report.ImpactStartUtc is not null)
+        {
+            sb.Append($"<strong>Flooding started:</strong> {report.ImpactStartUtc.Value:d MMMM yyyy}<br/>");
+        }
+        var causes = report.Causes.Count > 0
+            ? string.Join(", ", report.Causes.Select(s => WebUtility.HtmlEncode(s.Name)))
+            : "No flooding causes identified";
+        sb.Append($"<strong>Causes:</strong> {causes}<br/>");
+        sb.Append($"<strong>Created:</strong> {report.CreatedUtc:d MMMM yyyy}<br/>");
+
+        if (report.UpdatedUtc is not null)
+        {
+            sb.Append($"<strong>Updated:</strong> {report.UpdatedUtc.Value:d MMMM yyyy}<br/>");
+        }
+
+        if (report.ViewUri.IsAbsoluteUri
+            && (string.Equals(report.ViewUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(report.ViewUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
+        {
+            sb.Append($"<a href=\"{WebUtility.HtmlEncode(report.ViewUri.ToString())}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"govuk-link\">View details</a>");
+        }
+        sb.Append("</div>");
+
+        return sb.ToString();
     }
 }
