@@ -8,6 +8,7 @@
     <NavLinks>
         <AuthorizeView>
             <Authorized>
+                <GdsHeaderNavLink Href="@_helpUri" Match="NavLinkMatch.All">Help</GdsHeaderNavLink>
                 <GdsHeaderNavLink Href="account/myaccount" Match="NavLinkMatch.All">My account</GdsHeaderNavLink>
                 <GdsHeaderNavLink Href="signout" Match="NavLinkMatch.All">Sign out</GdsHeaderNavLink>
             </Authorized>
@@ -50,6 +51,7 @@
 
     private GdsPhaseBanner.Phases _phase => Env.IsProduction() ? GdsPhaseBanner.Phases.Alpha : GdsPhaseBanner.Phases.Development;
     private readonly Uri _feedbackUri = new("https://dorset-self.achieveservice.com/service/flood-reporting-tool-feedback");
+    private readonly string _helpUri = "https://dorset-council-uk.github.io/FloodOnlineReportingTool.HelpDocumentation/";
     private string _signInUrl
     {
         get
