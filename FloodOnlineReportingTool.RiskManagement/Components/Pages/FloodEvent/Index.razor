@@ -296,7 +296,11 @@
                                 }
                             </dd>
                         </div>
-                    </dl>                    
+                    </dl>
+                    @if (_mapResultsTooMany)
+                    {
+                        <GdsWarning Text="There are too many flood report results to display on the map." />
+                    }
                     <div style="height:300px;" class="govuk-!-margin-bottom-2">
                         <MiniMap @ref="_miniMapRef" OnBecameVisible="AddMarkersToMiniMap" Geometry=ViewModel.Geom></MiniMap>
                     </div>

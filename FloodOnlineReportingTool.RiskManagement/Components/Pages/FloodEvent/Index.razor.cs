@@ -13,6 +13,7 @@ using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using QRCoder;
 using System.Net;
@@ -28,6 +29,7 @@ public partial class Index(
     ICommonRepository commonRepository,
     IReportStatusClient reportStatusClient,
     IAuthorizationService authorizationService,
+    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     NavigationManager navigationManager
 )
 {
@@ -61,6 +63,7 @@ public partial class Index(
     private string _mediaUrlExtensionWeeksText = "2";
     private string? _mediaUrlExtensionError;
 
+    private bool _mapResultsTooMany;
     private MiniMap? _miniMapRef;
     private IList<ReportStatus> _reportStatuses = [];
 
@@ -444,32 +447,53 @@ public partial class Index(
     }
 
 
-    private async void AddMarkersToMiniMap()
+    private async Task AddMarkersToMiniMap()
     {
         const int maxMapResults = 1000;
-
-        var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
-        var savedSearch = eventResult?.ResultModel?.SavedSearch;
-        if (savedSearch is null)
-            return;
-        
-        var rawResult = await reportStatusClient.SearchFloodReports(
-            savedSearch.ResultsFrom,
-            savedSearch.ResultsTo,
-            savedSearch.FloodSources,
-            null, 
-            null,
-            savedSearch.Postcode,
-            savedSearch.Geom,
-            1,
-            maxMapResults,
-            _cts.Token);
-
-        var result = rawResult.ToFloodResultItem(_reportStatuses);
-
-        if (result?.Results is not null && _miniMapRef is not null)
+        try
         {
-            await _miniMapRef.UpdateMarkersAsync(result.Results.ToMarkers());
-        }  
+            var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+            var savedSearch = eventResult?.ResultModel?.SavedSearch;
+            if (savedSearch is null)
+                return;
+
+            var rawResult = await reportStatusClient.SearchFloodReports(
+                savedSearch.ResultsFrom,
+                savedSearch.ResultsTo,
+                savedSearch.FloodSources,
+                null,
+                null,
+                savedSearch.Postcode,
+                savedSearch.Geom,
+                1,
+                maxMapResults,
+                _cts.Token);
+
+            if (rawResult.TotalCount >= maxMapResults)
+            {
+                _mapResultsTooMany = true;
+                return;
+            }
+
+            var result = rawResult.ToFloodResultItem(_reportStatuses);
+
+            if (result?.Results is not null && _miniMapRef is not null)
+            {
+                await _miniMapRef.UpdateMarkersAsync(result.Results.ToMarkers());
+            }
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            logger.LogWarning(ex, "Consent required while fetching map data");
+            consentHandler.HandleException(ex);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during normal cancellation; no action required.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while fetching flood report data for map view");
+        }
     }
 }
