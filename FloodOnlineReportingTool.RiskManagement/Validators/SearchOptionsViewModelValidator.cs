@@ -27,7 +27,7 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
         {
             RuleFor(o => o.ByReference).Empty().WithMessage("Report reference must not be set for this search type");
 
-            // At least one of the other fields must be populated
+            // At least date range and flood source must be populated
             RuleFor(o => o)
                 .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
                            !string.IsNullOrWhiteSpace(o.ByPostcode) ||
@@ -36,6 +36,12 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
                            o.ByPolygon != null)
                 .WithMessage("Enter at least one search criterion")
                 .WithName("SearchCriteria");
+
+            // Flood source validations
+            RuleFor(o => o.ByFloodSource)
+                .Must(list => list == null || list.Count > 0)
+                .WithMessage("Select at least one flood source")
+                .OverridePropertyName(o => o.ByFloodSource);
 
             // Date validations
             var now = DateTimeOffset.UtcNow;
