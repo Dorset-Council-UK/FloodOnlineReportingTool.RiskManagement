@@ -27,21 +27,36 @@ public partial class SearchOptionsViewModelValidator : AbstractValidator<SearchO
         {
             RuleFor(o => o.ByReference).Empty().WithMessage("Report reference must not be set for this search type");
 
-            // At least date range and flood source must be populated
+            // At least date range, flood source and geometry must be populated
             RuleFor(o => o)
-                .Must(o => IsDateSet(o.FromDate) || IsDateSet(o.ToDate) ||
-                           !string.IsNullOrWhiteSpace(o.ByPostcode) ||
-                           !string.IsNullOrWhiteSpace(o.ByPersonsName) ||
-                           o.ByFloodSource?.Count > 0 || 
+                .Must(o => IsDateSet(o.FromDate) && IsDateSet(o.ToDate) &&
+                           o.ByFloodSource?.Count > 0 && 
                            o.ByPolygon != null)
-                .WithMessage("Enter at least one search criterion")
+                .WithMessage("Enter at least date range, flood source and map area")
                 .WithName("SearchCriteria");
+
+            // Date range validations
+            RuleFor(o => o)
+                .Must(o => IsDateSet(o.FromDate))
+                .WithMessage("Enter a start date")
+                .OverridePropertyName(o => o.FromDate);
+
+            RuleFor(o => o)
+                .Must(o => IsDateSet(o.ToDate))
+                .WithMessage("Enter an end date")
+                .OverridePropertyName(o => o.ToDate);
 
             // Flood source validations
             RuleFor(o => o.ByFloodSource)
                 .Must(list => list == null || list.Count > 0)
                 .WithMessage("Select at least one flood source")
                 .OverridePropertyName(o => o.ByFloodSource);
+
+            // Geometry validations
+            RuleFor(o => o.ByPolygon)
+                .Must(polygon => polygon == null || polygon.Count > 0)
+                .WithMessage("Add a search area on the map")
+                .OverridePropertyName(o => o.ByPolygon);
 
             // Date validations
             var now = DateTimeOffset.UtcNow;
