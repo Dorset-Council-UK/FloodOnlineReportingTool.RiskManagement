@@ -270,7 +270,8 @@
                         </tbody>
                     </table>
 
-                    <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Full details for all affected properties</GdsLink></p>
+                    @* TODO - uncomment affected property link once functionality built *@
+                    @*<p><GdsLink Href="@($"event/propertysummary/{Reference}")">Full details for all affected properties</GdsLink></p>*@
 
                     <GdsHeading Level="2">Location</GdsHeading>
                     <dl class="govuk-summary-list">
@@ -306,10 +307,13 @@
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
 
                     <GdsHeading Level="2" Size="GdsSize.Medium">Further details</GdsHeading>
-                    <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Affected properties</GdsLink></p>
-                    <p><GdsLink Href="@($"event/impactsummary/{Reference}")">Flood impacts</GdsLink></p>
+                    @* TODO - uncomment affected property link once functionality built *@
+                    @* <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Affected properties</GdsLink></p> *@
+                    @* TODO - uncomment flood impacts link once functionality built *@
+                    @* <p><GdsLink Href="@($"event/impactsummary/{Reference}")">Flood impacts</GdsLink></p> *@
                     <p><GdsLink Href="@($"event/attachments/{Reference}")">Attachments</GdsLink></p>
-                    <p><GdsLink Href="@($"event/comments/{Reference}")">Comments</GdsLink></p>
+                    @* TODO - uncomment comments link once functionality built *@
+                    @* <p><GdsLink Href="@($"event/comments/{Reference}")">Comments</GdsLink></p> *@
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="2" Size="GdsSize.Medium">Download the data</GdsHeading>

@@ -32,8 +32,8 @@
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
                 <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds" AdditionalCssClasses="print-main-column">
 
-                    @* TODO - add working link to full report to button *@
-                    <GdsButton AdditionalCssClasses="no-print" Text="View the complete report" />
+                    @* TODO - reanable button once link to full report is working *@
+                    <GdsButton disabled aria-disabled="true" AdditionalCssClasses="no-print" Text="View the complete report" />
 
                     @* TODO - add action buttons functionality once decided *@
                     <div class="govuk-button-group no-print">
@@ -44,9 +44,6 @@
                             {
                                 <GdsButton IsSubmit="false" PreventDoubleClick AdditionalCssClasses="govuk-button--secondary" Text="Acknowledge Report" OnClick="@AcknowledgeAsync" />
                             }
-                            <GdsButton IsSubmit="false" Text="Action 2" AdditionalCssClasses="govuk-button--secondary" />
-                            <GdsButton IsSubmit="false" Text="Action 3" AdditionalCssClasses="govuk-button--secondary" />
-                            <GdsButton IsSubmit="false" Text="Action 4" AdditionalCssClasses="govuk-button--secondary" />
                         </EditForm>
                     </div>
 
@@ -145,7 +142,8 @@
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
                     <GdsHeading Level="2" Size="GdsSize.Small">Further details</GdsHeading>
                     <p><GdsLink Href="@($"report/attachments/{Reference}")">Attached Documents</GdsLink></p>
-                    <p><GdsLink Href="@($"report/comments/{Reference}")">Comments</GdsLink></p>
+                    @* TODO - uncomment comments link once functionality built *@
+                    @* <p><GdsLink Href="@($"report/comments/{Reference}")">Comments</GdsLink></p> *@
                     <hr class="govuk-section-break govuk-section-break--m" />
 
                     <GdsHeading Level="2" Size="GdsSize.Small">Download the data</GdsHeading>
