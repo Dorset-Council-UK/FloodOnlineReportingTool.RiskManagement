@@ -55,4 +55,6 @@ public interface IFloodEventRepository
     /// Updates the public media URL expiry for the flood event.
     /// </summary>
     Task<bool> UpdateMediaUrlExpiry(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
+
+    Task<List<FloodEvent>> GetFloodEventsFromPast30Days(CancellationToken cancellationToken);
 }

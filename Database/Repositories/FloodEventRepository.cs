@@ -375,4 +375,15 @@ public class FloodEventRepository(
 
         return result as NetTopologySuite.Geometries.MultiPolygon;
     }
+
+    public async Task<List<FloodEvent>> GetFloodEventsFromPast30Days(CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        return await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Where(fe => fe.CreatedAt >= now.AddDays(-30) && fe.CreatedAt <= now)
+            .ToListAsync(cancellationToken);
+    }
 }
