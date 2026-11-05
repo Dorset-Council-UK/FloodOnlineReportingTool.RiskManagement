@@ -23,13 +23,13 @@
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
                 <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds" AdditionalCssClasses="print-main-column">
 
-                    @* TODO - add action buttons functionality once decided *@
-                    <div class="govuk-button-group">
+                    @* TODO - Uncomment 'Generate public upload URL' button once working. Add other action buttons functionality once decided *@
+                    @* <div class="govuk-button-group">
                         @if (_canWrite && string.IsNullOrEmpty(ViewModel.MediaReference))
                         {
                             <GdsButton IsSubmit="false" Text="Generate Public Upload URL" AdditionalCssClasses="govuk-button--secondary no-print" OnClick="CreatePublicMediaUrl" />
                         }
-                    </div>
+                    </div> *@
 
                     @if (!string.IsNullOrEmpty(ViewModel.MediaReference))
                     {
