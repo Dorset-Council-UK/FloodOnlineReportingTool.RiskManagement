@@ -1,0 +1,41 @@
+﻿@page "/recent-flood-events"
+
+<PageTitle>Flood events recorded in the past 30 days</PageTitle>
+
+<GdsHeading Level="1" Size="GdsSize.Large">Flood events recorded in the past 30 days</GdsHeading>
+
+@if (IsLoading)
+{
+    <GdsSpinner Show ShowMessage Message="Loading flood events" />
+}
+else if (!FloodEventsInPast30Days.Any())
+{
+    <p class="govuk-body">No flood events have been recorded in the past 30 days.</p>
+}
+else
+{
+    <table class="govuk-table">
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Reference</th>
+                <th scope="col" class="govuk-table__header">Recorded</th>
+                <th scope="col" class="govuk-table__header">Title</th>
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            @foreach (var floodEvent in FloodEventsInPast30Days)
+            {
+                var eventUrl = $"event/{floodEvent.Reference}";
+
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">
+                        <GdsLink Href="@eventUrl">@floodEvent.Reference</GdsLink>
+                    </td>
+                    <td class="govuk-table__cell">@floodEvent.CreatedAt.GdsReadable()</td>
+                    <td class="govuk-table__cell">@floodEvent.SavedSearch.SearchTitle</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+

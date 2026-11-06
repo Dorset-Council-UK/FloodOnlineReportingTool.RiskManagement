@@ -380,10 +380,13 @@ public class FloodEventRepository(
     {
         var now = DateTimeOffset.UtcNow;
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
         return await context.FloodEvents
             .AsNoTracking()
             .IgnoreAutoIncludes()
+            .Include(fe => fe.SavedSearch)
             .Where(fe => fe.CreatedAt >= now.AddDays(-30) && fe.CreatedAt <= now)
+            .OrderByDescending(fe => fe.CreatedAt)
             .ToListAsync(cancellationToken);
     }
 }
