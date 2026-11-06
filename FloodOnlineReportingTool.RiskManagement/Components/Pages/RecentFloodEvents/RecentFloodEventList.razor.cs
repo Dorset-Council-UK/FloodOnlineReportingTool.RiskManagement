@@ -48,7 +48,6 @@ public partial class RecentFloodEventList(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed loading flood events recorded in the past 30 days.");
-            FloodEventsInPast30Days = [];
         }
         finally
         {
