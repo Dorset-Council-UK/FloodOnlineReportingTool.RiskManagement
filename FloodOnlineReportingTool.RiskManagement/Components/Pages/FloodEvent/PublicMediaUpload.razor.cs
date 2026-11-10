@@ -33,8 +33,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         [Parameter]
         public bool Overview { get; set; } = false;
 
-        private const int MaxNumFiles = 50;
-        private const int MaxFileSizeMB = 100;
+        private const int MaxNumFiles = 20;
+        private const int MaxFileSizeMB = 50;
         private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
         private const int ThumbnailWidthPixels = 300;
         private const int ThumbnailHeightPixels = 200;
@@ -76,9 +76,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         private ValidationMessageStore _validationMessageStore = default!;
         private FieldIdentifier _fieldIdentifier;
 
-        private Guid _floodEventId;
         private bool _mediaUploadIsLockedOrExpired;
         private bool _isLoading = true;
+        private bool _isSubmitting;
+        private bool _hasSubmitted;
+        private bool _isDeletingFile;
+        private readonly Dictionary<Models.Media.MediaItem, Guid> _mediaIds = [];
+        private FieldIdentifier _submissionField;
 
         private readonly List<IBrowserFile> _uploadingFiles = [];
         private readonly List<RejectedFile> _rejectedFiles = [];
@@ -89,7 +93,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         private string? _renameError;
 
         private string successPage = string.Empty;
-        private MediaUpload Model { get; set; } = default!;
+        private Models.Media.PublicMediaUpload Model { get; set; } = default!;
 
         protected override void OnInitialized()
         {
@@ -100,6 +104,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
             _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
             _validationMessageStore = new(_editContext);
             _fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
+            _submissionField = new(Model, string.Empty);
             successPage = $"event/upload/public/{Reference}/success";
         }
 
@@ -141,8 +146,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
                     navigationManager.NavigateTo("not-found");
                     return;
                 }
-                _mediaUploadIsLockedOrExpired = floodEvent!.MediaUploadLock || floodEvent!.MediaReferenceExpiration <= DateTimeOffset.UtcNow;
-                _floodEventId = floodEvent!.Id;
+                _mediaUploadIsLockedOrExpired = floodEvent.MediaUploadLock || floodEvent.MediaReferenceExpiration is null
+                    || floodEvent.MediaReferenceExpiration <= DateTimeOffset.UtcNow;
             }
             finally
             {
@@ -153,6 +158,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
 
         private async Task OnFilesSubmitted(IReadOnlyList<IBrowserFile>? files)
         {
+            if (_isSubmitting || _hasSubmitted || _isLoading || _isDeletingFile)
+            {
+                return;
+            }
             _isLoading = true;
 
             if (!ValidateFileUploadLimits(files))
@@ -330,6 +339,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
 
         private void StartRename(Models.Media.MediaItem file)
         {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
             _renamingFile = file;
             _renameText = file.Name;
             _renameError = null;
@@ -337,6 +350,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
 
         private void CancelRename()
         {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
             _renamingFile = null;
             _renameText = string.Empty;
             _renameError = null;
@@ -346,6 +363,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
 
         private async Task SaveRename(Models.Media.MediaItem file)
         {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
             _renameError = null;
 
             if (string.IsNullOrWhiteSpace(_renameText))
@@ -376,6 +397,23 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         }
 
         private async Task DeleteUploadedFile(Models.Media.MediaItem file)
+        {
+            if (_isSubmitting || _hasSubmitted || _isDeletingFile || _isLoading)
+            {
+                return;
+            }
+            _isDeletingFile = true;
+            try
+            {
+                await DeleteUploadedFileCore(file);
+            }
+            finally
+            {
+                _isDeletingFile = false;
+            }
+        }
+
+        private async Task DeleteUploadedFileCore(Models.Media.MediaItem file)
         {
             //confirm
             bool confirmDelete = await JS.InvokeAsync<bool>("confirm", _cts.Token, "Are you sure you want to delete this file?");
@@ -430,6 +468,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         }
         private void DeleteRejectedFile(RejectedFile file)
         {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
             // Remove the rejected file from the list
             _rejectedFiles.Remove(file);
             CheckValidationStateOfFileUploads();
@@ -459,7 +501,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         {
             // Clear any existing validation errors first
             _uploadLimitError = null;
-            _validationMessageStore.Clear();
+            _validationMessageStore.Clear(_fieldIdentifier);
 
             // Add validation errors for specific fields
             if (_rejectedFiles.Count > 0)
@@ -471,7 +513,8 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
                 }
             }
 
-            // Notify the EditContext that validation state has changed
+            // Revalidate the field to clear messages owned by FluentValidation as well.
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
             _editContext.NotifyValidationStateChanged();
         }
 
@@ -490,55 +533,62 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
             return errorMessage;
         }
 
-        private async Task OnValidSubmit()
+        private async Task OnSubmit()
         {
-            _validationMessageStore.Clear();
+            if (_isSubmitting || _hasSubmitted || _isLoading || _isDeletingFile || _uploadingFiles.Count > 0)
+            {
+                return;
+            }
+
+            _validationMessageStore.Clear(_submissionField);
             _editContext.NotifyValidationStateChanged();
-
-            if (_floodEventId == Guid.Empty)
+            if (!_editContext.Validate())
             {
-                logger.LogWarning("Flood event ID was not available when saving media items");
-                _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
-                _editContext.NotifyValidationStateChanged();
                 return;
             }
 
-            if (Model.UploadedFiles.Count == 0)
+            _isSubmitting = true;
+            try
             {
-                navigationManager.NavigateTo(successPage);
-                return;
-            }
-
-            var mediaItems = Model.UploadedFiles
-                .Where(file => !file.Id.HasValue)
-                .Select(file => new Database.Models.Media.MediaItem
+                var mediaItems = Model.UploadedFiles.Select(file =>
                 {
-                    UploadDateUtc = DateTimeOffset.UtcNow,
-                    URL = file.Url,
-                    Title = file.Name,
-                })
-                .ToList();
+                    if (!_mediaIds.TryGetValue(file, out var id))
+                    {
+                        id = Guid.CreateVersion7();
+                        _mediaIds.Add(file, id);
+                    }
+                    return new Database.Models.Media.MediaItem
+                    {
+                        Id = id,
+                        URL = file.Url,
+                        Title = file.Name,
+                    };
+                }).ToList();
 
-            if (mediaItems.Count == 0)
-            {
-                navigationManager.NavigateTo(successPage);
-                return;
-            }
-
-            var createMediaItems = await mediaItemRepository.Create(_floodEventId, mediaItems, _cts.Token);
-            if (!createMediaItems.IsSuccess)
-            {
-                foreach (var error in createMediaItems.Errors)
+                var input = new Database.Models.Media.PublicMediaSubmissionInput(
+                    Model.SubmissionId, Model.Name, Model.EmailAddress, Model.SharingAgreementAccepted);
+                var result = await mediaItemRepository.CreatePublicSubmission(Reference ?? string.Empty, input, mediaItems, _cts.Token);
+                if (!result.IsSuccess)
                 {
-                    logger.LogWarning("Couldn't create a attachment item: {ErrorMessage}", error);
+                    _validationMessageStore.Add(_submissionField, result.Errors);
+                    return;
                 }
 
-                _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
-                _editContext.NotifyValidationStateChanged();
-                return;
+                _hasSubmitted = true;
+                navigationManager.NavigateTo($"{successPage}?submissionReference={Uri.EscapeDataString(result.Value)}");
             }
-            //show success page
-            navigationManager.NavigateTo(successPage);
+            catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+            {
+            }
+            catch (Exception)
+            {
+                _validationMessageStore.Add(_submissionField, "Unable to save your media submission. Your details and media have been retained; please try again");
+            }
+            finally
+            {
+                _isSubmitting = false;
+                _editContext.NotifyValidationStateChanged();
+            }
         }
     }
 }

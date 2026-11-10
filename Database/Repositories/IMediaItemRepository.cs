@@ -21,6 +21,8 @@ namespace FloodOnlineReportingTool.Database.Repositories
         /// <returns>A result pattern with the created media items, or a list of errors.</returns>
         Task<Result<IReadOnlyCollection<MediaItem>>> Create(Guid floodEventId, IReadOnlyCollection<MediaItem> mediaItems, CancellationToken cancellationToken);
 
+        Task<Result<string>> CreatePublicSubmission(string uploadReference, PublicMediaSubmissionInput submission, IReadOnlyCollection<MediaItem> mediaItems, CancellationToken cancellationToken);
+
         /// <summary>
         /// Update the title of a media item.
         /// </summary>

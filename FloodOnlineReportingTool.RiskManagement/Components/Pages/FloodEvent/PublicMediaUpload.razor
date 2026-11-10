@@ -2,12 +2,13 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Options
 @using RiskManagement.Options
+@using FloodOnlineReportingTool.Database.Models.Media
 @inject IOptions<AzureBlobStorageOptions> blobStorageOptions
 @attribute [AllowAnonymous]
 
 <PageTitle>@Title</PageTitle>
 
-<GdsHeading Level="1" Size="GdsSize.Large">@Title</GdsHeading>
+<GdsHeading Level="1">@Title</GdsHeading>
 
 @if (_mediaUploadIsLockedOrExpired)
 {
@@ -21,13 +22,13 @@ else
     <p>Please ensure there are no identifiable people or personal data in your uploaded files.</p>
     <p>You can upload up to @MaxNumFiles files, maximum of @MaxFileSizeMB MB per file.</p>
 
-    <EditForm EditContext="_editContext" OnValidSubmit="OnValidSubmit" FormName="PublicMedia">
+    <EditForm EditContext="_editContext" OnSubmit="OnSubmit" FormName="PublicMedia">
         <FluentValidationValidator />
         <GdsErrorSummary />
 
-        <GdsSpinner Show="_isLoading" ShowMessage="true" />
+        <GdsSpinner Show="@(_isLoading || _isSubmitting)" ShowMessage="true" />
 
-        <GdsFormGroup>
+        <GdsFormGroup For="() => Model.UploadedFiles">
             <GdsLabel Text="Add photos, videos or supporting documents" />
             <GdsHint>Accepted file types: JPG, PNG, GIF, MP4, WEBM, OGG, PDF, DOCX, CSV, XLSX</GdsHint>
             <GdsErrorMessage />
@@ -40,7 +41,7 @@ else
             }
             @if (RemainingSlots > 0)
             {
-                <GdsFileInput Id="@nameof(Model.UploadedFiles)" IsBusy="@_isLoading" OnFilesSubmitted="OnFilesSubmitted" />
+                <GdsFileInput Id="@nameof(Model.UploadedFiles)" IsBusy="@(_isLoading || _isSubmitting)" OnFilesSubmitted="OnFilesSubmitted" />
             }
             else
             {
@@ -161,7 +162,31 @@ else
 
             </table>
         }
-        @if (!_isLoading && Model.UploadedFiles?.Count != 0)
+
+        <GdsHeading Level="2">Your details</GdsHeading>
+        <p>You can leave your contact details so we can get in touch with you about your media.</p>
+        <p>Leaving your contact details is optional, but you must accept the sharing agreement. If you don't accept the sharing agreement, do not upload your media.</p>
+        <GdsFormGroup>
+            <GdsLabel Text="Name (optional)" />
+            <GdsErrorMessage />
+            <GdsInputText @bind-Value="Model.Name" class="govuk-input" autocomplete="name" maxlength="200" disabled="@_isSubmitting" />
+        </GdsFormGroup>
+        <GdsFormGroup>
+            <GdsLabel Text="Email address (optional)" />
+            <GdsErrorMessage />
+            <GdsInputText @bind-Value="Model.EmailAddress" class="govuk-input" type="email" autocomplete="email" spellcheck="false" maxlength="254" disabled="@_isSubmitting" />
+        </GdsFormGroup>
+        <GdsFormGroup>
+            <GdsErrorMessage />
+            <GdsCheckboxes For="() => Model.SharingAgreementAccepted">
+                <GdsCheckboxItem>
+                    <GdsInputCheckbox Id="@nameof(Model.SharingAgreementAccepted)" @bind-Value="Model.SharingAgreementAccepted" disabled="@_isSubmitting" />
+                    <GdsCheckboxLabel Text="@PublicMediaSubmissionInput.SharingAgreementText" />
+                </GdsCheckboxItem>
+            </GdsCheckboxes>
+        </GdsFormGroup>
+
+        @if (!_isLoading && !_isSubmitting && Model.UploadedFiles?.Count != 0)
         {
             <div class="govuk-button-group">
                 <GdsButton IsSubmit="true" PreventDoubleClick Text="Upload your attachments" />

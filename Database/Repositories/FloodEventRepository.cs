@@ -340,17 +340,13 @@ public class FloodEventRepository(
         return floodEvent;
     }
 
-    public async Task<FloodEvent> GetFloodEventByMediaUploadReference(string mediaUploadReference, CancellationToken cancellationToken)
+    public async Task<FloodEvent?> GetFloodEventByMediaUploadReference(string mediaUploadReference, CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
         var floodEvent = await context.FloodEvents
             .AsNoTracking()
             .IgnoreAutoIncludes()
             .FirstOrDefaultAsync(e => e.MediaReference == mediaUploadReference, cancellationToken);
-        if (floodEvent is null)
-        {
-            throw new InvalidOperationException($"No flood event found with media reference '{mediaUploadReference}'.");
-        }
         return floodEvent;
     }
 
