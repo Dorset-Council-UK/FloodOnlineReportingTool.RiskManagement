@@ -70,7 +70,7 @@ public partial class PropertySummary(
             }
 
             var area = JsonSerializer.Serialize(ViewModel.Geom, _jsonSerializerOptions);
-            premisesTotals = await azureApiClient.GetAddressSummary(4326, "dorset_plus", area, _cts.Token);
+            premisesTotals = await azureApiClient.GetAddressSummary(4326, area, _cts.Token);
         }
         catch (HttpRequestException ex)
         {

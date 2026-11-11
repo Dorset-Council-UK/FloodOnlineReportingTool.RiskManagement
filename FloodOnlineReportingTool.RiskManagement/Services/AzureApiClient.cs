@@ -1,3 +1,4 @@
+using FloodOnlineReportingTool.RiskManagement.Exceptions;
 using FloodOnlineReportingTool.RiskManagement.Models.Azure;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
@@ -11,6 +12,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Services;
 
 public class AzureApiClient(
     IDownstreamApi downstreamApi,
+    IConfiguration configuration,
     ILogger<AzureApiClient> logger) : IAzureApiClient
 {
     private readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
@@ -18,7 +20,7 @@ public class AzureApiClient(
         Converters = { new GeoJsonConverterFactory() },
     };
 
-    public async Task<IReadOnlyCollection<(int Index, int? ParentIndex, (string Classification, int Premises) Data)>?> GetAddressSummary(int epsg, string searchArea, string area, CancellationToken ct)
+    public async Task<IReadOnlyCollection<(int Index, int? ParentIndex, (string Classification, int Premises) Data)>?> GetAddressSummary(int epsg, string area, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(area))
         {
@@ -29,7 +31,18 @@ public class AzureApiClient(
         {
             logger.LogInformation("Checking downstream API for flood summary");
 
-            var relativePath = $"/v1/places/address/summary/geojson?epsg={epsg}&searchArea={searchArea}";
+            var azureApiGeoApiSection = configuration
+                .GetRequiredSection(DownstreamAPIOptions.SectionName)
+                .GetRequiredSection(DownstreamAPIOptions.AzureApiGeoApi);
+            var addressSummaryPathTemplate = azureApiGeoApiSection
+                .GetValue<string>("AddressSummaryPathTemplate");
+
+            if(string.IsNullOrWhiteSpace(addressSummaryPathTemplate))
+            {
+                throw new ConfigurationMissingException($"Configuration value '{DownstreamAPIOptions.SectionName}:{DownstreamAPIOptions.AzureApiGeoApi}:AddressSummaryPathTemplate' is required to use summary.");
+            }
+
+            var relativePath = addressSummaryPathTemplate.Replace("{epsg}", epsg.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal);
             var geometry = JsonSerializer.Deserialize<Geometry>(area, _jsonSerializerOptions)
                 ?? throw new ArgumentException("Value must be a valid GeoJSON geometry.", nameof(area));
 
