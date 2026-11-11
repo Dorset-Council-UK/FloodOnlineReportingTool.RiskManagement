@@ -16,6 +16,12 @@
         <p>The media upload for this flood event has expired or is no longer available.</p>
     </GdsNotificationBanner>
 }
+else if (_mediaUploadIsFull)
+{
+    <GdsNotificationBanner BannerTitle="Media upload not available">
+        <p>The media upload for this flood event has reached the maximum number of files allowed. Contact the flood risk team for assistance.</p>
+    </GdsNotificationBanner>
+}
 else
 {
     <p>Upload some photos or videos that show the flooding or damage caused. </p>

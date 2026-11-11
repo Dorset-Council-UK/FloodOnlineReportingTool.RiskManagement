@@ -33,9 +33,10 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         [Parameter]
         public bool Overview { get; set; } = false;
 
-        private const int MaxNumFiles = 20;
+        private const int MaxNumFiles = 10;
         private const int MaxFileSizeMB = 50;
         private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
+        private const int MaxFilesForUpload = 200; //global maximum number of publicly uploaded files for a flood event. Soft limit only checked on load
         private const int ThumbnailWidthPixels = 300;
         private const int ThumbnailHeightPixels = 200;
         private const int ThumbnailJpegQuality = 75;
@@ -77,6 +78,7 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
         private FieldIdentifier _fieldIdentifier;
 
         private bool _mediaUploadIsLockedOrExpired;
+        private bool _mediaUploadIsFull;
         private bool _isLoading = true;
         private bool _isSubmitting;
         private bool _hasSubmitted;
@@ -148,6 +150,13 @@ namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
                 }
                 _mediaUploadIsLockedOrExpired = floodEvent.MediaUploadLock || floodEvent.MediaReferenceExpiration is null
                     || floodEvent.MediaReferenceExpiration <= DateTimeOffset.UtcNow;
+
+                //check how many files have been uploaded to this media upload reference already
+                var allUploadedFilesForReference = await mediaItemRepository.GetPublicSubmissionMediaItemCount(Reference, _cts.Token);
+                if(allUploadedFilesForReference >= MaxFilesForUpload)
+                {
+                    _mediaUploadIsFull = true;
+                }
             }
             finally
             {

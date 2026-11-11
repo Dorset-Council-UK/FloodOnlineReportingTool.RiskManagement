@@ -1,5 +1,6 @@
 ﻿using FloodOnlineReportingTool.Database.DbContexts;
 using FloodOnlineReportingTool.Database.EntitiesConfiguration;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using FloodOnlineReportingTool.Database.Services;
@@ -313,6 +314,30 @@ namespace FloodOnlineReportingTool.Database.Repositories
             }
         }
 
+        public async Task<int> GetPublicSubmissionMediaItemCount(string reference, CancellationToken ct)
+        {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
+            //get the flood event associated with this media upload reference
+            var floodEvent = await context.FloodEvents
+                .AsNoTracking()
+                .IgnoreAutoIncludes()
+                .FirstOrDefaultAsync(fe => fe.MediaReference == reference, ct);
+
+            if(floodEvent is null)
+            {
+                logger.LogWarning("No flood event found for media upload reference: {Reference}", reference);
+                return 0;
+            }
+
+            //get every publicly submitted media item for this flood event and count the total number of media items
+            var publicMediaItemCount = await context.MediaItems
+                .AsNoTracking()
+                .IgnoreAutoIncludes()
+                .Where(mi => mi.FloodEventId == floodEvent.Id && mi.PublicMediaSubmissionId != null)
+                .CountAsync(ct);
+
+            return publicMediaItemCount;
+        }
         private static List<string> ValidatePublicSubmission(
             string uploadReference, PublicMediaSubmissionInput submission,
             IReadOnlyCollection<MediaItem> mediaItems, string? name, string? email)

@@ -40,5 +40,6 @@ namespace FloodOnlineReportingTool.Database.Repositories
         /// </summary>
         /// <returns>A result pattern indicating success, or a list of errors.</returns>
         Task<bool> RotateMediaImage(Guid mediaItemId, int rotationDegrees, CancellationToken ct = default);
+        Task<int> GetPublicSubmissionMediaItemCount(string reference, CancellationToken token);
     }
 }
