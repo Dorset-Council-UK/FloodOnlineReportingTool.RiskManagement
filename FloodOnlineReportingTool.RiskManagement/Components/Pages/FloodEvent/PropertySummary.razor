@@ -11,7 +11,7 @@
 
         <GdsSpinner Show="_isLoading" ShowMessage="true" />
         
-        @if(premisesTotals is not null)
+        @if(!_isLoading && premisesTotals is not null)
         {
             <DrillDownTable HierarchicalData="premisesTotals">
                 <Title Context="currentParent">
@@ -34,6 +34,10 @@
                     <td class="govuk-table__cell">@row.Premises</td>
                 </RowDataDisplay>
             </DrillDownTable>
+        }
+        else if(!_isLoading)
+        {
+            <GdsWarning Text="There was an issue getting the property summary information"></GdsWarning>
         }
 
     </Authorized>
