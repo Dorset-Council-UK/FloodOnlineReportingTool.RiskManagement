@@ -249,18 +249,9 @@ public partial class Results(
 
                 if (result?.Results is not null)
                 {
-                    allResults.AddRange(result.Results.ToList());
+                    allResults.AddRange([.. result.Results]);
                 }
             }
-
-            var markers = allResults
-                .Where(r => r.Latitude != 0 || r.Longitude != 0)
-                .Select(r => new MapMarkerData(
-                    r.Id.ToString(),
-                    r.Latitude,
-                    r.Longitude,
-                    BuildPopupHtml(r)))
-                .ToList();
 
             // FORE TESTING: duplicate the first marker to test popup navigation; comment out to disable test
             //if (markers.Count > 0)
@@ -278,7 +269,7 @@ public partial class Results(
 
             if (_miniMapRef is not null)
             {
-                await _miniMapRef.UpdateMarkersAsync(markers);
+                await _miniMapRef.UpdateMarkersAsync(allResults.ToMarkers());
                 //Add the area used as part of the search (if there is one).
                 if (SearchResultsViewModel.ByPolygon is not null)
                     await _miniMapRef.UpdateGeometryAsync(SearchResultsViewModel.ByPolygon);
@@ -304,37 +295,4 @@ public partial class Results(
             StateHasChanged();
         }
     }
-
-    private static string BuildPopupHtml(FloodResultItem report)
-    {
-        var sb = new StringBuilder();
-        sb.Append($"<div class=\"govuk-body-s govuk-!-margin-bottom-0\"><strong>{WebUtility.HtmlEncode(report.Reference)}</strong><br/>");
-        sb.Append($"<strong>Report status:</strong> {WebUtility.HtmlEncode(report.RecordStatus)}<br/>");
-
-        if (report.ImpactStartUtc is not null)
-        {
-            sb.Append($"<strong>Flooding started:</strong> {report.ImpactStartUtc.Value:d MMMM yyyy}<br/>");
-        }
-        var causes = report.Causes.Count > 0
-            ? string.Join(", ", report.Causes.Select(s => WebUtility.HtmlEncode(s.Name)))
-            : "No flooding causes identified";
-        sb.Append($"<strong>Causes:</strong> {causes}<br/>");
-        sb.Append($"<strong>Created:</strong> {report.CreatedUtc:d MMMM yyyy}<br/>");
-
-        if (report.UpdatedUtc is not null)
-        {
-            sb.Append($"<strong>Updated:</strong> {report.UpdatedUtc.Value:d MMMM yyyy}<br/>");
-        }
-
-        if (report.ViewUri.IsAbsoluteUri
-            && (string.Equals(report.ViewUri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(report.ViewUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
-        {
-            sb.Append($"<a href=\"{WebUtility.HtmlEncode(report.ViewUri.ToString())}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"govuk-link\">View details</a>");
-        }
-        sb.Append("</div>");
-
-        return sb.ToString();
-    }
-
 }

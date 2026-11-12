@@ -1,11 +1,16 @@
 ﻿using FloodOnlineReportingTool.Database.DbContexts;
+using FloodOnlineReportingTool.Database.EntitiesConfiguration;
+using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Media;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using FloodOnlineReportingTool.Database.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
+using System.Data.Common;
+using System.Security.Cryptography;
 
 namespace FloodOnlineReportingTool.Database.Repositories
 {
@@ -210,6 +215,181 @@ namespace FloodOnlineReportingTool.Database.Repositories
             await context.SaveChangesAsync(cancellationToken);
 
             return Result<MediaItem>.Success(mediaItem);
+        }
+
+        public async Task<Result<string>> CreatePublicSubmission(
+        string uploadReference,
+        PublicMediaSubmissionInput submission,
+        IReadOnlyCollection<MediaItem> mediaItems,
+        CancellationToken cancellationToken)
+        {
+            var name = PublicMediaSubmissionInput.NormalizeContact(submission.Name);
+            var email = PublicMediaSubmissionInput.NormalizeContact(submission.EmailAddress);
+            var errors = ValidatePublicSubmission(uploadReference, submission, mediaItems, name, email);
+            if (errors.Count > 0)
+            {
+                return Result<string>.Failure(errors);
+            }
+
+            try
+            {
+                await using var strategyContext = await contextFactory.CreateDbContextAsync(cancellationToken);
+                var strategy = strategyContext.Database.CreateExecutionStrategy();
+                return await strategy.ExecuteAsync(async cancellationToken =>
+                {
+                    await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+                    var metadata = new PublicMediaSubmission
+                    {
+                        Id = submission.Id,
+                        Name = name,
+                        EmailAddress = email,
+                        SubmittedAtUtc = DateTimeOffset.UtcNow,
+                        SharingAgreementAccepted = true,
+                    };
+
+                    const int maxReferenceAttempts = 3;
+                    for (var attempt = 0; attempt < maxReferenceAttempts; attempt++)
+                    {
+                        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+                        // Serialize submissions and changes to the upload link until the batch is committed.
+                        var floodEvent = await context.FloodEvents
+                            .FromSqlInterpolated($"SELECT * FROM \"fortriskmanagement\".\"FloodEvents\" WHERE \"MediaReference\" = {uploadReference} FOR UPDATE")
+                            .IgnoreAutoIncludes()
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(cancellationToken);
+                        if (floodEvent is null)
+                        {
+                            return Result<string>.Failure(["This upload link is not available"]);
+                        }
+
+                        var existing = await context.PublicMediaSubmissions
+                            .AsNoTracking()
+                            .IgnoreAutoIncludes()
+                            .Include(s => s.MediaItems)
+                            .SingleOrDefaultAsync(s => s.Id == submission.Id, cancellationToken);
+                        if (existing is not null)
+                        {
+                            return MatchesPublicSubmission(existing, floodEvent.Id, name, email, mediaItems)
+                                ? Result<string>.Success(existing.Reference)
+                                : Result<string>.Failure(["This batch was already submitted with different details. Please reload the page before uploading more media"]);
+                        }
+
+                        if (floodEvent.MediaUploadLock || floodEvent.MediaReferenceExpiration is null
+                            || floodEvent.MediaReferenceExpiration <= DateTimeOffset.UtcNow)
+                        {
+                            return Result<string>.Failure(["The media upload for this flood event has expired or is no longer available"]);
+                        }
+
+                        metadata.MediaItems = mediaItems.Select(item => new MediaItem
+                        {
+                            Id = item.Id,
+                            UploadDateUtc = item.UploadDateUtc ?? metadata.SubmittedAtUtc,
+                            URL = item.URL,
+                            Title = item.Title,
+                            FloodEventId = floodEvent.Id,
+                            PublicMediaSubmissionId = metadata.Id,
+                        }).ToList();
+                        context.PublicMediaSubmissions.Add(metadata);
+
+                        try
+                        {
+                            await context.SaveChangesAsync(cancellationToken);
+                            await transaction.CommitAsync(cancellationToken);
+                            return Result<string>.Success(metadata.Reference);
+                        }
+                        catch (DbUpdateException ex) when (IsSubmissionReferenceCollision(ex))
+                        {
+                            await transaction.RollbackAsync(cancellationToken);
+                            context.ChangeTracker.Clear();
+                            metadata.Reference = Convert.ToHexString(RandomNumberGenerator.GetBytes(5)).ToUpperInvariant();
+                        }
+                    }
+
+                    return Result<string>.Failure(["Unable to assign a submission reference. Please try submitting again"]);
+                }, cancellationToken);
+            }
+            catch (Exception ex) when (ex is DbUpdateException or DbException)
+            {
+                return Result<string>.Failure(["Unable to save your media submission. Your details and media have been retained; please try again"]);
+            }
+        }
+
+        public async Task<int> GetPublicSubmissionMediaItemCount(string reference, CancellationToken ct)
+        {
+            await using var context = await contextFactory.CreateDbContextAsync(ct);
+            //get the flood event associated with this media upload reference
+            var floodEvent = await context.FloodEvents
+                .AsNoTracking()
+                .IgnoreAutoIncludes()
+                .FirstOrDefaultAsync(fe => fe.MediaReference == reference, ct);
+
+            if(floodEvent is null)
+            {
+                logger.LogWarning("No flood event found for media upload reference: {Reference}", reference);
+                return 0;
+            }
+
+            //get every publicly submitted media item for this flood event and count the total number of media items
+            var publicMediaItemCount = await context.MediaItems
+                .AsNoTracking()
+                .IgnoreAutoIncludes()
+                .Where(mi => mi.FloodEventId == floodEvent.Id && mi.PublicMediaSubmissionId != null)
+                .CountAsync(ct);
+
+            return publicMediaItemCount;
+        }
+        private static List<string> ValidatePublicSubmission(
+            string uploadReference, PublicMediaSubmissionInput submission,
+            IReadOnlyCollection<MediaItem> mediaItems, string? name, string? email)
+        {
+            var errors = new List<string>();
+            if (string.IsNullOrWhiteSpace(uploadReference) || submission.Id == Guid.Empty)
+            {
+                errors.Add("This upload link or submission is not valid");
+            }
+            if (!submission.SharingAgreementAccepted)
+            {
+                errors.Add("You must agree that your media can be shared before submitting");
+            }
+            if (name?.Length > PublicMediaSubmissionInput.MaxNameLength)
+            {
+                errors.Add("Name must be 200 characters or fewer");
+            }
+            if (email?.Length > PublicMediaSubmissionInput.MaxEmailLength || !PublicMediaSubmissionInput.IsValidEmail(email))
+            {
+                errors.Add("Enter a valid email address of 254 characters or fewer");
+            }
+            if (mediaItems.Count is 0 or > 50)
+            {
+                errors.Add("Upload between 1 and 50 files before submitting");
+            }
+            if (mediaItems.Any(m => m.Id == Guid.Empty || string.IsNullOrWhiteSpace(m.URL)
+                || string.IsNullOrWhiteSpace(m.Title) || m.Title.Length > 255)
+                || mediaItems.Select(m => m.Id).Distinct().Count() != mediaItems.Count)
+            {
+                errors.Add("One or more media items are not valid");
+            }
+            return errors;
+        }
+
+        private static bool MatchesPublicSubmission(PublicMediaSubmission existing, Guid floodEventId,
+            string? name, string? email, IReadOnlyCollection<MediaItem> mediaItems)
+        {
+            return existing.SharingAgreementAccepted && existing.Name == name && existing.EmailAddress == email
+                && existing.MediaItems.Count == mediaItems.Count
+                && existing.MediaItems.All(saved => saved.FloodEventId == floodEventId
+                    && mediaItems.Any(item => item.Id == saved.Id && item.URL == saved.URL && item.Title == saved.Title));
+        }
+
+        private static bool IsSubmissionReferenceCollision(DbUpdateException exception)
+        {
+            return exception.InnerException is PostgresException
+            {
+                SqlState: PostgresErrorCodes.UniqueViolation,
+                SchemaName: SchemaNames.RiskManagement,
+                TableName: "PublicMediaSubmissions",
+                ConstraintName: PublicMediaSubmissionConfiguration.ReferenceIndexName,
+            };
         }
     }
 }

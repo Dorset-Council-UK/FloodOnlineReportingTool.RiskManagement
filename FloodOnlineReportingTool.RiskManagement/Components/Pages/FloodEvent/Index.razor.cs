@@ -1,14 +1,19 @@
 using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Converters;
+using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using QRCoder;
 using System.Net;
@@ -22,7 +27,9 @@ public partial class Index(
     ISettingsService settingsService,
     IFloodEventRepository floodEventRepository,
     ICommonRepository commonRepository,
+    IReportStatusClient reportStatusClient,
     IAuthorizationService authorizationService,
+    MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     NavigationManager navigationManager
 )
 {
@@ -55,6 +62,11 @@ public partial class Index(
     private int _mediaUrlExtensionWeeks = 2;
     private string _mediaUrlExtensionWeeksText = "2";
     private string? _mediaUrlExtensionError;
+
+    private bool _mapResultsTooMany;
+    private MiniMap? _miniMapRef;
+    private IList<ReportStatus> _reportStatuses = [];
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,6 +101,8 @@ public partial class Index(
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
             if (eventResult.IsSuccess && eventResult.ResultModel is not null)
             {
+                _reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
+
                 var floodEvent = eventResult.ResultModel;
 
                 var eventStatusesTask = floodEventRepository.GetEventStatuses(_cts.Token);
@@ -233,7 +247,7 @@ public partial class Index(
             return "";
         }
 
-        var mediaPath = $"{EventPages.MediaUpload.Url.TrimEnd('/')}/{ViewModel.MediaReference}";
+        var mediaPath = $"{EventPages.PublicMediaUpload.Url.TrimEnd('/')}/{ViewModel.MediaReference}";
         return navigationManager.ToAbsoluteUri(mediaPath).ToString();
     }
 
@@ -430,5 +444,56 @@ public partial class Index(
             GeneralPages.Home.ToGdsBreadcrumb(),
             new ($"{EventPages.View.Url}/{Reference}", $"Flood event {Reference}"),
         ];
+    }
+
+
+    private async Task AddMarkersToMiniMap()
+    {
+        const int maxMapResults = 1000;
+        try
+        {
+            var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
+            var savedSearch = eventResult?.ResultModel?.SavedSearch;
+            if (savedSearch is null)
+                return;
+
+            var rawResult = await reportStatusClient.SearchFloodReports(
+                savedSearch.ResultsFrom,
+                savedSearch.ResultsTo,
+                savedSearch.FloodSources,
+                null,
+                null,
+                savedSearch.Postcode,
+                savedSearch.Geom,
+                1,
+                maxMapResults,
+                _cts.Token);
+
+            if (rawResult.TotalCount >= maxMapResults)
+            {
+                _mapResultsTooMany = true;
+                return;
+            }
+
+            var result = rawResult.ToFloodResultItem(_reportStatuses);
+
+            if (result?.Results is not null && _miniMapRef is not null)
+            {
+                await _miniMapRef.UpdateMarkersAsync(result.Results.ToMarkers());
+            }
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            logger.LogWarning(ex, "Consent required while fetching map data");
+            consentHandler.HandleException(ex);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected during normal cancellation; no action required.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error while fetching flood report data for map view");
+        }
     }
 }

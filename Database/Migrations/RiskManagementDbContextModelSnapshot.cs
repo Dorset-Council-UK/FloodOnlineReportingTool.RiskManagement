@@ -1044,10 +1044,12 @@ namespace FloodOnlineReportingTool.Database.Migrations
             modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.Media.MediaItem", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("FloodEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PublicMediaSubmissionId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Title")
@@ -1064,7 +1066,42 @@ namespace FloodOnlineReportingTool.Database.Migrations
 
                     b.HasIndex("FloodEventId");
 
+                    b.HasIndex("PublicMediaSubmissionId");
+
                     b.ToTable("MediaItems", "fortriskmanagement");
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.Media.PublicMediaSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EmailAddress")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<bool>("SharingAgreementAccepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset>("SubmittedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Reference")
+                        .IsUnique()
+                        .HasDatabaseName("IX_PublicMediaSubmissions_Reference");
+
+                    b.ToTable("PublicMediaSubmissions", "fortriskmanagement");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.Messaging.OutboxMessage", b =>
@@ -1234,9 +1271,21 @@ namespace FloodOnlineReportingTool.Database.Migrations
                         .HasForeignKey("FloodEventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("FloodOnlineReportingTool.Database.Models.Media.PublicMediaSubmission", "PublicMediaSubmission")
+                        .WithMany("MediaItems")
+                        .HasForeignKey("PublicMediaSubmissionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("PublicMediaSubmission");
                 });
 
             modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.FloodEvents.FloodEvent", b =>
+                {
+                    b.Navigation("MediaItems");
+                });
+
+            modelBuilder.Entity("FloodOnlineReportingTool.Database.Models.Media.PublicMediaSubmission", b =>
                 {
                     b.Navigation("MediaItems");
                 });

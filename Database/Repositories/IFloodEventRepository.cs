@@ -43,6 +43,7 @@ public interface IFloodEventRepository
     Task<GetResult<FloodEvent>> GetBySearchReference(string searchReference, int targetSrid, CancellationToken cancellationToken);
 
     Task<FloodEvent> GetFloodEventById(Guid floodEventId, CancellationToken cancellationToken);
+    Task<FloodEvent?> GetFloodEventByMediaUploadReference(string mediaUploadReference, CancellationToken cancellationToken);
 
     Task<(bool IsSuccess, string? MediaReference)> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
 
@@ -55,4 +56,6 @@ public interface IFloodEventRepository
     /// Updates the public media URL expiry for the flood event.
     /// </summary>
     Task<bool> UpdateMediaUrlExpiry(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
+
+    Task<List<FloodEvent>> GetFloodEventsFromPast30Days(CancellationToken cancellationToken);
 }

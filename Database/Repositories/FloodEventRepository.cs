@@ -340,6 +340,16 @@ public class FloodEventRepository(
         return floodEvent;
     }
 
+    public async Task<FloodEvent?> GetFloodEventByMediaUploadReference(string mediaUploadReference, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var floodEvent = await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(e => e.MediaReference == mediaUploadReference, cancellationToken);
+        return floodEvent;
+    }
+
     private async Task<NetTopologySuite.Geometries.MultiPolygon?> GetTransformedGeometry(
         Guid savedSearchId,
         int targetSrid,
@@ -374,5 +384,19 @@ public class FloodEventRepository(
         var result = await command.ExecuteScalarAsync(cancellationToken);
 
         return result as NetTopologySuite.Geometries.MultiPolygon;
+    }
+
+    public async Task<List<FloodEvent>> GetFloodEventsFromPast30Days(CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        return await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Include(fe => fe.SavedSearch)
+            .Where(fe => fe.CreatedAt >= now.AddDays(-30) && fe.CreatedAt <= now)
+            .OrderByDescending(fe => fe.CreatedAt)
+            .ToListAsync(cancellationToken);
     }
 }

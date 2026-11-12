@@ -11,6 +11,8 @@ namespace FloodOnlineReportingTool.Database.Models.Media
 
         // Foreign key
         public Guid FloodEventId { get; set; }
+        public Guid? PublicMediaSubmissionId { get; set; }
+        public PublicMediaSubmission? PublicMediaSubmission { get; set; }
 
         public MediaType Format
         {

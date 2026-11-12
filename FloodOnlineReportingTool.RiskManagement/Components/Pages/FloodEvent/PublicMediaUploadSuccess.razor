@@ -1,0 +1,26 @@
+﻿@page "/event/upload/public/{Reference}/success"
+@attribute [AllowAnonymous]
+
+<PageTitle>Media successfully uploaded</PageTitle>
+
+<GdsHeading Level="1">Thank you</GdsHeading>
+
+<p>Your media has been successfully uploaded. You can <GdsLink Href="@($"event/upload/public/{Reference}")">upload more</GdsLink>, or close this page if you are done.</p>
+
+@if (!string.IsNullOrWhiteSpace(SubmissionReference))
+{
+    <p>Your submission reference is <strong>@SubmissionReference</strong>. Use this when contacting us if you'd like to make a change to or remove your uploaded media.</p>
+}
+
+<GdsHeading Level="2">What happens now?</GdsHeading>
+
+<p>Your media will help us investigate this flood event and improve our response to future floods.</p>
+
+@code {
+    [Parameter]
+    public string Reference { get; set; } = string.Empty;
+
+    [SupplyParameterFromQuery(Name = "submissionReference")]
+    public string? SubmissionReference { get; set; }
+
+}
