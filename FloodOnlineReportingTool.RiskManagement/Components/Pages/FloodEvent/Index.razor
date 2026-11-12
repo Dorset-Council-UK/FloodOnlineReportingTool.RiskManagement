@@ -23,13 +23,13 @@
             <GdsGridRow AdditionalCssClasses="govuk-!-margin-bottom-2">
                 <GdsGridColumn Width="GdsGridColumnWidth.TwoThirds" AdditionalCssClasses="print-main-column">
 
-                    @* TODO - Uncomment 'Generate public upload URL' button once working. Add other action buttons functionality once decided *@
-                    @* <div class="govuk-button-group">
+                    @* TODO - Add other action buttons functionality once decided *@
+                    <div class="govuk-button-group">
                         @if (_canWrite && string.IsNullOrEmpty(ViewModel.MediaReference))
                         {
                             <GdsButton IsSubmit="false" Text="Generate Public Upload URL" AdditionalCssClasses="govuk-button--secondary no-print" OnClick="CreatePublicMediaUrl" />
                         }
-                    </div> *@
+                    </div>
 
                     @if (!string.IsNullOrEmpty(ViewModel.MediaReference))
                     {
@@ -270,8 +270,7 @@
                         </tbody>
                     </table>
 
-                    @* TODO - uncomment affected property link once functionality built *@
-                    @*<p><GdsLink Href="@($"event/propertysummary/{Reference}")">Full details for all affected properties</GdsLink></p>*@
+                    <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Full details for all affected properties</GdsLink></p>
 
                     <GdsHeading Level="2">Location</GdsHeading>
                     <dl class="govuk-summary-list">
@@ -307,8 +306,7 @@
                 <GdsGridColumn Width="GdsGridColumnWidth.OneThird" AdditionalCssClasses="no-print">
 
                     <GdsHeading Level="2" Size="GdsSize.Medium">Further details</GdsHeading>
-                    @* TODO - uncomment affected property link once functionality built *@
-                    @* <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Affected properties</GdsLink></p> *@
+                    <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Affected properties</GdsLink></p>
                     @* TODO - uncomment flood impacts link once functionality built *@
                     @* <p><GdsLink Href="@($"event/impactsummary/{Reference}")">Flood impacts</GdsLink></p> *@
                     <p><GdsLink Href="@($"event/attachments/{Reference}")">Attachments</GdsLink></p>
