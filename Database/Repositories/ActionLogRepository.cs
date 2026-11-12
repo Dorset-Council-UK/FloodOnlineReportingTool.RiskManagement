@@ -93,7 +93,10 @@ public class ActionLogRepository(IDbContextFactory<RiskManagementDbContext> cont
         if (pageSize < 1) pageSize = 10;
 
         // Apply sort based on column name, defaulting to LoggedAt descending
-        IQueryable<ActionLog> query = context.ActionLogs.Include(al => al.Action).AsNoTracking();
+        IQueryable<ActionLog> query = context.ActionLogs
+            .Include(al => al.Action)
+            .Where(a => a.ActionedAt == null)
+            .AsNoTracking();
 
         query = (sortColumn, ascending) switch
         {
