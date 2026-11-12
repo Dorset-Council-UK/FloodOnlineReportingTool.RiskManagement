@@ -1,0 +1,603 @@
+using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.Database.Services;
+using FloodOnlineReportingTool.RiskManagement.Models.Media;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Services;
+using GdsBlazorComponents;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.JSInterop;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
+using System.Globalization;
+
+namespace FloodOnlineReportingTool.RiskManagement.Components.Pages.FloodEvent
+{
+    public partial class PublicMediaUpload(    
+        ILogger<Upload> logger,
+        NavigationManager navigationManager,
+        IJSRuntime JS,
+        IBlobStorageService blobStorageService,
+        IMediaItemRepository mediaItemRepository,
+        IFloodEventRepository floodEventRepository
+) : IAsyncDisposable
+{
+    // Page order properties
+    //public string Title { get; set; } = "Add media to flood event";
+        private string Title => EventPages.Upload.Title;
+
+        [Parameter]
+        public string? Reference { get; set; }
+
+        [Parameter]
+        public bool Overview { get; set; } = false;
+
+        private const int MaxNumFiles = 10;
+        private const int MaxFileSizeMB = 50;
+        private const long MaxFileSize = MaxFileSizeMB * 1024 * 1024; // Convert MB to bytes
+        private const int MaxFilesForUpload = 200; //global maximum number of publicly uploaded files for a flood event. Soft limit only checked on load
+        private const int ThumbnailWidthPixels = 300;
+        private const int ThumbnailHeightPixels = 200;
+        private const int ThumbnailJpegQuality = 75;
+        private const int MaxThumbnailSourceDimensionPixels = 10000;
+        private const long MaxThumbnailSourcePixels = 40_000_000;
+        private const string ThumbnailContentType = "image/jpeg";
+        private const string ThumbnailSuffix = ".thumbnail.jpg";
+        private int RemainingSlots => MaxNumFiles - Model.UploadedFiles.Count;
+        private static readonly string[] ImageFileTypes = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+        ];
+        private static readonly string[] VideoFileTypes = [
+            "video/mp4",
+            "video/webm",
+            "video/ogg",
+        ];
+        private static readonly string[] DocumentFileTypes = [
+            "application/pdf",
+            "text/csv",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ];
+        private static readonly string[] AllowedFileTypes = [
+            .. ImageFileTypes,
+            .. VideoFileTypes,
+            .. DocumentFileTypes,
+        ];
+
+        private static readonly string[] FriendlyFileTypes = [
+            "JPG", "PNG", "GIF", "MP4", "WEBM", "OGG", "PDF", "DOCX", "CSV", "XLSX",
+        ];
+
+        private readonly CancellationTokenSource _cts = new();
+        private EditContext _editContext = default!;
+        private ValidationMessageStore _validationMessageStore = default!;
+        private FieldIdentifier _fieldIdentifier;
+
+        private bool _mediaUploadIsLockedOrExpired;
+        private bool _mediaUploadIsFull;
+        private bool _isLoading = true;
+        private bool _isSubmitting;
+        private bool _hasSubmitted;
+        private bool _isDeletingFile;
+        private readonly Dictionary<Models.Media.MediaItem, Guid> _mediaIds = [];
+        private FieldIdentifier _submissionField;
+
+        private readonly List<IBrowserFile> _uploadingFiles = [];
+        private readonly List<RejectedFile> _rejectedFiles = [];
+        private string? _uploadLimitError;
+
+        private Models.Media.MediaItem? _renamingFile;
+        private string _renameText = string.Empty;
+        private string? _renameError;
+
+        private string successPage = string.Empty;
+        private Models.Media.PublicMediaUpload Model { get; set; } = default!;
+
+        protected override void OnInitialized()
+        {
+
+            // Setup model and edit context
+            Model ??= new();
+            _editContext = new(Model);
+            _editContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+            _validationMessageStore = new(_editContext);
+            _fieldIdentifier = new(Model, nameof(Model.UploadedFiles));
+            _submissionField = new(Model, string.Empty);
+            successPage = $"event/upload/public/{Reference}/success";
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            try
+            {
+                await _cts.CancelAsync();
+                _cts.Dispose();
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Error occurred during disposal");
+            }
+
+            GC.SuppressFinalize(this);
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (!firstRender)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(Reference))
+            {
+                navigationManager.NavigateTo("not-found");
+                return;
+            }
+
+            try
+            {
+                //get flood event ID by search reference
+                var floodEvent = await floodEventRepository.GetFloodEventByMediaUploadReference(Reference, _cts.Token);
+                if (floodEvent is null)
+                {
+                    logger.LogWarning("Flood event could not be found by search reference when loading media items");
+                    navigationManager.NavigateTo("not-found");
+                    return;
+                }
+                _mediaUploadIsLockedOrExpired = floodEvent.MediaUploadLock || floodEvent.MediaReferenceExpiration is null
+                    || floodEvent.MediaReferenceExpiration <= DateTimeOffset.UtcNow;
+
+                //check how many files have been uploaded to this media upload reference already
+                var allUploadedFilesForReference = await mediaItemRepository.GetPublicSubmissionMediaItemCount(Reference, _cts.Token);
+                if(allUploadedFilesForReference >= MaxFilesForUpload)
+                {
+                    _mediaUploadIsFull = true;
+                }
+            }
+            finally
+            {
+                _isLoading = false;
+                StateHasChanged();
+            }
+        }
+
+        private async Task OnFilesSubmitted(IReadOnlyList<IBrowserFile>? files)
+        {
+            if (_isSubmitting || _hasSubmitted || _isLoading || _isDeletingFile)
+            {
+                return;
+            }
+            _isLoading = true;
+
+            if (!ValidateFileUploadLimits(files))
+            {
+                StateHasChanged();
+                _isLoading = false;
+                return;
+            }
+
+            _uploadingFiles.AddRange(files!);
+            foreach (var file in files!)
+            {
+                await ProcessSingleFileAsync(file);
+                _uploadingFiles.RemoveAll(f => string.Equals(f?.Name, file.Name, StringComparison.Ordinal));
+                StateHasChanged();
+            }
+
+            //finished uploading
+            CheckValidationStateOfFileUploads();
+
+            _isLoading = false;
+            StateHasChanged();
+        }
+
+        private async Task<bool> ProcessSingleFileAsync(IBrowserFile file)
+        {
+            if (!AllowedFileTypes.Contains(file.ContentType))
+            {
+                _rejectedFiles.Add(new RejectedFile(file, FileRejectionReason.InvalidFileType));
+                return false;
+            }
+
+            if (file.Size > MaxFileSize)
+            {
+                _rejectedFiles.Add(new RejectedFile(file, FileRejectionReason.FileTooLarge));
+                return false;
+            }
+
+            try
+            {
+                var trustedFileNameForFileStorage = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+                await using var fileStream = file.OpenReadStream(MaxFileSize, _cts.Token);
+                var blobUrl = await blobStorageService.UploadFileToBlobAsync(
+                    trustedFileNameForFileStorage,
+                    file.ContentType,
+                    fileStream);
+
+                if (!string.IsNullOrWhiteSpace(blobUrl))
+                {
+                    if (IsImageFileType(file.ContentType))
+                    {
+                        try
+                        {
+                            await UploadThumbnailAsync(file, trustedFileNameForFileStorage);
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogWarning(ex, "An error occurred while creating thumbnail for file {FileName}", file.Name);
+                        }
+                    }
+                    Model.UploadedFiles.Add(new Models.Media.MediaItem
+                    {
+                        Name = Path.GetFileNameWithoutExtension(file.Name),
+                        Url = blobUrl,
+                        ContentType = file.ContentType,
+                    });
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred while processing file {FileName}", file?.Name);
+            }
+
+            _rejectedFiles.Add(new RejectedFile(file, FileRejectionReason.UploadError));
+            return false;
+        }
+
+        private static readonly Dictionary<string, string> _extensionToContentType = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { ".jpg",  "image/jpeg" },
+            { ".jpeg", "image/jpeg" },
+            { ".png",  "image/png" },
+            { ".gif",  "image/gif" },
+            { ".mp4",  "video/mp4" },
+            { ".webm", "video/webm" },
+            { ".ogg",  "video/ogg" },
+            { ".pdf",  "application/pdf" },
+            { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+            { ".csv",  "text/csv" },
+            { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+        };
+
+        private static string GetContentTypeFromUrl(string url)
+        {
+            var extension = Path.GetExtension(new Uri(url).LocalPath);
+            return _extensionToContentType.TryGetValue(extension, out var contentType)
+                ? contentType
+                : string.Empty;
+        }
+
+        private static bool IsImageFileType(string contentType)
+        {
+            return ImageFileTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static bool IsVideoFileType(string contentType)
+        {
+            return VideoFileTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static bool IsDocumentFileType(string contentType)
+        {
+            return DocumentFileTypes.Contains(contentType, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static string GetThumbnailBlobUrl(string imageBlobUrl)
+        {
+            return $"{imageBlobUrl}{ThumbnailSuffix}";
+        }
+
+        private string GetBlobReadUrl(string blobUrl)
+        {
+            var readSasToken = blobStorageOptions.Value.ReadSASToken;
+            return string.IsNullOrWhiteSpace(readSasToken)
+                ? blobUrl
+                : $"{blobUrl}?{readSasToken.TrimStart('?')}";
+        }
+
+        private string GetThumbnailReadUrl(string imageBlobUrl)
+        {
+            return GetBlobReadUrl(GetThumbnailBlobUrl(imageBlobUrl));
+        }
+
+        private string GetImagePreviewErrorFallback(string originalImageBlobUrl)
+        {
+            var fallbackUrl = GetBlobReadUrl(originalImageBlobUrl).Replace("'", "\\'", StringComparison.Ordinal);
+            return $"this.onerror=null;this.src='{fallbackUrl}';";
+        }
+
+        private async Task UploadThumbnailAsync(IBrowserFile file, string trustedFileNameForFileStorage)
+        {
+            await using var identifyStream = file.OpenReadStream(MaxFileSize, _cts.Token);
+            var imageInfo = await Image.IdentifyAsync(identifyStream, _cts.Token)
+                ?? throw new InvalidOperationException("Unable to read image metadata for thumbnail generation.");
+
+            if (imageInfo.Width > MaxThumbnailSourceDimensionPixels
+                || imageInfo.Height > MaxThumbnailSourceDimensionPixels
+                || (long)imageInfo.Width * imageInfo.Height > MaxThumbnailSourcePixels)
+            {
+                throw new InvalidOperationException(
+                    $"Image dimensions {imageInfo.Width}x{imageInfo.Height} exceed thumbnail safety limits.");
+            }
+
+            await using var sourceStream = file.OpenReadStream(MaxFileSize, _cts.Token);
+            using var image = await Image.LoadAsync(sourceStream, _cts.Token);
+
+            image.Mutate(context => context.Resize(new ResizeOptions
+            {
+                Mode = ResizeMode.Max,
+                Size = new Size(ThumbnailWidthPixels, ThumbnailHeightPixels),
+            }));
+
+            await using var thumbnailStream = new MemoryStream();
+            await image.SaveAsJpegAsync(
+                thumbnailStream,
+                new JpegEncoder { Quality = ThumbnailJpegQuality },
+                _cts.Token);
+
+            thumbnailStream.Position = 0;
+
+            var thumbnailFileName = $"{trustedFileNameForFileStorage}{ThumbnailSuffix}";
+            await blobStorageService.UploadFileToBlobAsync(thumbnailFileName, ThumbnailContentType, thumbnailStream);
+        }
+
+        private void StartRename(Models.Media.MediaItem file)
+        {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
+            _renamingFile = file;
+            _renameText = file.Name;
+            _renameError = null;
+        }
+
+        private void CancelRename()
+        {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
+            _renamingFile = null;
+            _renameText = string.Empty;
+            _renameError = null;
+        }
+
+        private const int MaxRenameTitleLength = 255;
+
+        private async Task SaveRename(Models.Media.MediaItem file)
+        {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
+            _renameError = null;
+
+            if (string.IsNullOrWhiteSpace(_renameText))
+            {
+                _renameError = "Enter a file name";
+                return;
+            }
+
+            if (_renameText.Length > MaxRenameTitleLength)
+            {
+                _renameError = $"File name must be {MaxRenameTitleLength} characters or fewer";
+                return;
+            }
+
+            if (file.Id.HasValue)
+            {
+                var result = await mediaItemRepository.UpdateTitle(file.Id.Value, _renameText, _cts.Token);
+                if (!result.IsSuccess)
+                {
+                    _renameError = string.Join(", ", result.Errors);
+                    return;
+                }
+            }
+
+            file.Name = _renameText;
+            _renamingFile = null;
+            _renameText = string.Empty;
+        }
+
+        private async Task DeleteUploadedFile(Models.Media.MediaItem file)
+        {
+            if (_isSubmitting || _hasSubmitted || _isDeletingFile || _isLoading)
+            {
+                return;
+            }
+            _isDeletingFile = true;
+            try
+            {
+                await DeleteUploadedFileCore(file);
+            }
+            finally
+            {
+                _isDeletingFile = false;
+            }
+        }
+
+        private async Task DeleteUploadedFileCore(Models.Media.MediaItem file)
+        {
+            //confirm
+            bool confirmDelete = await JS.InvokeAsync<bool>("confirm", _cts.Token, "Are you sure you want to delete this file?");
+            if (confirmDelete)
+            {
+                if (file.Id.HasValue)
+                {
+                    var deleteMediaItem = await mediaItemRepository.Delete(file.Id.Value, _cts.Token);
+                    if (!deleteMediaItem.IsSuccess)
+                    {
+                        foreach (var error in deleteMediaItem.Errors)
+                        {
+                            logger.LogWarning("Couldn't delete a media item: {ErrorMessage}", error);
+                        }
+
+                        _validationMessageStore.Add(_fieldIdentifier, "Sorry, something went wrong");
+                        _editContext.NotifyValidationStateChanged();
+                        return;
+                    }
+                }
+
+                //delete from storage
+                try
+                {
+                    if (!await blobStorageService.DeleteFileFromBlobByURLAsync(file.Url))
+                    {
+                        logger.LogWarning("An error occurred deleting media item with URL {url} from blob storage", file.Url);
+                    }
+
+                    if (IsImageFileType(file.ContentType))
+                    {
+                        var thumbnailBlobUrl = GetThumbnailBlobUrl(file.Url);
+                        if (!await blobStorageService.DeleteFileFromBlobByURLAsync(thumbnailBlobUrl))
+                        {
+                            logger.LogWarning("An error occurred deleting media thumbnail with URL {url} from blob storage", thumbnailBlobUrl);
+                        }
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "An error occurred deleting media item with URL {url} from blob storage", file.Url);
+                }
+                finally
+                {
+                    //remove from list
+                    Model.UploadedFiles.Remove(file);
+                }
+                CheckValidationStateOfFileUploads();
+                StateHasChanged();
+            }
+        }
+        private void DeleteRejectedFile(RejectedFile file)
+        {
+            if (_isSubmitting || _hasSubmitted)
+            {
+                return;
+            }
+            // Remove the rejected file from the list
+            _rejectedFiles.Remove(file);
+            CheckValidationStateOfFileUploads();
+            StateHasChanged();
+        }
+
+        private bool ValidateFileUploadLimits(IReadOnlyList<IBrowserFile>? files)
+        {
+            _uploadLimitError = null;
+
+            if (files is null || files.Count == 0)
+            {
+                _uploadLimitError = ErrorMessageConstants.NoFileSelected;
+                return false;
+            }
+
+            if (files.Count > (MaxNumFiles - Model.UploadedFiles.Count))
+            {
+                _uploadLimitError = string.Format(CultureInfo.CurrentCulture, ErrorMessageConstants.TooManyTotalFiles, MaxNumFiles);
+                return false;
+            }
+
+            return true;
+        }
+
+        private void CheckValidationStateOfFileUploads()
+        {
+            // Clear any existing validation errors first
+            _uploadLimitError = null;
+            _validationMessageStore.Clear(_fieldIdentifier);
+
+            // Add validation errors for specific fields
+            if (_rejectedFiles.Count > 0)
+            {
+                foreach (var rejectedFile in _rejectedFiles)
+                {
+
+                    _validationMessageStore.Add(_fieldIdentifier, GetErrorMessageForFile(rejectedFile));
+                }
+            }
+
+            // Revalidate the field to clear messages owned by FluentValidation as well.
+            _editContext.NotifyFieldChanged(_fieldIdentifier);
+            _editContext.NotifyValidationStateChanged();
+        }
+
+        private static string GetErrorMessageForFile(RejectedFile rejectedFile)
+        {
+            var errorMessage = ErrorMessageConstants.UploadError;
+            switch (rejectedFile.FileRejectionReason)
+            {
+                case FileRejectionReason.InvalidFileType:
+                    errorMessage = string.Format(CultureInfo.CurrentCulture, ErrorMessageConstants.InvalidFileType, FriendlyFileTypes.JoinWithOr());
+                    break;
+                case FileRejectionReason.FileTooLarge:
+                    errorMessage = string.Format(CultureInfo.CurrentCulture, ErrorMessageConstants.FileTooLarge, MaxFileSizeMB);
+                    break;
+            }
+            return errorMessage;
+        }
+
+        private async Task OnSubmit()
+        {
+            if (_isSubmitting || _hasSubmitted || _isLoading || _isDeletingFile || _uploadingFiles.Count > 0)
+            {
+                return;
+            }
+
+            _validationMessageStore.Clear(_submissionField);
+            _editContext.NotifyValidationStateChanged();
+            if (!_editContext.Validate())
+            {
+                return;
+            }
+
+            _isSubmitting = true;
+            try
+            {
+                var mediaItems = Model.UploadedFiles.Select(file =>
+                {
+                    if (!_mediaIds.TryGetValue(file, out var id))
+                    {
+                        id = Guid.CreateVersion7();
+                        _mediaIds.Add(file, id);
+                    }
+                    return new Database.Models.Media.MediaItem
+                    {
+                        Id = id,
+                        URL = file.Url,
+                        Title = file.Name,
+                    };
+                }).ToList();
+
+                var input = new Database.Models.Media.PublicMediaSubmissionInput(
+                    Model.SubmissionId, Model.Name, Model.EmailAddress, Model.SharingAgreementAccepted);
+                var result = await mediaItemRepository.CreatePublicSubmission(Reference ?? string.Empty, input, mediaItems, _cts.Token);
+                if (!result.IsSuccess)
+                {
+                    _validationMessageStore.Add(_submissionField, result.Errors);
+                    return;
+                }
+
+                _hasSubmitted = true;
+                navigationManager.NavigateTo($"{successPage}?submissionReference={Uri.EscapeDataString(result.Value)}");
+            }
+            catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+            {
+            }
+            catch (Exception)
+            {
+                _validationMessageStore.Add(_submissionField, "Unable to save your media submission. Your details and media have been retained; please try again");
+            }
+            finally
+            {
+                _isSubmitting = false;
+                _editContext.NotifyValidationStateChanged();
+            }
+        }
+    }
+}

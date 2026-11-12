@@ -247,7 +247,7 @@ public partial class Index(
             return "";
         }
 
-        var mediaPath = $"{EventPages.MediaUpload.Url.TrimEnd('/')}/{ViewModel.MediaReference}";
+        var mediaPath = $"{EventPages.PublicMediaUpload.Url.TrimEnd('/')}/{ViewModel.MediaReference}";
         return navigationManager.ToAbsoluteUri(mediaPath).ToString();
     }
 

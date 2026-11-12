@@ -340,6 +340,16 @@ public class FloodEventRepository(
         return floodEvent;
     }
 
+    public async Task<FloodEvent?> GetFloodEventByMediaUploadReference(string mediaUploadReference, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var floodEvent = await context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(e => e.MediaReference == mediaUploadReference, cancellationToken);
+        return floodEvent;
+    }
+
     private async Task<NetTopologySuite.Geometries.MultiPolygon?> GetTransformedGeometry(
         Guid savedSearchId,
         int targetSrid,
