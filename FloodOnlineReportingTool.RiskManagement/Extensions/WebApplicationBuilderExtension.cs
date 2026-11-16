@@ -7,17 +7,17 @@ namespace Microsoft.AspNetCore.Builder;
 
 internal static class WebApplicationBuilderExtension
 {
-    private static void TestKeyVaults(KeyVaultOptions keyVaultOptions, X509Certificate2 x509Certificate)
+    private static void TestKeyVaults(KeyVaultOptions keyVaultOptions)
     {
         //Generate a credential and use it to test for the health check settings in each KeyVault
-        var credential = new ClientCertificateCredential(
-            keyVaultOptions.AzureAd.DirectoryId,
-            keyVaultOptions.AzureAd.ApplicationId,
-            x509Certificate);
+        //var credential = new ClientCertificateCredential(
+        //    keyVaultOptions.AzureAd.DirectoryId,
+        //    keyVaultOptions.AzureAd.ApplicationId,
+        //    x509Certificate);
 
         try
         {
-            var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), credential);
+            var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), new DefaultAzureCredential());
             var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
         }
         catch (Exception ex)
@@ -27,7 +27,7 @@ internal static class WebApplicationBuilderExtension
 
         try
         {
-            var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), credential);
+            var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), new DefaultAzureCredential());
             var projectHealthCheck = projectClient.GetSecret("HealthCheckSecret").Value;
         }
         catch (Exception ex)
@@ -57,22 +57,24 @@ internal static class WebApplicationBuilderExtension
             }
 
             //If we got to this point then we have KeyVaults to load. 
-            var x509Certificate = x509Store.Certificates
-                .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
-                .OfType<X509Certificate2>()
-                .Single();
+            //var x509Certificate = x509Store.Certificates
+            //    .Find(X509FindType.FindByThumbprint, keyVaultOptions.AzureAd.CertificateThumbprint, validOnly: false)
+            //    .OfType<X509Certificate2>()
+            //    .Single();
+
+            //new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate))
 
             //This KeyVault has options shared over multiple projects
             builder.Configuration.AddAzureKeyVault(
                 new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"),
-                new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
+                new DefaultAzureCredential());
 
             //This KeyVault is specific to this project
             builder.Configuration.AddAzureKeyVault(
                 new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
-                new ClientCertificateCredential(keyVaultOptions.AzureAd.DirectoryId, keyVaultOptions.AzureAd.ApplicationId, x509Certificate));
+                new DefaultAzureCredential());
 
-            TestKeyVaults(keyVaultOptions, x509Certificate);
+            TestKeyVaults(keyVaultOptions);
 
             return builder;
         }
