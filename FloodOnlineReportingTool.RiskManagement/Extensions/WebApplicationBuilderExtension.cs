@@ -17,7 +17,7 @@ internal static class WebApplicationBuilderExtension
 
         try
         {
-            var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"), new DefaultAzureCredential());
+            var sharedClient = new SecretClient(new Uri($"https://{keyVaultOptions.SharedVaultName}.vault.azure.net/"), new DefaultAzureCredential());
             var sharedHealthCheck = sharedClient.GetSecret("HealthCheckSecret").Value;
         }
         catch (Exception ex)
@@ -27,7 +27,7 @@ internal static class WebApplicationBuilderExtension
 
         try
         {
-            var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"), new DefaultAzureCredential());
+            var projectClient = new SecretClient(new Uri($"https://{keyVaultOptions.VaultName}.vault.azure.net/"), new DefaultAzureCredential());
             var projectHealthCheck = projectClient.GetSecret("HealthCheckSecret").Value;
         }
         catch (Exception ex)
@@ -51,7 +51,7 @@ internal static class WebApplicationBuilderExtension
             using var x509Store = new X509Store(StoreLocation.LocalMachine);
             x509Store.Open(OpenFlags.ReadOnly);
  
-            if (string.IsNullOrWhiteSpace(keyVaultOptions?.SharedVault) || string.IsNullOrWhiteSpace(keyVaultOptions?.Name))
+            if (string.IsNullOrWhiteSpace(keyVaultOptions?.SharedVaultName) || string.IsNullOrWhiteSpace(keyVaultOptions?.VaultName))
             {
                 return builder;
             }
@@ -66,12 +66,12 @@ internal static class WebApplicationBuilderExtension
 
             //This KeyVault has options shared over multiple projects
             builder.Configuration.AddAzureKeyVault(
-                new Uri($"https://{keyVaultOptions.SharedVault}.vault.azure.net/"),
+                new Uri($"https://{keyVaultOptions.SharedVaultName}.vault.azure.net/"),
                 new DefaultAzureCredential());
 
             //This KeyVault is specific to this project
             builder.Configuration.AddAzureKeyVault(
-                new Uri($"https://{keyVaultOptions.Name}.vault.azure.net/"),
+                new Uri($"https://{keyVaultOptions.VaultName}.vault.azure.net/"),
                 new DefaultAzureCredential());
 
             TestKeyVaults(keyVaultOptions);
