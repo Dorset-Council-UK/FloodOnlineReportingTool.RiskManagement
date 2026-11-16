@@ -4,7 +4,7 @@ public record KeyVaultOptions
 {
     public const string SectionName = "KeyVault";
 
-    public string Name { get; init; } = "";
-    public string SharedVault { get; init; } = "";
+    public string VaultName { get; init; } = "";
+    public string SharedVaultName { get; init; } = "";
     public KeyVaultAzureAdOptions AzureAd { get; init; } = new();
 }

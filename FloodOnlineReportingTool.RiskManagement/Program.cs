@@ -50,7 +50,7 @@ if (builder.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("Error", createScopeForErrors: true);
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
 
