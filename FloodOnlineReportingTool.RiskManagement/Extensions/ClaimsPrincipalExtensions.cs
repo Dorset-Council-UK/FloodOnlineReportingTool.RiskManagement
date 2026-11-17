@@ -39,7 +39,7 @@ internal static class ClaimsPrincipalExtensions
         /// Get the email address from the claims
         /// </summary>
         /// <remarks>Checking the claims in the order http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress, emails, preferred_username</remarks>
-        internal string Email => GetClaimValue(claimsPrincipal, [ClaimTypes.Email, "emails", "preferred_username"]) ?? Unknown;
+        internal string Email => GetClaimValue(claimsPrincipal, [ClaimTypes.Email, "emails", "preferred_username"]) ?? string.Empty;
 
         /// <summary>
         /// Get the identity provider from the claims
@@ -56,14 +56,8 @@ internal static class ClaimsPrincipalExtensions
         internal bool IsAuthenticated => claimsPrincipal?.Identity?.IsAuthenticated ?? false;
 
         /// <summary>
-        /// Get the nameidentifier claim which is http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier
+        /// Get the objectID claim which is http://schemas.xmlsoap.org/ws/2005/05/identity/claims/objectid
         /// </summary>
-        internal string UserId => claimsPrincipal?.GetNameIdentifierId() ?? Unknown;
-
-        /// <summary>
-        /// Gets the unique object ID associated with the <see cref="ClaimsPrincipal"/>.
-        /// </summary>
-        /// <remarks>Checking the claims in the order oid, http://schemas.microsoft.com/identity/claims/objectidentifier</remarks>
-        internal string? Oid => claimsPrincipal?.GetObjectId();
+        internal string UserId => claimsPrincipal?.GetObjectId() ?? throw new InvalidOperationException("The current user does not have an object ID claim.");
     }
 }
