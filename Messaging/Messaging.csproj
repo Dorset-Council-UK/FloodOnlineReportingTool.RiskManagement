@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.62.0" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.2" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.2" />
     <PackageReference Include="Meziantou.Analyzer" Version="3.0.259">
       <PrivateAssets>all</PrivateAssets>
