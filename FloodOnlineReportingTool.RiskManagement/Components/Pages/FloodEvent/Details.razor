@@ -15,7 +15,9 @@
 @if (!Overview)
 {
     <p class="govuk-body-l">
-        This form will upgrade a search to a flood event.
+        @(Model is not null && Model.FloodEventId is not null
+            ? "Update the details for this flood event."
+            : "This form will upgrade a search to a flood event.")
     </p>
 }
 
@@ -170,7 +172,7 @@
                 } 
 
                 <div class="govuk-button-group">
-                    <GdsButton IsSubmit="true" Text="Save flood event" />
+                    <GdsButton IsSubmit="true" Text="@(Model.FloodEventId is not null ? "Update flood event" : "Save flood event")" />
                     <GdsButton IsSubmit="false" OnClick="@GoToEstimates" AdditionalCssClasses="govuk-button--secondary" Text="Add detailed estimates" />
                     <GdsButton IsSubmit="false" OnClick="@GoToUpload" AdditionalCssClasses="govuk-button--secondary" Text="Upload attachments" />
                 </div>

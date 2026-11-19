@@ -298,8 +298,15 @@ public partial class Index(
         var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
         if (writerPolicyCheck.Succeeded)
         {
-            await floodEventRepository.UpdateInvestigationStatus(_recordId, ViewModel.InvestigationStatusGuid, _cts.Token);
-            _isSavingInvestigationStatus = false;
+            var updated = await floodEventRepository.UpdateInvestigationStatus(
+                _recordId,
+                ViewModel.InvestigationStatusGuid,
+                _cts.Token);
+
+            if (updated)
+            {
+                _isSavingInvestigationStatus = false;
+            }
         }
     }
 

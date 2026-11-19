@@ -163,20 +163,60 @@ public partial class Details(
         }
 
         var newFloodEvent = Model.ToFloodEvent(savedSearch.Id, Model, floodEventState.Estimates);
-        var createdFloodEventResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
-        if (!createdFloodEventResult.IsSuccess)
+
+        if (savedSearch.FloodEventId is Guid floodEventId)
         {
-            foreach (var error in createdFloodEventResult.Errors)
+            var updatedFloodEvent = newFloodEvent with { Id = floodEventId };
+            var updateResult = await floodEventRepository.Update(floodEventId, updatedFloodEvent, _cts.Token);
+            if (!updateResult.IsSuccess)
             {
-                MessageStore.Add(errorFieldIdentifier, error);
+                foreach (var error in updateResult.Errors)
+                {
+                    MessageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
             }
+
+            if (updateResult.Value is null)
+            {
+                MessageStore.Add(errorFieldIdentifier, "The flood event could not be updated.");
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+        }
+        else
+        {
+            var createResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
+            if (!createResult.IsSuccess)
+            {
+                foreach (var error in createResult.Errors)
+                {
+                    MessageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+
+            if (createResult.Value is null)
+            {
+                MessageStore.Add(errorFieldIdentifier, "The flood event could not be created.");
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+
+            savedSearch.FloodEventId = createResult.Value.Id;
+            Model.FloodEventId = createResult.Value.Id;
+        }
+
+        if (savedSearch.FloodEventId is null)
+        {
+            MessageStore.Add(errorFieldIdentifier, "The flood event could not be saved.");
             EditContext.NotifyValidationStateChanged();
             return;
         }
 
-        var floodEvent = createdFloodEventResult.Value;
         savedSearch.SearchTitle = Model.SearchTitle;
-        savedSearch.FloodEventId = floodEvent.Id;
         savedSearch.UpdatedBy = await GetUserName();
         var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
         if (!updateSavedSearchResult.IsSuccess)
@@ -189,7 +229,7 @@ public partial class Details(
             return;
         }
 
-        // Clear the model
+        // Clear the locally stored event details and estimates after saving.
         floodEventState.SetEventDetails(null);
         floodEventState.SetEventEstimates(null);
         navigationManager.NavigateTo($"{EventPages.View.Url}/{SearchReference}");

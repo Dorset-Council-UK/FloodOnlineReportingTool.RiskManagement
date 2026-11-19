@@ -168,6 +168,7 @@ public class FloodEventRepository(
                 StatusNote = floodEvent.StatusNote,
             };
 
+            var investigationStatusChanged = existingFloodEvent.InvestigationStatus != floodEvent.InvestigationStatus;
             context.FloodEvents.Update(updatedFloodEvent);
 
             // Send a message to trigger the FloodEventUpdated message
@@ -193,6 +194,19 @@ public class FloodEventRepository(
             };
             context.OutboxMessages.Add(outboxMessage);
             await context.SaveChangesAsync(cancellationToken);
+
+            if (investigationStatusChanged && floodEvent.InvestigationStatus == Section19StatusIds.Section19Required)
+            {
+                var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(
+                    floodEventId,
+                    Models.Enums.ActionEventTypes.TriggerInvestigation,
+                    cancellationToken);
+
+                if (!createEventLogResult.IsSuccess)
+                {
+                    return Result<FloodEvent?>.Failure(createEventLogResult.Errors);
+                }
+            }
         }
         else
         {
@@ -249,8 +263,50 @@ public class FloodEventRepository(
 
         if (existingFloodEvent != null)
         {
+            var investigationStatusChanged = existingFloodEvent.InvestigationStatus != Status;
             existingFloodEvent.InvestigationStatus = Status;
+
+            var linkedSavedSearch = await savedSearchRepository.Get(existingFloodEvent.SavedSearchId, cancellationToken);
+            if (investigationStatusChanged
+                && linkedSavedSearch is not null
+                && linkedSavedSearch.ResultsFrom is not null
+                && linkedSavedSearch.ResultsTo is not null
+                && linkedSavedSearch.FloodSources.Count > 0)
+            {
+                var outMessage = new FloodEventUpdated(
+                    linkedSavedSearch.Reference,
+                    linkedSavedSearch.SearchTitle,
+                    existingFloodEvent.RecordStatus,
+                    existingFloodEvent.FloodStatus,
+                    Status,
+                    linkedSavedSearch.ResultsFrom.Value,
+                    linkedSavedSearch.ResultsTo.Value,
+                    [.. linkedSavedSearch.FloodSources],
+                    [.. linkedSavedSearch.LimitByOrganisation],
+                    [.. linkedSavedSearch.LimitByStatus],
+                    [],
+                    null);
+
+                context.OutboxMessages.Add(new OutboxMessage
+                {
+                    MessageType = nameof(FloodEventUpdated),
+                    Message = JsonSerializer.Serialize(outMessage, _jsonOptions),
+                    Status = MessageStatus.Pending,
+                });
+            }
+
             await context.SaveChangesAsync(cancellationToken);
+
+            if (investigationStatusChanged && Status == Section19StatusIds.Section19Required)
+            {
+                var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(
+                    floodEventId,
+                    Models.Enums.ActionEventTypes.TriggerInvestigation,
+                    cancellationToken);
+
+                return createEventLogResult.IsSuccess;
+            }
+
             return true;
         }
 

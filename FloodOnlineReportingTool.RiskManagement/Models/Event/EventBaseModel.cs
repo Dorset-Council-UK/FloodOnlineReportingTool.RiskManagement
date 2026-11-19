@@ -10,6 +10,7 @@ public abstract class EventBaseModel
     // Common search properties (always required)
     public string SearchReference { get; set; } = string.Empty;
     public string SearchTitle { get; set; } = string.Empty;
+    public Guid? FloodEventId { get; set; }
 
     // Common event properties (always required)
     public Guid RecordStatus { get; set; } = EventStatusIds.RecoveryPhase;

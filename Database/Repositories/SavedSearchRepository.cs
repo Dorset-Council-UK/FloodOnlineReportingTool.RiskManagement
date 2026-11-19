@@ -38,6 +38,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         return await context.SavedSearches
             .AsNoTracking()
             .IgnoreAutoIncludes()
+            .Include(s => s.FloodEvent)
             .FirstOrDefaultAsync(s => s.Id == savedSearchId, cancellationToken);
     }
 
@@ -47,6 +48,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         return await context.SavedSearches
             .AsNoTracking()
             .IgnoreAutoIncludes()
+            .Include(s => s.FloodEvent)
             .FirstOrDefaultAsync(s => s.Reference == reference, cancellationToken);
     }
 
