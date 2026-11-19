@@ -1,26 +1,14 @@
-﻿using Azure.Identity;
-using Azure.Messaging.ServiceBus;
+﻿using Azure.Messaging.ServiceBus;
 using FloodOnlineReportingTool.Database.DbContexts;
 using FloodOnlineReportingTool.Database.Repositories;
 using Messaging;
 using Messaging.Consumers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
-using Messaging.Options;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-var section = builder.Configuration
-                .GetSection(KeyVaultOptions.SectionName);
-
-var keyVaultOptions = section.Get<KeyVaultOptions>();
-
-if (!string.IsNullOrWhiteSpace(keyVaultOptions?.VaultName))
-{
-    builder.Configuration.AddAzureKeyVault(
-                new Uri($"https://{keyVaultOptions.VaultName}.vault.azure.net/"),
-                new DefaultAzureCredential());
-}
+builder.AddKeyVaults();
 
 builder.Services
     .AddScoped<IActionLogRepository, ActionLogRepository>();
