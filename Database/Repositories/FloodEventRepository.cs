@@ -203,6 +203,60 @@ public class FloodEventRepository(
         return Result<FloodEvent?>.Success(updatedFloodEvent);
     }
 
+    public async Task<bool> UpdateRecordStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken) 
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent != null)
+        {
+            existingFloodEvent.RecordStatus = Status;
+            await context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> UpdateFloodStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent != null)
+        {
+            existingFloodEvent.FloodStatus = Status;
+            await context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> UpdateInvestigationStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent != null)
+        {
+            existingFloodEvent.InvestigationStatus = Status;
+            await context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        return false;
+    }
+
     public async Task<(bool IsSuccess, string? MediaReference)> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);

@@ -19,11 +19,11 @@ public record FloodEvent
 
     public ConditionalOptions MitigationTaken { get; init; } = ConditionalOptions.No;
     // Values from Contracts.Shared.EventStatusIds
-    public Guid RecordStatus { get; init; } = EventStatusIds.RecoveryPhase;
+    public Guid RecordStatus { get; set; } = EventStatusIds.RecoveryPhase;
     // Values from Contracts.Shared.EventStatusIds
-    public Guid FloodStatus { get; init; } = EventStatusIds.PropertiesAffected;
+    public Guid FloodStatus { get; set; } = EventStatusIds.PropertiesAffected;
     // Values from Contracts.Shared.Section19StatusIds
-    public Guid InvestigationStatus { get; init; } = Section19StatusIds.NoSection19;
+    public Guid InvestigationStatus { get; set; } = Section19StatusIds.NoSection19;
 
     // Event details
     public int EstimatedVulnerable { get; init; }

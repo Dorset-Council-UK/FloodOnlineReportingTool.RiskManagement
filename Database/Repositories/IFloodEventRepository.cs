@@ -38,6 +38,12 @@ public interface IFloodEventRepository
     /// <returns>A result pattern with the updated flood event, or a list of errors.</returns>
     Task<Result<FloodEvent?>> Update(Guid floodEventId, FloodEvent floodEvent, CancellationToken cancellationToken);
 
+    Task<bool> UpdateRecordStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken);
+
+    Task<bool> UpdateFloodStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken);
+
+    Task<bool> UpdateInvestigationStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken);
+
     Task<IList<EventStatus>> GetEventStatuses(CancellationToken cancellationToken);
 
     Task<GetResult<FloodEvent>> GetBySearchReference(string searchReference, int targetSrid, CancellationToken cancellationToken);
