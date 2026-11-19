@@ -49,7 +49,8 @@ else
                     </GdsGridColumn>
                 </GdsGridRow>
 
-                <GdsGridRow>
+                @*TODO - uncomment the name and postcode search options once functionality built *@
+                @*<GdsGridRow>
                     <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
                         <GdsFormGroup>
                             <GdsLabel Text="Search for reports by the person's name" />
@@ -64,7 +65,7 @@ else
                             <GdsInputText @bind-Value=Model.ByPostcode class="govuk-input govuk-input--width-25" disabled="@(!_canEdit)" />
                         </GdsFormGroup>
                     </GdsGridColumn>
-                </GdsGridRow>
+                </GdsGridRow>*@
 
                 <GdsGridRow>
                     <GdsGridColumn Width="GdsGridColumnWidth.OneHalf">
