@@ -227,86 +227,71 @@ public partial class Index(
 
     private async Task UpdateRecordStatus()
     {
+        if (!_canWrite)
+        {
+            return;
+        }
+
         _isSavingRecordStatus = true;
     }
 
     private async Task SaveRecordStatus()
     {
-        if(_recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
+        if(_canWrite == false || _recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
         {
             return;
         }
 
-        var authState = await AuthenticationState;
-        if (!authState.User.IsAuthenticated)
-        {
-            return;
-        }
-
-        var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
-        if (writerPolicyCheck.Succeeded)
-        {
-            await floodEventRepository.UpdateRecordStatus(_recordId, ViewModel.RecordStatusGuid, _cts.Token);
-            _isSavingRecordStatus = false;
-        }
+        await floodEventRepository.UpdateRecordStatus(_recordId, ViewModel.RecordStatusGuid, _cts.Token);
+        _isSavingRecordStatus = false;
     }
 
     private async Task UpdateFloodStatus()
     {
+        if (!_canWrite)
+        {
+            return;
+        }
+
         _isSavingFloodStatus = true;
     }
 
     private async Task SaveFloodStatus()
     {
-        if (_recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
+        if (_canWrite == false || _recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
         {
             return;
         }
 
-        var authState = await AuthenticationState;
-        if (!authState.User.IsAuthenticated)
-        {
-            return;
-        }
-
-        var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
-        if (writerPolicyCheck.Succeeded)
-        {
-            await floodEventRepository.UpdateFloodStatus(_recordId, ViewModel.FloodStatusGuid, _cts.Token);
-            _isSavingFloodStatus = false;
-        }
+        await floodEventRepository.UpdateFloodStatus(_recordId, ViewModel.FloodStatusGuid, _cts.Token);
+        _isSavingFloodStatus = false;
     }
 
     private async Task UpdateInvestigationStatus()
     {
+        if (!_canWrite)
+        {
+            return;
+        }
+
         _isSavingInvestigationStatus = true;
     }
 
     private async Task SaveInvestigationStatus()
     {
-        if (_recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
+        if (_canWrite == false || _recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
         {
             return;
         }
 
-        var authState = await AuthenticationState;
-        if (!authState.User.IsAuthenticated)
-        {
-            return;
-        }
+        var updated = await floodEventRepository.UpdateInvestigationStatus(
+            _recordId,
+            ViewModel.InvestigationStatusGuid,
+            _cts.Token);
 
-        var writerPolicyCheck = await authorizationService.AuthorizeAsync(authState.User, PolicyNames.Writer);
-        if (writerPolicyCheck.Succeeded)
+        if (updated)
         {
-            var updated = await floodEventRepository.UpdateInvestigationStatus(
-                _recordId,
-                ViewModel.InvestigationStatusGuid,
-                _cts.Token);
-
-            if (updated)
-            {
-                _isSavingInvestigationStatus = false;
-            }
+            _isSavingInvestigationStatus = false;
         }
     }
 

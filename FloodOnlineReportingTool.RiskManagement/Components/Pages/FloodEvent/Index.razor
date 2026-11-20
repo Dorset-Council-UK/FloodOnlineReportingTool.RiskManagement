@@ -104,7 +104,10 @@
 
                     <div style="display: flex; justify-content: space-between; align-items: baseline;">
                         <GdsHeading Level="2">Basic details</GdsHeading>
-                        <GdsLink Href="@($"event/details/{Reference}")">Edit Flood Event</GdsLink>
+                        @if (_canWrite)
+                        {
+                            <GdsLink Href="@($"event/details/{Reference}")">Edit Flood Event</GdsLink>
+                        }
                     </div>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
@@ -155,18 +158,25 @@
                                 Record status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                <GdsSelect T="Guid" 
+                                @if (!_canWrite)
+                                {
+                                    @ViewModel.RecordStatus
+                                }
+                                else
+                                {
+                                    <GdsSelect T="Guid" 
                                     @bind-Value="ViewModel.RecordStatusGuid" 
                                     @bind-Value:after="() => UpdateRecordStatus()"
                                     style="width:75%;">
-                                    @foreach (var option in _eventStatuses)
+                                        @foreach (var option in _eventStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    @if (_isSavingRecordStatus)
                                     {
-                                        <option value="@option.Id">@option.Text</option>
+                                        <GdsButton IsSubmit="false" OnClick="@SaveRecordStatus" Text="Save" />
                                     }
-                                </GdsSelect>
-                                @if (_isSavingRecordStatus)
-                                {
-                                    <GdsButton IsSubmit="false" OnClick="@SaveRecordStatus" Text="Save" />
                                 }
                             </dd>
                         </div>
@@ -175,18 +185,25 @@
                                 Flood status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                <GdsSelect T="Guid" 
+                                @if (!_canWrite)
+                                {
+                                    @ViewModel.FloodStatus
+                                }
+                                else
+                                {
+                                    <GdsSelect T="Guid" 
                                     @bind-Value="ViewModel.FloodStatusGuid" 
                                     @bind-Value:after="() => UpdateFloodStatus()"
                                     style="width:75%;">
-                                    @foreach (var option in _floodStatuses)
+                                        @foreach (var option in _floodStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    @if (_isSavingFloodStatus)
                                     {
-                                        <option value="@option.Id">@option.Text</option>
+                                        <GdsButton IsSubmit="false" OnClick="@SaveFloodStatus" Text="Save" />
                                     }
-                                </GdsSelect>
-                                @if (_isSavingFloodStatus)
-                                {
-                                    <GdsButton IsSubmit="false" OnClick="@SaveFloodStatus" Text="Save" />
                                 }
                             </dd>
                         </div>
@@ -195,18 +212,24 @@
                                 Investigation status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                <GdsSelect T="Guid"
+                                @if (!_canWrite)
+                                {
+                                    @ViewModel.InvestigationStatus
+                                } else
+                                {
+                                   <GdsSelect T="Guid"
                                            @bind-Value="ViewModel.InvestigationStatusGuid"
                                            @bind-Value:after="() => UpdateInvestigationStatus()"
                                            style="width:75%;">
-                                    @foreach (var option in _investigationStatuses)
+                                        @foreach (var option in _investigationStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    @if (_isSavingInvestigationStatus)
                                     {
-                                        <option value="@option.Id">@option.Text</option>
-                                    }
-                                </GdsSelect>
-                                @if (_isSavingInvestigationStatus)
-                                {
-                                    <GdsButton IsSubmit="false" OnClick="@SaveInvestigationStatus" Text="Save" />
+                                        <GdsButton IsSubmit="false" OnClick="@SaveInvestigationStatus" Text="Save" />
+                                    } 
                                 }
                             </dd>
                         </div>
