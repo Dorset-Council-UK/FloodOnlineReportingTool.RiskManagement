@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using QRCoder;
-using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Security.Claims;
 
