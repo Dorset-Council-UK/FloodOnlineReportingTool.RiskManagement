@@ -7,6 +7,7 @@ using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -16,7 +17,8 @@ namespace FloodOnlineReportingTool.Database.Repositories;
 public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
     IEventLogRepository eventLogRepository,
-    ISavedSearchRepository savedSearchRepository
+    ISavedSearchRepository savedSearchRepository,
+    ILogger<FloodEventRepository> logger
 ) : IFloodEventRepository
 {
     private readonly JsonSerializerOptions _jsonOptions = JsonSerializerOptions.Web;
@@ -217,100 +219,119 @@ public class FloodEventRepository(
         return Result<FloodEvent?>.Success(updatedFloodEvent);
     }
 
-    public async Task<bool> UpdateRecordStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken) 
+    public async Task<bool> UpdateRecordStatus(Guid floodEventId, Guid status, CancellationToken cancellationToken)
     {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var result = await UpdateStatusAsync(
+            floodEventId,
+            status,
+            floodEvent => floodEvent.RecordStatus,
+            (floodEvent, newStatus) => floodEvent.RecordStatus = newStatus,
+            cancellationToken);
 
-        var existingFloodEvent = await context.FloodEvents
-            .IgnoreAutoIncludes()
-            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
-
-        if (existingFloodEvent != null)
-        {
-            existingFloodEvent.RecordStatus = Status;
-            await context.SaveChangesAsync(cancellationToken);
-            return true;
-        }
-
-        return false;
+        return result.IsSuccess;
     }
 
-    public async Task<bool> UpdateFloodStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken)
+    public async Task<bool> UpdateFloodStatus(Guid floodEventId, Guid status, CancellationToken cancellationToken)
     {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var result = await UpdateStatusAsync(
+            floodEventId,
+            status,
+            floodEvent => floodEvent.FloodStatus,
+            (floodEvent, newStatus) => floodEvent.FloodStatus = newStatus,
+            cancellationToken);
 
-        var existingFloodEvent = await context.FloodEvents
-            .IgnoreAutoIncludes()
-            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
-
-        if (existingFloodEvent != null)
-        {
-            existingFloodEvent.FloodStatus = Status;
-            await context.SaveChangesAsync(cancellationToken);
-            return true;
-        }
-
-        return false;
+        return result.IsSuccess;
     }
 
-    public async Task<bool> UpdateInvestigationStatus(Guid floodEventId, Guid Status, CancellationToken cancellationToken)
+    public async Task<bool> UpdateInvestigationStatus(Guid floodEventId, Guid status, CancellationToken cancellationToken)
     {
-        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+        var result = await UpdateStatusAsync(
+            floodEventId,
+            status,
+            floodEvent => floodEvent.InvestigationStatus,
+            (floodEvent, newStatus) => floodEvent.InvestigationStatus = newStatus,
+            cancellationToken);
 
-        var existingFloodEvent = await context.FloodEvents
-            .IgnoreAutoIncludes()
-            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
-
-        if (existingFloodEvent != null)
+        if (!result.IsSuccess || !result.StatusChanged)
         {
-            var investigationStatusChanged = existingFloodEvent.InvestigationStatus != Status;
-            existingFloodEvent.InvestigationStatus = Status;
+            return result.IsSuccess;
+        }
 
-            var linkedSavedSearch = await savedSearchRepository.Get(existingFloodEvent.SavedSearchId, cancellationToken);
-            if (investigationStatusChanged
-                && linkedSavedSearch is not null
-                && linkedSavedSearch.ResultsFrom is not null
-                && linkedSavedSearch.ResultsTo is not null
-                && linkedSavedSearch.FloodSources.Count > 0)
+        if (status == Section19StatusIds.Section19Required)
+        {
+            var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(
+                floodEventId,
+                Models.Enums.ActionEventTypes.TriggerInvestigation,
+                cancellationToken);
+
+            if (!createEventLogResult.IsSuccess)
             {
-                var outMessage = new FloodEventUpdated(
-                    linkedSavedSearch.Reference,
-                    linkedSavedSearch.SearchTitle,
-                    existingFloodEvent.RecordStatus,
-                    existingFloodEvent.FloodStatus,
-                    Status,
-                    linkedSavedSearch.ResultsFrom.Value,
-                    linkedSavedSearch.ResultsTo.Value,
-                    [.. linkedSavedSearch.FloodSources],
-                    [.. linkedSavedSearch.LimitByOrganisation],
-                    [.. linkedSavedSearch.LimitByStatus],
-                    [],
-                    null);
-
-                context.OutboxMessages.Add(new OutboxMessage
-                {
-                    MessageType = nameof(FloodEventUpdated),
-                    Message = JsonSerializer.Serialize(outMessage, _jsonOptions),
-                    Status = MessageStatus.Pending,
-                });
-            }
-
-            await context.SaveChangesAsync(cancellationToken);
-
-            if (investigationStatusChanged && Status == Section19StatusIds.Section19Required)
-            {
-                var createEventLogResult = await eventLogRepository.CreateEventLogForFloodEvent(
+                logger.LogWarning(
+                    "Flood event status was saved, but the Section 19 investigation event log could not be created for flood event {FloodEventId}: {Errors}",
                     floodEventId,
-                    Models.Enums.ActionEventTypes.TriggerInvestigation,
-                    cancellationToken);
-
-                return createEventLogResult.IsSuccess;
+                    string.Join("; ", createEventLogResult.Errors));
             }
-
-            return true;
         }
 
-        return false;
+        return true;
+    }
+
+    private async Task<(bool IsSuccess, bool StatusChanged)> UpdateStatusAsync(
+        Guid floodEventId,
+        Guid status,
+        Func<FloodEvent, Guid> getCurrentStatus,
+        Action<FloodEvent, Guid> setStatus,
+        CancellationToken cancellationToken)
+    {
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var existingFloodEvent = await context.FloodEvents
+            .IgnoreAutoIncludes()
+            .FirstOrDefaultAsync(fe => fe.Id == floodEventId, cancellationToken);
+
+        if (existingFloodEvent is null)
+        {
+            return (false, false);
+        }
+
+        var statusChanged = getCurrentStatus(existingFloodEvent) != status;
+        if (!statusChanged)
+        {
+            return (true, false);
+        }
+
+        setStatus(existingFloodEvent, status);
+
+        var linkedSavedSearch = await savedSearchRepository.Get(existingFloodEvent.SavedSearchId, cancellationToken);
+        if (linkedSavedSearch is not null
+            && linkedSavedSearch.ResultsFrom is not null
+            && linkedSavedSearch.ResultsTo is not null
+            && linkedSavedSearch.FloodSources.Count > 0)
+        {
+            var outMessage = new FloodEventUpdated(
+                linkedSavedSearch.Reference,
+                linkedSavedSearch.SearchTitle,
+                existingFloodEvent.RecordStatus,
+                existingFloodEvent.FloodStatus,
+                existingFloodEvent.InvestigationStatus,
+                linkedSavedSearch.ResultsFrom.Value,
+                linkedSavedSearch.ResultsTo.Value,
+                [.. linkedSavedSearch.FloodSources],
+                [.. linkedSavedSearch.LimitByOrganisation],
+                [.. linkedSavedSearch.LimitByStatus],
+                [],
+                null);
+
+            context.OutboxMessages.Add(new OutboxMessage
+            {
+                MessageType = nameof(FloodEventUpdated),
+                Message = JsonSerializer.Serialize(outMessage, _jsonOptions),
+                Status = MessageStatus.Pending,
+            });
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+        return (true, true);
     }
 
     public async Task<(bool IsSuccess, string? MediaReference)> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken)

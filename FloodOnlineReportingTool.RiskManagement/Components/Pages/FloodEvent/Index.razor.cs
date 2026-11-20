@@ -241,8 +241,11 @@ public partial class Index(
             return;
         }
 
-        await floodEventRepository.UpdateRecordStatus(_recordId, ViewModel.RecordStatusGuid, _cts.Token);
-        _isSavingRecordStatus = false;
+        var updated = await floodEventRepository.UpdateRecordStatus(_recordId, ViewModel.RecordStatusGuid, _cts.Token);
+        if (updated)
+        {
+            _isSavingRecordStatus = false;
+        }
     }
 
     private async Task UpdateFloodStatus()
@@ -262,8 +265,11 @@ public partial class Index(
             return;
         }
 
-        await floodEventRepository.UpdateFloodStatus(_recordId, ViewModel.FloodStatusGuid, _cts.Token);
-        _isSavingFloodStatus = false;
+        var updated = await floodEventRepository.UpdateFloodStatus(_recordId, ViewModel.FloodStatusGuid, _cts.Token);
+        if (updated)
+        {
+            _isSavingFloodStatus = false;
+        }
     }
 
     private async Task UpdateInvestigationStatus()
