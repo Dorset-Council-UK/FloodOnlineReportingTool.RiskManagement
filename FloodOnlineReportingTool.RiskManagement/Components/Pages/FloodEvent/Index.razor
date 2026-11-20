@@ -1,5 +1,6 @@
 ﻿@page "/event/{Reference}"
 
+@using FloodOnlineReportingTool.Contracts.Shared
 @using FloodOnlineReportingTool.RiskManagement.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
@@ -101,7 +102,13 @@
                         }
                     }
 
-                    <GdsHeading Level="2">Basic details</GdsHeading>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                        <GdsHeading Level="2">Basic details</GdsHeading>
+                        @if (_canWrite)
+                        {
+                            <GdsLink Href="@($"event/details/{Reference}")">Edit Flood Event</GdsLink>
+                        }
+                    </div>
                     <dl class="govuk-summary-list">
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
@@ -151,7 +158,26 @@
                                 Record status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @ViewModel.RecordStatus
+                                @if (!_canWrite)
+                                {
+                                    @ViewModel.RecordStatus
+                                }
+                                else
+                                {
+                                    <GdsSelect T="Guid" 
+                                    @bind-Value="ViewModel.RecordStatusGuid" 
+                                    @bind-Value:after="() => UpdateRecordStatus()"
+                                    style="width:75%;">
+                                        @foreach (var option in _eventStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    @if (_isSavingRecordStatus)
+                                    {
+                                        <GdsButton IsSubmit="false" OnClick="@SaveRecordStatus" Text="Save" />
+                                    }
+                                }
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -159,7 +185,26 @@
                                 Flood status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @ViewModel.FloodStatus
+                                @if (!_canWrite)
+                                {
+                                    @ViewModel.FloodStatus
+                                }
+                                else
+                                {
+                                    <GdsSelect T="Guid" 
+                                    @bind-Value="ViewModel.FloodStatusGuid" 
+                                    @bind-Value:after="() => UpdateFloodStatus()"
+                                    style="width:75%;">
+                                        @foreach (var option in _floodStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    @if (_isSavingFloodStatus)
+                                    {
+                                        <GdsButton IsSubmit="false" OnClick="@SaveFloodStatus" Text="Save" />
+                                    }
+                                }
                             </dd>
                         </div>
                         <div class="govuk-summary-list__row">
@@ -167,10 +212,39 @@
                                 Investigation status
                             </dt>
                             <dd class="govuk-summary-list__value">
-                                @ViewModel.InvestigationStatus
+                                @if (!_canWrite)
+                                {
+                                    @ViewModel.InvestigationStatus
+                                } else
+                                {
+                                   <GdsSelect T="Guid"
+                                           @bind-Value="ViewModel.InvestigationStatusGuid"
+                                           @bind-Value:after="() => UpdateInvestigationStatus()"
+                                           style="width:75%;">
+                                        @foreach (var option in _investigationStatuses)
+                                        {
+                                            <option value="@option.Id">@option.Text</option>
+                                        }
+                                    </GdsSelect>
+                                    @if (_isSavingInvestigationStatus)
+                                    {
+                                        <GdsButton IsSubmit="false" OnClick="@SaveInvestigationStatus" Text="Save" />
+                                    } 
+                                }
                             </dd>
                         </div>
                     </dl>
+                    @if (_isSavingInvestigationStatus)
+                    {
+                        @if (ViewModel.InvestigationStatusGuid == Section19StatusIds.Section19Included)
+                        {
+                            <GdsWarning Icon="!" Text="Report completed! This will lock associated reports if not already done." />
+                        }
+                        else if (ViewModel.InvestigationStatusGuid != Section19StatusIds.NoSection19)
+                        {
+                            <GdsWarning Icon="!" Text="This will trigger a request for residents to complete the investigation form." />
+                        }
+                    }
 
                     <GdsHeading Level="2">About the flood</GdsHeading>
                     <dl class="govuk-summary-list">

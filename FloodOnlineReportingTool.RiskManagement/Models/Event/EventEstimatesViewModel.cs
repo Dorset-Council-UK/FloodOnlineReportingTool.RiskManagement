@@ -39,6 +39,8 @@ public class EventEstimatesViewModel : EventBaseModel
     {
         EventEstimatesViewModel viewModel = new()
         {
+            FloodEventId = model.FloodEventId,
+            SearchReference = model.Reference,
             SearchTitle = model.SearchTitle,
             RecordStatus = model.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase,
             FloodStatus = model.FloodEvent?.FloodStatus ?? EventStatusIds.PropertiesAffected,

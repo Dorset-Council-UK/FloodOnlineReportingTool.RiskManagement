@@ -162,7 +162,7 @@
                     @if (!_isLoading)
                     {
                         <div class="govuk-button-group">
-                            <GdsButton IsSubmit="true" Text="Save flood event" />
+                            <GdsButton IsSubmit="true" Text="@(Model.FloodEventId is not null ? "Update flood event" : "Save flood event")" />
                             <GdsButton IsSubmit="false" OnClick="@BackToDetails" AdditionalCssClasses="govuk-button--secondary" Text="Return to details" />
                         </div>
                                 

@@ -1,4 +1,5 @@
 using FloodOnlineReportingTool.RiskManagement.Authorization;
+using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.Database.Repositories;
@@ -84,6 +85,7 @@ public partial class Details(
             await PopulateSearchTitle();
 
             floodEventState.SetEventDetails(Model);
+            await PopulateEventEstimates();
 
             // Load the options
             _floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
@@ -103,13 +105,15 @@ public partial class Details(
 
         // First try to get the model from the state
         var modelState = floodEventState.Details;
-        if (modelState is not null)
+        if (modelState is not null
+            && modelState.SearchReference.Equals(SearchReference, StringComparison.OrdinalIgnoreCase))
         {
-            if (modelState.SearchReference.Equals(SearchReference, StringComparison.Ordinal))
-            {
-                return modelState;
-            }
+            return modelState;
         }
+
+        // The reference changed, so stale details and estimates must not be merged with this search.
+        floodEventState.SetEventDetails(null);
+        floodEventState.SetEventEstimates(null);
 
         // Next try to get the saved search from the database
         var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
@@ -163,20 +167,60 @@ public partial class Details(
         }
 
         var newFloodEvent = Model.ToFloodEvent(savedSearch.Id, Model, floodEventState.Estimates);
-        var createdFloodEventResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
-        if (!createdFloodEventResult.IsSuccess)
+
+        if (savedSearch.FloodEventId is Guid floodEventId)
         {
-            foreach (var error in createdFloodEventResult.Errors)
+            var updatedFloodEvent = newFloodEvent with { Id = floodEventId };
+            var updateResult = await floodEventRepository.Update(floodEventId, updatedFloodEvent, _cts.Token);
+            if (!updateResult.IsSuccess)
             {
-                MessageStore.Add(errorFieldIdentifier, error);
+                foreach (var error in updateResult.Errors)
+                {
+                    MessageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
             }
+
+            if (updateResult.Value is null)
+            {
+                MessageStore.Add(errorFieldIdentifier, "The flood event could not be updated.");
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+        }
+        else
+        {
+            var createResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
+            if (!createResult.IsSuccess)
+            {
+                foreach (var error in createResult.Errors)
+                {
+                    MessageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+
+            if (createResult.Value is null)
+            {
+                MessageStore.Add(errorFieldIdentifier, "The flood event could not be created.");
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+
+            savedSearch.FloodEventId = createResult.Value.Id;
+            Model.FloodEventId = createResult.Value.Id;
+        }
+
+        if (savedSearch.FloodEventId is null)
+        {
+            MessageStore.Add(errorFieldIdentifier, "The flood event could not be saved.");
             EditContext.NotifyValidationStateChanged();
             return;
         }
 
-        var floodEvent = createdFloodEventResult.Value;
         savedSearch.SearchTitle = Model.SearchTitle;
-        savedSearch.FloodEventId = floodEvent.Id;
         savedSearch.UpdatedBy = await GetUserName();
         var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
         if (!updateSavedSearchResult.IsSuccess)
@@ -189,7 +233,7 @@ public partial class Details(
             return;
         }
 
-        // Clear the model
+        // Clear the locally stored event details and estimates after saving.
         floodEventState.SetEventDetails(null);
         floodEventState.SetEventEstimates(null);
         navigationManager.NavigateTo($"{EventPages.View.Url}/{SearchReference}");
@@ -204,6 +248,46 @@ public partial class Details(
 
         var authState = await AuthenticationState;
         return authState.User.DisplayName;
+    }
+
+    private async Task PopulateEventEstimates()
+    {
+        if (floodEventState.Estimates is not null
+            && string.Equals(floodEventState.Estimates.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            // State is the source of unsaved edits, so do not replace or clear it based on database values.
+            return;
+        }
+
+        floodEventState.SetEventEstimates(null);
+
+        var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+        if (savedSearch?.FloodEvent is null)
+        {
+            return;
+        }
+
+        var estimates = new EventEstimatesViewModel().ToModel(savedSearch);
+        if (HasEstimateValues(estimates))
+        {
+            floodEventState.SetEventEstimates(estimates);
+        }
+    }
+
+    private static bool HasEstimateValues(EventEstimatesViewModel estimates)
+    {
+        return estimates.EstimatedResidentialAffected != 0
+            || estimates.EstimatedResidentialFlooded != 0
+            || estimates.EstimatedResidentialOther != 0
+            || estimates.EstimatedCommercialAffected != 0
+            || estimates.EstimatedCommercialFlooded != 0
+            || estimates.EstimatedCommercialOther != 0
+            || estimates.EstimatedNoElectric != 0
+            || estimates.EstimatedNoGas != 0
+            || estimates.EstimatedNoFoul != 0
+            || estimates.EstimatedNoWaterSupply != 0
+            || estimates.FloodExtentConfidence is not null
+                && estimates.FloodExtentConfidence != ConfidenceOptions.Unknown;
     }
 
     private async Task PopulateSearchTitle()

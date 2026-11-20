@@ -36,6 +36,10 @@ public partial class Index(
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
 
+    private ICollection<FloodStatus> _floodStatuses = [];
+    private ICollection<EventStatus> _eventStatuses = [];
+    private ICollection<InvestigationStatus> _investigationStatuses = [];
+
     // Static reverse lookup: OrganisationIds Guid → display name.
     // This avoids an extra DB call since organisation names are defined as constants in the contracts.
     private static readonly IReadOnlyDictionary<Guid, string> _organisationNames = new Dictionary<Guid, string>
@@ -52,6 +56,10 @@ public partial class Index(
     private readonly CancellationTokenSource _cts = new();
     private EventOverviewViewModel? ViewModel { get; set; } = default!;
     private bool _isLoading = false;
+    private bool _isSavingRecordStatus = false;
+    private bool _isSavingFloodStatus = false;
+    private bool _isSavingInvestigationStatus = false;
+    private Guid _recordId = Guid.Empty;
     private bool _isExportingJson;
 
     private bool _isExportingCsv;
@@ -101,23 +109,25 @@ public partial class Index(
             var eventResult = await floodEventRepository.GetBySearchReference(Reference, 27700, _cts.Token);
             if (eventResult.IsSuccess && eventResult.ResultModel is not null)
             {
+                // Load the options
+                _floodStatuses = await commonRepository.GetFloodStatuses(_cts.Token);
+                _eventStatuses = await floodEventRepository.GetEventStatuses(_cts.Token);
+                _investigationStatuses = await commonRepository.GetInvestigationStatuses(_cts.Token);
+
                 _reportStatuses = await commonRepository.GetReportStatuses(_cts.Token);
 
                 var floodEvent = eventResult.ResultModel;
-
-                var eventStatusesTask = floodEventRepository.GetEventStatuses(_cts.Token);
-                var floodStatusesTask = commonRepository.GetFloodStatuses(_cts.Token);
-                var investigationStatusesTask = commonRepository.GetInvestigationStatuses(_cts.Token);
+                _recordId = floodEvent.Id;
                 var primaryCausesTask = commonRepository.GetFloodProblems("Primary", _cts.Token);
                 var secondaryCausesTask = commonRepository.GetFloodProblems("Secondary", _cts.Token);
 
-                await Task.WhenAll(eventStatusesTask, floodStatusesTask, investigationStatusesTask, primaryCausesTask, secondaryCausesTask);
+                await Task.WhenAll(primaryCausesTask, secondaryCausesTask);
 
-                var recordStatus = (await eventStatusesTask).FirstOrDefault(s => s.Id == floodEvent.RecordStatus)?.Text ?? string.Empty;
+                var recordStatus = _eventStatuses.FirstOrDefault(s => s.Id == floodEvent.RecordStatus)?.Text ?? string.Empty;
 
-                var floodStatus = (await floodStatusesTask).FirstOrDefault(s => s.Id == floodEvent.FloodStatus)?.Text ?? string.Empty;
+                var floodStatus = _floodStatuses.FirstOrDefault(s => s.Id == floodEvent.FloodStatus)?.Text ?? string.Empty;
 
-                var investigationStatus = (await investigationStatusesTask).FirstOrDefault(s => s.Id == floodEvent.InvestigationStatus)?.Text ?? string.Empty;
+                var investigationStatus = _investigationStatuses.FirstOrDefault(s => s.Id == floodEvent.InvestigationStatus)?.Text ?? string.Empty;
 
                 // Resolve flood cause names from the SavedSearch.FloodSources Guids.
                 // FloodSources maps to FloodProblem records (previously called "flood sources" but
@@ -155,6 +165,9 @@ public partial class Index(
                     UpdatedBy = floodEvent.SavedSearch.UpdatedBy ?? string.Empty,
                     FloodingStart = floodEvent.SavedSearch.ResultsFrom ?? default,
                     FloodingEnd = floodEvent.SavedSearch.ResultsTo ?? default,
+                    RecordStatusGuid = floodEvent.RecordStatus,
+                    FloodStatusGuid = floodEvent.FloodStatus,
+                    InvestigationStatusGuid = floodEvent.InvestigationStatus,
                     RecordStatus = recordStatus,
                     FloodStatus = floodStatus,
                     InvestigationStatus = investigationStatus,
@@ -209,6 +222,82 @@ public partial class Index(
             await settingsService.AddRecentWork($"{Reference}", "Flood Event", string.Empty, $"event/{Reference}");
         }
         await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task UpdateRecordStatus()
+    {
+        if (!_canWrite)
+        {
+            return;
+        }
+
+        _isSavingRecordStatus = true;
+    }
+
+    private async Task SaveRecordStatus()
+    {
+        if(_canWrite == false || _recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
+        {
+            return;
+        }
+
+        var updated = await floodEventRepository.UpdateRecordStatus(_recordId, ViewModel.RecordStatusGuid, _cts.Token);
+        if (updated)
+        {
+            _isSavingRecordStatus = false;
+        }
+    }
+
+    private async Task UpdateFloodStatus()
+    {
+        if (!_canWrite)
+        {
+            return;
+        }
+
+        _isSavingFloodStatus = true;
+    }
+
+    private async Task SaveFloodStatus()
+    {
+        if (_canWrite == false || _recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
+        {
+            return;
+        }
+
+        var updated = await floodEventRepository.UpdateFloodStatus(_recordId, ViewModel.FloodStatusGuid, _cts.Token);
+        if (updated)
+        {
+            _isSavingFloodStatus = false;
+        }
+    }
+
+    private async Task UpdateInvestigationStatus()
+    {
+        if (!_canWrite)
+        {
+            return;
+        }
+
+        _isSavingInvestigationStatus = true;
+    }
+
+    private async Task SaveInvestigationStatus()
+    {
+        if (_canWrite == false || _recordId == Guid.Empty || ViewModel is null || AuthenticationState is null)
+        {
+            return;
+        }
+
+        var updated = await floodEventRepository.UpdateInvestigationStatus(
+            _recordId,
+            ViewModel.InvestigationStatusGuid,
+            _cts.Token);
+
+        if (updated)
+        {
+            _isSavingInvestigationStatus = false;
+        }
     }
 
     private async Task CreatePublicMediaUrl()

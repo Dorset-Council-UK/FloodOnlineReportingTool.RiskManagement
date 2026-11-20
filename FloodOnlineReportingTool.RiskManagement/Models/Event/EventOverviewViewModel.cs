@@ -22,9 +22,12 @@ public record EventOverviewViewModel
     public MultiPolygon? Geom { get; init; } = null;
 
     // Common event properties (always required)
-    public string RecordStatus { get; init; } = string.Empty;
-    public string FloodStatus { get; init; } = string.Empty;
-    public string InvestigationStatus { get; init; } = string.Empty;
+    public Guid RecordStatusGuid { get; set; } = Guid.Empty;
+    public Guid FloodStatusGuid { get; set; } = Guid.Empty;
+    public Guid InvestigationStatusGuid { get; set; } = Guid.Empty;
+    public string RecordStatus { get; set; } = string.Empty;
+    public string FloodStatus { get; set; } = string.Empty;
+    public string InvestigationStatus { get; set; } = string.Empty;
     public int EstimatedVulnerable { get; init; } = 0;
     public int EstimatedUninhabitable { get; init; } = 0;
     public int EstimatedTotalExternalOnly { get; init; } = 0;

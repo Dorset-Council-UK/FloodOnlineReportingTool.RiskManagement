@@ -19,6 +19,7 @@ public class EventDetailsViewModel : EventBaseModel
     public EventDetailsViewModel(SavedSearch savedSearch)
     {
         SearchReference = savedSearch.Reference;
+        FloodEventId = savedSearch.FloodEventId;
         SearchTitle = savedSearch.SearchTitle;
         RecordStatus = savedSearch.FloodEvent?.RecordStatus ?? EventStatusIds.RecoveryPhase;
         FloodStatus = savedSearch.FloodEvent?.FloodStatus ?? EventStatusIds.PropertiesAffected;

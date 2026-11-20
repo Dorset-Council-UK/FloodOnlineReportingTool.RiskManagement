@@ -1,3 +1,6 @@
+using FloodOnlineReportingTool.Contracts.Shared;
+using FloodOnlineReportingTool.Database.Models.Enums;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Event;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
@@ -21,8 +24,8 @@ public partial class Estimates(
     private readonly CancellationTokenSource _cts = new();
     private ValidationMessageStore _messageStore = default!;
     private EventEstimatesViewModel Model { get; set; } = default!;
-    private EventEstimatesViewModel? _modelFromState = null;
     private EditContext EditContext = default!;
+    private bool _estimatesChanged;
 
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -53,32 +56,79 @@ public partial class Estimates(
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_modelFromState == null)
+        if (string.IsNullOrWhiteSpace(SearchReference))
         {
-            _modelFromState = floodEventState.Estimates;
-            if (_modelFromState != null && string.Equals(_modelFromState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
-            {
-                Model = _modelFromState;
-                EditContext = new(Model);
-                EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-            }
-            else
-            {
-                var savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
-                if (savedSearch != null)
-                {
-                    Model = Model.ToModel(savedSearch);
-                    EditContext = new(Model);
-                    EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
-                }
+            _isLoading = false;
+            return;
+        }
 
-                // Clear the existing state if the search reference does not match, to avoid displaying stale data
-                Model.SearchReference = SearchReference ?? "";
+        var estimateState = floodEventState.Estimates;
+        var estimatesMatch = estimateState is not null
+            && string.Equals(estimateState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase);
+
+        var detailsState = floodEventState.Details;
+        var detailsMatch = detailsState is not null
+            && string.Equals(detailsState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase);
+
+        SavedSearch? savedSearch = null;
+        if (!estimatesMatch || !detailsMatch)
+        {
+            savedSearch = await savedSearchRepository.Get(SearchReference, _cts.Token);
+        }
+
+        if (estimatesMatch)
+        {
+            Model = estimateState;
+        }
+        else
+        {
+            floodEventState.SetEventEstimates(null);
+
+            Model = savedSearch is not null
+                ? new EventEstimatesViewModel().ToModel(savedSearch)
+                : new EventEstimatesViewModel { SearchReference = SearchReference };
+
+            if (savedSearch?.FloodEvent is not null && HasEstimateValues(Model))
+            {
                 floodEventState.SetEventEstimates(Model);
             }
         }
 
+        if (!detailsMatch)
+        {
+            floodEventState.SetEventDetails(savedSearch is not null
+                ? new EventDetailsViewModel(savedSearch)
+                : new EventDetailsViewModel { SearchReference = SearchReference });
+        }
+
+        CreateEditContext();
         _isLoading = false;
+    }
+
+    private void CreateEditContext()
+    {
+        _estimatesChanged = false;
+        Model.SearchReference = SearchReference ?? "";
+        EditContext = new(Model);
+        EditContext.SetFieldCssClassProvider(new GdsFieldCssClassProvider());
+        EditContext.OnFieldChanged += (_, _) => _estimatesChanged = true;
+        _messageStore = new(EditContext);
+    }
+
+    private static bool HasEstimateValues(EventEstimatesViewModel estimates)
+    {
+        return estimates.EstimatedResidentialAffected != 0
+            || estimates.EstimatedResidentialFlooded != 0
+            || estimates.EstimatedResidentialOther != 0
+            || estimates.EstimatedCommercialAffected != 0
+            || estimates.EstimatedCommercialFlooded != 0
+            || estimates.EstimatedCommercialOther != 0
+            || estimates.EstimatedNoElectric != 0
+            || estimates.EstimatedNoGas != 0
+            || estimates.EstimatedNoFoul != 0
+            || estimates.EstimatedNoWaterSupply != 0
+            || estimates.FloodExtentConfidence is not null
+                && estimates.FloodExtentConfidence != ConfidenceOptions.Unknown;
     }
 
     public async ValueTask DisposeAsync()
@@ -100,6 +150,7 @@ public partial class Estimates(
 
     private async Task OnValidSubmit()
     {
+        floodEventState.SetEventEstimates(Model);
         var errorFieldIdentifier = EditContext.Field(nameof(Model.SearchReference));
 
         // Save the record
@@ -126,20 +177,52 @@ public partial class Estimates(
             return;
         }
 
-        var floodEvent = Model.ToFloodEvent(savedSearch.Id, eventDetails, Model);
-        var createFloodEventResult = await floodEventRepository.Create(floodEvent, _cts.Token);
-        if (!createFloodEventResult.IsSuccess)
+        var newFloodEvent = Model.ToFloodEvent(savedSearch.Id, eventDetails, Model);
+
+        if (savedSearch.FloodEventId is Guid floodEventId)
         {
-            foreach (var error in createFloodEventResult.Errors)
+            var updatedFloodEvent = newFloodEvent with { Id = floodEventId };
+            var updateResult = await floodEventRepository.Update(floodEventId, updatedFloodEvent, _cts.Token);
+            if (!updateResult.IsSuccess)
             {
-                _messageStore.Add(errorFieldIdentifier, error);
+                foreach (var error in updateResult.Errors)
+                {
+                    _messageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
             }
+
+            Model.FloodEventId = floodEventId;
+        }
+        else
+        {
+            var createResult = await floodEventRepository.Create(newFloodEvent, _cts.Token);
+            if (!createResult.IsSuccess)
+            {
+                foreach (var error in createResult.Errors)
+                {
+                    _messageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+
+            if (createResult.Value is not null)
+            {
+                savedSearch.FloodEventId = createResult.Value.Id;
+                Model.FloodEventId = createResult.Value.Id;
+            }
+        }
+
+        savedSearch.SearchTitle = Model.SearchTitle;
+        if (savedSearch.FloodEventId is null)
+        {
+            _messageStore.Add(errorFieldIdentifier, "The flood event could not be saved.");
             EditContext.NotifyValidationStateChanged();
             return;
         }
 
-        savedSearch.SearchTitle = Model.SearchTitle;
-        savedSearch.FloodEventId = floodEvent.Id;
         savedSearch.UpdatedBy = await GetUserName();
         var updateSavedSearchResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
         if (!updateSavedSearchResult.IsSuccess)
@@ -161,12 +244,24 @@ public partial class Estimates(
     private void BackToDetails()
     {
         Model.SearchReference = SearchReference ?? "";
+        var estimateState = floodEventState.Estimates;
+        var estimatesMatch = estimateState is not null
+            && string.Equals(estimateState.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase);
+
+        if (estimatesMatch || _estimatesChanged || HasEstimateValues(Model))
+        {
+            floodEventState.SetEventEstimates(Model);
+        }
+        else
+        {
+            floodEventState.SetEventEstimates(null);
+        }
+
         if (EditContext.Validate())
         {
             navigationManager.NavigateTo($"{EventPages.Details.Url}/{SearchReference}");
         }
         StateHasChanged();
-        return;
     }
 
     private async Task<string?> GetUserName()
