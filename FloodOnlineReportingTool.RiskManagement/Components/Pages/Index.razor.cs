@@ -23,6 +23,20 @@ public partial class Index(ILogger<Index> logger,
     private string _floodedPropertiesFriendlyText = "";
     private string _userActionsFriendlyText = "";
     private bool _isLoading = false;
+
+    // Phase 1 UI-only state: proves the omnibox's Enter/button submission reaches the home
+    // page. Replaced in Phase 2 with real reference/title search and navigation.
+    private string? _omniboxLastQuery;
+    private readonly bool _omniboxSearching = false;
+
+    private Task HandleOmniboxSearch(string query)
+    {
+        // TODO (Phase 2): replace this placeholder with a call to the search service and
+        // navigate directly to a single result, or to the search-results page for multiple matches.
+        _omniboxLastQuery = string.IsNullOrWhiteSpace(query) ? null : query;
+        return Task.CompletedTask;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;

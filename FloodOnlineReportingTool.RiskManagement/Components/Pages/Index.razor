@@ -16,6 +16,21 @@
         }
         else
         {
+            <GdsHeading Level="2">Find a record</GdsHeading>
+            <Searchbox LabelText="Search by reference number or title"
+                       HintText="Enter a flood event, saved search or flood report reference, or part of a title"
+                       FormName="HomeOmniboxSearch"
+                       Disabled="@_omniboxSearching"
+                       OnSearch="HandleOmniboxSearch" />
+
+            @* TODO (Phase 2): remove this placeholder once the omnibox is wired to real search/navigation logic. *@
+            @if (!string.IsNullOrWhiteSpace(_omniboxLastQuery))
+            {
+                <p class="govuk-body" data-testid="omnibox-placeholder-result">
+                    (Phase 1 placeholder) You searched for: <strong>@_omniboxLastQuery</strong>
+                </p>
+            }
+
             <GdsHeading Level="2">Your dashboard</GdsHeading>
             <GdsContainer>
                 <GdsGridRow>
