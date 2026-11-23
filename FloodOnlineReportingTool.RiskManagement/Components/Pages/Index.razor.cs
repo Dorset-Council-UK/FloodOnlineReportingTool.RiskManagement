@@ -2,7 +2,6 @@ using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Identity.Web;
@@ -35,8 +34,6 @@ public partial class Index(ILogger<Index> logger,
     private string? _omniboxErrorMessage;
     private const int MaxOmniboxResults = 50;
 
-    [Authorize]
-    [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
     private async Task HandleOmniboxSearch(string query)
     {
         _omniboxErrorMessage = null;

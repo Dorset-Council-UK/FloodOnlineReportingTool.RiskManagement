@@ -9,7 +9,6 @@ using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using GdsBlazorComponents;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Identity.Web;
@@ -144,8 +143,6 @@ public partial class Results(
         StateHasChanged();
     }
 
-    [Authorize]
-    [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
     private async Task Search()
     {
         _searchState = SearchState.Searching;

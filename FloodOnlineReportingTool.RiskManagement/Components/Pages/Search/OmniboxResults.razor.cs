@@ -12,7 +12,7 @@ public partial class OmniboxResults(
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     NavigationManager navigationManager) : IAsyncDisposable
 {
-    private const int MaxResults = 50;
+    private const int MaxResults = 100;
 
     [Parameter]
     public string? Query { get; set; }
@@ -37,7 +37,7 @@ public partial class OmniboxResults(
 
         try
         {
-            _results = await referenceSearchService.Search(Query, MaxResults, _cts.Token);
+            await LoadResults(Query);
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
@@ -57,6 +57,11 @@ public partial class OmniboxResults(
         {
             _isLoading = false;
         }
+    }
+
+    private async Task LoadResults(string query)
+    {
+        _results = await referenceSearchService.Search(query, MaxResults, _cts.Token);
     }
 
     public async ValueTask DisposeAsync()
