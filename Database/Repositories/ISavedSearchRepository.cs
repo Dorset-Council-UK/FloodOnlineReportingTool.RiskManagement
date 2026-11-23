@@ -49,4 +49,9 @@ public interface ISavedSearchRepository
     Task<Result<SavedSearch?>> Update(string reference, SavedSearch searchCriteria, CancellationToken cancellationToken);
 
     Task<Result<SearchRedirect?>> FindLocalByReference(string reference, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Finds saved searches by title using case-insensitive wildcard matching.
+    /// </summary>
+    Task<IReadOnlyList<SavedSearchTitleMatch>> FindByTitle(string title, int maxResults, CancellationToken cancellationToken);
 }

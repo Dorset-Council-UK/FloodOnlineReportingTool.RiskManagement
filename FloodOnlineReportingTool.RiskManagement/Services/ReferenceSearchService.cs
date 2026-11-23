@@ -1,5 +1,7 @@
+using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 
 namespace FloodOnlineReportingTool.RiskManagement.Services;
 
@@ -24,10 +26,10 @@ public class ReferenceSearchService(
         logger.LogInformation("Searching all sources for reference");
 
         // Local first
-        var findLocalResult = await savedSearchRepository.FindLocalByReference(reference, ct);
-        if (findLocalResult.IsSuccess)
+        var localResult = await FindLocalByReference(reference, ct);
+        if (localResult is not null)
         {
-            return findLocalResult.Value;
+            return localResult;
         }
 
         // Fall through to remote API if not found locally
@@ -39,5 +41,51 @@ public class ReferenceSearchService(
 
         logger.LogWarning("Reference {Reference} was not found in any source", reference);
         return null;
+    }
+
+    public async Task<IReadOnlyList<OmniboxSearchResult>> Search(string query, int maxResults, CancellationToken ct)
+    {
+        var normalizedQuery = query.Trim();
+        if (normalizedQuery.Length == 0 || maxResults <= 0)
+        {
+            return [];
+        }
+
+        var localReferenceResult = await FindLocalByReference(normalizedQuery, ct);
+        if (localReferenceResult is not null)
+        {
+            return [ToSearchResult(localReferenceResult)];
+        }
+
+        var titleMatches = await savedSearchRepository.FindByTitle(normalizedQuery, maxResults, ct);
+        if (titleMatches.Count > 0)
+        {
+            return titleMatches
+                .Select(match => new OmniboxSearchResult(
+                    match.FloodEventId ?? match.Id,
+                    match.Reference,
+                    match.SearchTitle,
+                    match.FloodEventId.HasValue ? RecordTypes.Event : RecordTypes.Search))
+                .DistinctBy(result => (result.ResultType, result.Id))
+                .ToArray();
+        }
+
+        var reportResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, ct);
+        return reportResult is null ? [] : [ToSearchResult(reportResult)];
+    }
+
+    private async Task<SearchRedirect?> FindLocalByReference(string reference, CancellationToken ct)
+    {
+        var result = await savedSearchRepository.FindLocalByReference(reference, ct);
+        return result.IsSuccess ? result.Value : null;
+    }
+
+    private static OmniboxSearchResult ToSearchResult(SearchRedirect redirect)
+    {
+        return new OmniboxSearchResult(
+            redirect.Id ?? Guid.Empty,
+            redirect.Reference,
+            string.Empty,
+            redirect.RedirectType);
     }
 }

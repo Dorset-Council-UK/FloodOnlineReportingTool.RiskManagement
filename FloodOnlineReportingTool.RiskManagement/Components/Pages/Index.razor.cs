@@ -1,6 +1,7 @@
 using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -33,6 +34,7 @@ public partial class Index(ILogger<Index> logger,
     private bool _isLoading = false;
     private bool _omniboxSearching;
     private string? _omniboxErrorMessage;
+    private const int MaxOmniboxResults = 50;
 
     [Authorize]
     [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
@@ -42,7 +44,7 @@ public partial class Index(ILogger<Index> logger,
 
         if (string.IsNullOrWhiteSpace(query))
         {
-            _omniboxErrorMessage = "Enter a reference number.";
+            _omniboxErrorMessage = "Enter a reference number or title.";
             return;
         }
 
@@ -51,29 +53,20 @@ public partial class Index(ILogger<Index> logger,
 
         try
         {
-            var searchRedirect = await referenceSearchService.FindByReference(query, _cts.Token);
-            if (searchRedirect is null)
+            var results = await referenceSearchService.Search(query, MaxOmniboxResults, _cts.Token);
+            if (results.Count == 0)
             {
-                _omniboxErrorMessage = "No record could be found with that reference number.";
+                _omniboxErrorMessage = "No matching records could be found.";
                 return;
             }
 
-            var nextPage = searchRedirect.RedirectType switch
+            if (results.Count > 1)
             {
-                RecordTypes.Event => $"{EventPages.View.Url}/{searchRedirect.Reference}",
-                RecordTypes.Search => $"{SearchPages.Results.Url}/{searchRedirect.Reference}",
-                RecordTypes.Report => $"{ReportPages.Details.Url}/{searchRedirect.Reference}",
-                _ => null,
-            };
-
-            if (nextPage is null)
-            {
-                logger.LogError("Reference search returned unsupported record type {RecordType}", searchRedirect.RedirectType);
-                _omniboxErrorMessage = "The record was found, but could not be opened.";
+                navigationManager.NavigateTo($"{SearchPages.OmniboxResults.Url}/{Uri.EscapeDataString(query)}");
                 return;
             }
 
-            navigationManager.NavigateTo(nextPage);
+            navigationManager.NavigateTo(GetResultUrl(results[0]));
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
@@ -93,6 +86,17 @@ public partial class Index(ILogger<Index> logger,
         {
             _omniboxSearching = false;
         }
+    }
+
+    private static string GetResultUrl(OmniboxSearchResult result)
+    {
+        return result.ResultType switch
+        {
+            RecordTypes.Event => $"{EventPages.View.Url}/{Uri.EscapeDataString(result.Reference)}",
+            RecordTypes.Search => $"{SearchPages.Results.Url}/{Uri.EscapeDataString(result.Reference)}",
+            RecordTypes.Report => $"{ReportPages.Details.Url}/{Uri.EscapeDataString(result.Reference)}",
+            _ => GeneralPages.Home.Url,
+        };
     }
 
     protected override async Task OnInitializedAsync()

@@ -1,0 +1,42 @@
+@page "/search/omnibox-results/{Query}"
+@using FloodOnlineReportingTool.Database.Models.Enums
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
+@using FloodOnlineReportingTool.RiskManagement.Models.Search
+
+<PageTitle>Search results</PageTitle>
+
+<GdsBackLink Href="@GeneralPages.Home.Url" />
+<GdsHeading Level="1" Size="GdsSize.Large">Search results</GdsHeading>
+<p class="govuk-body">Results matching <strong>@Query</strong></p>
+
+@if (_isLoading)
+{
+    <GdsSpinner Show ShowMessage="true" Message="Loading search results" />
+}
+else if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <GdsWarning Text="@_errorMessage" />
+}
+else if (_results.Count == 0)
+{
+    <GdsWarning Text="No matching records were found." />
+}
+else
+{
+    <p class="govuk-body">@_results.Count result(s) found.</p>
+    <ul class="govuk-list govuk-list--spaced">
+        @foreach (var result in _results)
+        {
+            <li>
+                <GdsLink Href="@GetResultUrl(result)">
+                    <span class="govuk-!-font-weight-bold">@GetResultType(result)</span>
+                    @if (!string.IsNullOrWhiteSpace(result.Title))
+                    {
+                        <span> — @result.Title</span>
+                    }
+                    <span> (@result.Reference)</span>
+                </GdsLink>
+            </li>
+        }
+    </ul>
+}

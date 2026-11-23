@@ -214,6 +214,48 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         );
     }
 
+    public async Task<IReadOnlyList<SavedSearchTitleMatch>> FindByTitle(string title, int maxResults, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(title) || maxResults <= 0)
+        {
+            return [];
+        }
+
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        var searchTerms = title.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var wildcardQuery = context.SavedSearches
+            .AsNoTracking()
+            .IgnoreAutoIncludes();
+
+        foreach (var searchTerm in searchTerms)
+        {
+            var pattern = $"%{EscapeLikePattern(searchTerm)}%";
+            wildcardQuery = wildcardQuery.Where(s => EF.Functions.ILike(s.SearchTitle, pattern, "\\"));
+        }
+
+        var normalizedTitle = title.ToLowerInvariant();
+
+        return await wildcardQuery
+            .OrderByDescending(s => s.SearchTitle.ToLower() == normalizedTitle)
+            .ThenByDescending(s => s.SearchTitle.ToLower().Contains(normalizedTitle))
+            .ThenBy(s => s.SearchTitle)
+            .Select(s => new SavedSearchTitleMatch(
+                s.Id,
+                s.Reference,
+                s.SearchTitle,
+                s.FloodEventId))
+            .Take(maxResults)
+            .ToListAsync(cancellationToken);
+    }
+
+    private static string EscapeLikePattern(string value)
+    {
+        return value.Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("%", "\\%", StringComparison.Ordinal)
+            .Replace("_", "\\_", StringComparison.Ordinal);
+    }
+
     public async Task<Result<SearchRedirect?>> FindLocalByReference(string reference, CancellationToken cancellationToken)
     {
         await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
