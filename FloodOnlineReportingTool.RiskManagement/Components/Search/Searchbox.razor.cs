@@ -36,6 +36,9 @@ public partial class Searchbox
     [Parameter]
     public string InputAdditionalCssClasses { get; set; } = "govuk-input--width-20";
 
+    [Parameter]
+    public string? ErrorMessage { get; set; }
+
     /// <summary>
     /// Disables the input and submit button, e.g. while a search is already in progress.
     /// </summary>
@@ -50,12 +53,11 @@ public partial class Searchbox
     [Parameter]
     public EventCallback<string> OnSearch { get; set; }
 
-    private string InputClass = "";
+    private string InputClass => $"searchbox__input govuk-input {InputAdditionalCssClasses}{(string.IsNullOrWhiteSpace(ErrorMessage) ? string.Empty : " govuk-input--error")}";
 
     protected override void OnInitialized()
     {
         _editContext = new EditContext(_model);
-        InputClass = $"searchbox__input govuk-input {InputAdditionalCssClasses}";
     }
 
     private async Task HandleSubmitAsync()

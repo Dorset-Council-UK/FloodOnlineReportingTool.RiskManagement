@@ -5,8 +5,14 @@
         {
             <GdsHint>@HintText</GdsHint>
         }
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <p class="govuk-error-message">
+                <span class="govuk-visually-hidden">Error:</span> @ErrorMessage
+            </p>
+        }
         <div class="searchbox__wrapper">
-            <GdsInputText @bind-Value="_model.SearchText" type="search" spellcheck="false" autocomplete="off" disabled="@Disabled" class="@InputClass"></GdsInputText>
+            <GdsInputText @bind-Value="_model.SearchText" type="search" spellcheck="false" autocomplete="off" disabled="@Disabled" aria-invalid="@(!string.IsNullOrWhiteSpace(ErrorMessage))" class="@InputClass"></GdsInputText>
             <div class="searchbox__input searchbox__button">
                 <button class="searchbox__submit" type="submit" enterkeyhint="search" disabled="@Disabled">
                     <span class="govuk-visually-hidden">Search</span>

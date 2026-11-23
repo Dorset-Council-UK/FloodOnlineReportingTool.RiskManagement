@@ -1,13 +1,21 @@
+using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Identity.Web;
 using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages;
 
 public partial class Index(ILogger<Index> logger,
                            IActionLogRepository actionLogRepository,
-                           IFloodEventRepository floodEventRepository) : System.IDisposable
+                           IFloodEventRepository floodEventRepository,
+                           IReferenceSearchService referenceSearchService,
+                           MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
+                           NavigationManager navigationManager) : System.IDisposable
 {
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -23,18 +31,68 @@ public partial class Index(ILogger<Index> logger,
     private string _floodedPropertiesFriendlyText = "";
     private string _userActionsFriendlyText = "";
     private bool _isLoading = false;
+    private bool _omniboxSearching;
+    private string? _omniboxErrorMessage;
 
-    // Phase 1 UI-only state: proves the omnibox's Enter/button submission reaches the home
-    // page. Replaced in Phase 2 with real reference/title search and navigation.
-    private string? _omniboxLastQuery;
-    private readonly bool _omniboxSearching = false;
-
-    private Task HandleOmniboxSearch(string query)
+    [Authorize]
+    [AuthorizeForScopes(ScopeKeySection = "RiskManagement:ReportStatusApi:Scopes")]
+    private async Task HandleOmniboxSearch(string query)
     {
-        // TODO (Phase 2): replace this placeholder with a call to the search service and
-        // navigate directly to a single result, or to the search-results page for multiple matches.
-        _omniboxLastQuery = string.IsNullOrWhiteSpace(query) ? null : query;
-        return Task.CompletedTask;
+        _omniboxErrorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            _omniboxErrorMessage = "Enter a reference number.";
+            return;
+        }
+
+        _omniboxSearching = true;
+        StateHasChanged();
+
+        try
+        {
+            var searchRedirect = await referenceSearchService.FindByReference(query, _cts.Token);
+            if (searchRedirect is null)
+            {
+                _omniboxErrorMessage = "No record could be found with that reference number.";
+                return;
+            }
+
+            var nextPage = searchRedirect.RedirectType switch
+            {
+                RecordTypes.Event => $"{EventPages.View.Url}/{searchRedirect.Reference}",
+                RecordTypes.Search => $"{SearchPages.Results.Url}/{searchRedirect.Reference}",
+                RecordTypes.Report => $"{ReportPages.Details.Url}/{searchRedirect.Reference}",
+                _ => null,
+            };
+
+            if (nextPage is null)
+            {
+                logger.LogError("Reference search returned unsupported record type {RecordType}", searchRedirect.RedirectType);
+                _omniboxErrorMessage = "The record was found, but could not be opened.";
+                return;
+            }
+
+            navigationManager.NavigateTo(nextPage);
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            logger.LogWarning(ex, "Consent required while searching by reference");
+            consentHandler.HandleException(ex);
+        }
+        catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+        {
+            // Expected when navigating away from or disposing the home page.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while searching by reference");
+            _omniboxErrorMessage = "There was a problem searching for records. Try again.";
+        }
+        finally
+        {
+            _omniboxSearching = false;
+        }
     }
 
     protected override async Task OnInitializedAsync()

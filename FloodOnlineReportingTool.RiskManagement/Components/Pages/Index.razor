@@ -21,15 +21,9 @@
                        HintText="Enter a flood event, saved search or flood report reference, or part of a title"
                        FormName="HomeOmniboxSearch"
                        Disabled="@_omniboxSearching"
+                       ErrorMessage="@_omniboxErrorMessage"
                        OnSearch="HandleOmniboxSearch" />
-
-            @* TODO (Phase 2): remove this placeholder once the omnibox is wired to real search/navigation logic. *@
-            @if (!string.IsNullOrWhiteSpace(_omniboxLastQuery))
-            {
-                <p class="govuk-body" data-testid="omnibox-placeholder-result">
-                    (Phase 1 placeholder) You searched for: <strong>@_omniboxLastQuery</strong>
-                </p>
-            }
+            <GdsSpinner Show="_omniboxSearching" ShowMessage="true" Message="Searching records" />
 
             <GdsHeading Level="2">Your dashboard</GdsHeading>
             <GdsContainer>
