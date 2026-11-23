@@ -1,4 +1,3 @@
-using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
@@ -13,6 +12,8 @@ public partial class OmniboxResults(
     MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
     NavigationManager navigationManager) : IAsyncDisposable
 {
+    private const int MaxResults = 50;
+
     [Parameter]
     public string? Query { get; set; }
 
@@ -20,6 +21,8 @@ public partial class OmniboxResults(
     private IReadOnlyList<OmniboxSearchResult> _results = [];
     private bool _isLoading = true;
     private string? _errorMessage;
+
+    private bool ResultLimitReached => _results.Count >= MaxResults;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -34,7 +37,7 @@ public partial class OmniboxResults(
 
         try
         {
-            _results = await referenceSearchService.Search(Query, 50, _cts.Token);
+            _results = await referenceSearchService.Search(Query, MaxResults, _cts.Token);
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
@@ -56,31 +59,10 @@ public partial class OmniboxResults(
         }
     }
 
-    private static string GetResultUrl(OmniboxSearchResult result)
-    {
-        return result.ResultType switch
-        {
-            RecordTypes.Event => $"{EventPages.View.Url}/{Uri.EscapeDataString(result.Reference)}",
-            RecordTypes.Search => $"{SearchPages.Results.Url}/{Uri.EscapeDataString(result.Reference)}",
-            RecordTypes.Report => $"{ReportPages.Details.Url}/{Uri.EscapeDataString(result.Reference)}",
-            _ => GeneralPages.Home.Url,
-        };
-    }
-
-    private static string GetResultType(OmniboxSearchResult result)
-    {
-        return result.ResultType switch
-        {
-            RecordTypes.Event => "Flood event",
-            RecordTypes.Search => "Saved search",
-            RecordTypes.Report => "Flood report",
-            _ => "Record",
-        };
-    }
-
     public async ValueTask DisposeAsync()
     {
         await _cts.CancelAsync();
         _cts.Dispose();
     }
 }
+

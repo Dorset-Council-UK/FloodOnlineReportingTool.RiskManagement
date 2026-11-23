@@ -1,4 +1,3 @@
-using FloodOnlineReportingTool.Database.Models.Enums;
 using FloodOnlineReportingTool.Database.Repositories;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Models.Search;
@@ -66,7 +65,7 @@ public partial class Index(ILogger<Index> logger,
                 return;
             }
 
-            navigationManager.NavigateTo(GetResultUrl(results[0]));
+            navigationManager.NavigateTo(results[0].GetUrl());
         }
         catch (MicrosoftIdentityWebChallengeUserException ex)
         {
@@ -86,17 +85,6 @@ public partial class Index(ILogger<Index> logger,
         {
             _omniboxSearching = false;
         }
-    }
-
-    private static string GetResultUrl(OmniboxSearchResult result)
-    {
-        return result.ResultType switch
-        {
-            RecordTypes.Event => $"{EventPages.View.Url}/{Uri.EscapeDataString(result.Reference)}",
-            RecordTypes.Search => $"{SearchPages.Results.Url}/{Uri.EscapeDataString(result.Reference)}",
-            RecordTypes.Report => $"{ReportPages.Details.Url}/{Uri.EscapeDataString(result.Reference)}",
-            _ => GeneralPages.Home.Url,
-        };
     }
 
     protected override async Task OnInitializedAsync()

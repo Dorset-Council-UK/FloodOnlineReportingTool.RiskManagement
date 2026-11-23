@@ -1,5 +1,4 @@
 @page "/search/omnibox-results/{Query}"
-@using FloodOnlineReportingTool.Database.Models.Enums
 @using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using FloodOnlineReportingTool.RiskManagement.Models.Search
 
@@ -19,24 +18,43 @@ else if (!string.IsNullOrWhiteSpace(_errorMessage))
 }
 else if (_results.Count == 0)
 {
-    <GdsWarning Text="No matching records were found." />
+    <NoResultsMessage />
 }
 else
 {
-    <p class="govuk-body">@_results.Count result(s) found.</p>
-    <ul class="govuk-list govuk-list--spaced">
-        @foreach (var result in _results)
-        {
-            <li>
-                <GdsLink Href="@GetResultUrl(result)">
-                    <span class="govuk-!-font-weight-bold">@GetResultType(result)</span>
-                    @if (!string.IsNullOrWhiteSpace(result.Title))
-                    {
-                        <span> — @result.Title</span>
-                    }
-                    <span> (@result.Reference)</span>
-                </GdsLink>
-            </li>
-        }
-    </ul>
+    <p class="govuk-body govuk-!-font-weight-bold">
+        @_results.Count @(_results.Count == 1 ? "result" : "results") found@(ResultLimitReached ? $", showing the first {MaxResults}" : "").
+    </p>
+
+    @if (ResultLimitReached)
+    {
+        <GdsWarning Text="@($"There may be more matching records than shown here. Use a more specific reference or title to narrow your search.")" />
+    }
+
+    <table class="govuk-table">
+        <caption class="govuk-visually-hidden">Search results matching @Query</caption>
+        <thead class="govuk-table__head">
+            <tr class="govuk-table__row">
+                <th scope="col" class="govuk-table__header">Record type</th>
+                <th scope="col" class="govuk-table__header">Reference</th>
+                <th scope="col" class="govuk-table__header">Title</th>
+                <th scope="col" class="govuk-table__header"><span class="govuk-visually-hidden">Action</span></th>
+            </tr>
+        </thead>
+        <tbody class="govuk-table__body">
+            @foreach (var result in _results)
+            {
+                <tr class="govuk-table__row">
+                    <td class="govuk-table__cell">@result.GetTypeLabel()</td>
+                    <td class="govuk-table__cell">@result.Reference</td>
+                    <td class="govuk-table__cell">@(string.IsNullOrWhiteSpace(result.Title) ? "-" : result.Title)</td>
+                    <td class="govuk-table__cell">
+                        <GdsLink Href="@result.GetUrl()">
+                            View<span class="govuk-visually-hidden"> @result.GetTypeLabel().ToLowerInvariant() @result.Reference</span>
+                        </GdsLink>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
