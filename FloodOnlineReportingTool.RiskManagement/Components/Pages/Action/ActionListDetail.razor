@@ -14,9 +14,6 @@
         <TemplateColumn Title="Flood Report Reference" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.ReportReference)">
             @context.ReportReference
         </TemplateColumn>
-        <TemplateColumn Title="Notes" Sortable="true" SortBy="GridSort<ActionLog>.ByAscending(x => x.Note)">
-            @context.Note
-        </TemplateColumn>
         <TemplateColumn Title="">
             <a href="action/@context.Id">Take Action</a>
         </TemplateColumn>
