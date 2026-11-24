@@ -6,6 +6,7 @@ using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.Messaging;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Data;
@@ -18,6 +19,7 @@ public class FloodEventRepository(
     IDbContextFactory<RiskManagementDbContext> contextFactory,
     IEventLogRepository eventLogRepository,
     ISavedSearchRepository savedSearchRepository,
+    ILinkedFloodReportResolver linkedFloodReportResolver,
     ILogger<FloodEventRepository> logger
 ) : IFloodEventRepository
 {
@@ -78,6 +80,7 @@ public class FloodEventRepository(
             && linkedSavedSearch.FloodSources.Count > 0)
         {
             context.FloodEvents.Add(floodEvent);
+            var linkedFloodReports = await GetLinkedFloodReportReferences(linkedSavedSearch, cancellationToken);
 
             // Send a message to trigger the FloodEventCreated message
             var outMessage = new FloodEventCreated(
@@ -91,7 +94,7 @@ public class FloodEventRepository(
             [.. linkedSavedSearch.FloodSources],
             [.. linkedSavedSearch.LimitByOrganisation],
             [.. linkedSavedSearch.LimitByStatus],
-            []
+            linkedFloodReports
             );
             OutboxMessage outboxMessage = new()
             {
@@ -141,6 +144,7 @@ public class FloodEventRepository(
             && linkedSavedSearch.FloodSources.Count > 0
             )
         {
+            var linkedFloodReports = await GetLinkedFloodReportReferences(linkedSavedSearch, cancellationToken);
             updatedFloodEvent = existingFloodEvent with
             {
                 // Id
@@ -185,7 +189,7 @@ public class FloodEventRepository(
                 [.. linkedSavedSearch.FloodSources],
                 [.. linkedSavedSearch.LimitByOrganisation],
                 [.. linkedSavedSearch.LimitByStatus],
-                [],
+                linkedFloodReports,
                 null
              );
             OutboxMessage outboxMessage = new()
@@ -308,6 +312,7 @@ public class FloodEventRepository(
             && linkedSavedSearch.ResultsTo is not null
             && linkedSavedSearch.FloodSources.Count > 0)
         {
+            var linkedFloodReports = await GetLinkedFloodReportReferences(linkedSavedSearch, cancellationToken);
             var outMessage = new FloodEventUpdated(
                 linkedSavedSearch.Reference,
                 linkedSavedSearch.SearchTitle,
@@ -319,7 +324,7 @@ public class FloodEventRepository(
                 [.. linkedSavedSearch.FloodSources],
                 [.. linkedSavedSearch.LimitByOrganisation],
                 [.. linkedSavedSearch.LimitByStatus],
-                [],
+                linkedFloodReports,
                 null);
 
             context.OutboxMessages.Add(new OutboxMessage
@@ -332,6 +337,11 @@ public class FloodEventRepository(
 
         await context.SaveChangesAsync(cancellationToken);
         return (true, true);
+    }
+
+    private async Task<IReadOnlyCollection<string>> GetLinkedFloodReportReferences(SavedSearch savedSearch, CancellationToken cancellationToken)
+    {
+        return await linkedFloodReportResolver.GetLinkedFloodReportReferences(savedSearch, cancellationToken);
     }
 
     public async Task<(bool IsSuccess, string? MediaReference)> CreateMediaUrl(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken)
