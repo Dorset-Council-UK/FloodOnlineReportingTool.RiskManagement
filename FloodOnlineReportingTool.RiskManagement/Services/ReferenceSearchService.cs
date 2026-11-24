@@ -33,7 +33,7 @@ public class ReferenceSearchService(
         }
 
         // Fall through to remote API if not found locally
-        var searchRedirect = await reportStatusClient.FindFloodReportByReference(reference, ct);
+        var searchRedirect = await reportStatusClient.FindFloodReportByReference(reference, "Report", ct);
         if (searchRedirect is not null)
         {
             return searchRedirect;
@@ -57,10 +57,16 @@ public class ReferenceSearchService(
             return [ToSearchResult(localReferenceResult)];
         }
 
-        var reportResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, ct);
+        var reportResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, "Report", ct);
         if (reportResult is not null)
         {
             return [ToSearchResult(reportResult)];
+        }
+
+        var sourceResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, "Source", ct);
+        if (sourceResult is not null)
+        {
+            return [ToSearchResult(sourceResult)];
         }
 
         var titleMatches = await savedSearchRepository.FindByTitle(normalizedQuery, maxResults, ct);

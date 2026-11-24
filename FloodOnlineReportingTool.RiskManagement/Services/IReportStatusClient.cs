@@ -71,7 +71,7 @@ public interface IReportStatusClient
     /// Returns a <see cref="SearchRedirect"/> with the report Id if found, used for redirect
     /// routing only — not for display purposes.
     /// </summary>
-    Task<SearchRedirect?> FindFloodReportByReference(string reference, CancellationToken ct = default);
+    Task<SearchRedirect?> FindFloodReportByReference(string reference, string searchType, CancellationToken ct = default);
 
     /// <summary>
     /// Retrieves the flood report overview for display on the overview page.
