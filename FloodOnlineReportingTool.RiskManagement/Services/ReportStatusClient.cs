@@ -5,6 +5,7 @@ using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
 using FloodOnlineReportingTool.Database.Models.SavedSearches;
 using FloodOnlineReportingTool.RiskManagement.Models.Report;
+using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using Microsoft.Identity.Abstractions;
 using NetTopologySuite.Geometries;
@@ -41,7 +42,7 @@ public sealed class ReportStatusClient(ILogger<ReportStatusClient> logger, IDown
     /// Returns a <see cref="SearchRedirect"/> with the report Id if found, used for redirect
     /// routing only — not for display purposes.
     /// </summary>
-    public async Task<SearchRedirect?> FindFloodReportByReference(string reference, string searchType = "Report", CancellationToken ct = default)
+    public async Task<SearchRedirect?> FindFloodReportByReference(string reference, ApiFloodReferenceSearchType searchType = ApiFloodReferenceSearchType.Report, CancellationToken ct = default)
     {
         logger.LogInformation("Checking downstream API for flood report existence by reference");
 
