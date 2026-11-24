@@ -1,6 +1,6 @@
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Extensions;
 using FloodOnlineReportingTool.RiskManagement.Models.Order;
-using FloodOnlineReportingTool.RiskManagement.Models.Search;
 using FloodOnlineReportingTool.RiskManagement.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
