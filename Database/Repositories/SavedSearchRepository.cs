@@ -237,9 +237,7 @@ public class SavedSearchRepository(IDbContextFactory<RiskManagementDbContext> co
         var normalizedTitle = title.ToLowerInvariant();
 
         return await wildcardQuery
-            .OrderByDescending(s => s.SearchTitle.ToLower() == normalizedTitle)
-            .ThenByDescending(s => s.SearchTitle.ToLower().Contains(normalizedTitle))
-            .ThenBy(s => s.SearchTitle)
+            .OrderBy(s => s.SearchTitle)
             .Select(s => new SavedSearchTitleMatch(
                 s.Id,
                 s.Reference,
