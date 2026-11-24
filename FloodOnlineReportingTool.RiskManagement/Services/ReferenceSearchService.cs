@@ -51,10 +51,16 @@ public class ReferenceSearchService(
             return [];
         }
 
-        var localReferenceResult = await FindLocalByReference(normalizedQuery, ct);
+        var localReferenceResult = await FindLocalByReference(normalizedQuery.ToUpperInvariant(), ct);
         if (localReferenceResult is not null)
         {
             return [ToSearchResult(localReferenceResult)];
+        }
+
+        var reportResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, ct);
+        if (reportResult is not null)
+        {
+            return [ToSearchResult(reportResult)];
         }
 
         var titleMatches = await savedSearchRepository.FindByTitle(normalizedQuery, maxResults, ct);
@@ -70,8 +76,7 @@ public class ReferenceSearchService(
                 .ToArray();
         }
 
-        var reportResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, ct);
-        return reportResult is null ? [] : [ToSearchResult(reportResult)];
+        return [];
     }
 
     private async Task<SearchRedirect?> FindLocalByReference(string reference, CancellationToken ct)
