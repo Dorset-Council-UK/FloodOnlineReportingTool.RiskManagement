@@ -63,7 +63,7 @@ public class ReferenceSearchService(
             return [ToSearchResult(reportResult)];
         }
 
-        var sourceResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, ApiFloodReferenceSearchType.Report, ct);
+        var sourceResult = await reportStatusClient.FindFloodReportByReference(normalizedQuery, ApiFloodReferenceSearchType.Source, ct);
         if (sourceResult is not null)
         {
             return [ToSearchResult(sourceResult)];
