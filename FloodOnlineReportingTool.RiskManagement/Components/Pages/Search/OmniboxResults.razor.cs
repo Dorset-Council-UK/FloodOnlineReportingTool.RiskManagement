@@ -68,6 +68,7 @@ public partial class OmniboxResults(
     {
         await _cts.CancelAsync();
         _cts.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
 
