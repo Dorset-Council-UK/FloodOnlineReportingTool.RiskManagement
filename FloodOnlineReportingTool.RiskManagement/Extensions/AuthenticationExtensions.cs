@@ -1,11 +1,12 @@
 ﻿using FloodOnlineReportingTool.RiskManagement.Authorization;
 using FloodOnlineReportingTool.RiskManagement.Endpoints.Account;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
 using FloodOnlineReportingTool.RiskManagement.Options;
 using FloodOnlineReportingTool.RiskManagement.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Web;
-using Polly;
 
 namespace Microsoft.AspNetCore.Builder;
 
@@ -61,6 +62,12 @@ internal static class AuthenticationExtensions
                         };
                     })
                 .AddInMemoryTokenCaches();
+
+            builder.Services.Configure<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.AccessDeniedPath = $"/{GeneralPages.AccessDenied.Url}";
+                options.ReturnUrlParameter = "redirectUri";
+            });
 
             builder.Services.AddResilientHttpClients();
 
