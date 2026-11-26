@@ -354,15 +354,29 @@
 
                     <p><GdsLink Href="@($"event/propertysummary/{Reference}")">Full details for all affected properties</GdsLink></p>
 
+                    <GdsHeading Level="3">Utility impacts</GdsHeading>
+                    <table class="govuk-table">
+                        <thead class="govuk-table__head">
+                            <tr class="govuk-table__row">
+                                <th scope="col" class="govuk-table__header">Total</th>
+                                <th scope="col" class="govuk-table__header">Without gas</th>
+                                <th scope="col" class="govuk-table__header">Without electricity</th>
+                                <th scope="col" class="govuk-table__header">Without water</th>
+                                <th scope="col" class="govuk-table__header">Without foul sewer</th>
+                            </tr>
+                        </thead>
+                        <tbody class="govuk-table__body">
+                            <tr class="govuk-table__row">
+                                <td class="govuk-table__cell">@ViewModel.EstimatedDisruptedUtilities</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedNoGas</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedNoElectric</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedNoWaterSupply</td>
+                                <td class="govuk-table__cell">@ViewModel.EstimatedNoFoul</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
                     <dl class="govuk-summary-list">
-                        <div class="govuk-summary-list__row">
-                            <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
-                                Properties without utilities
-                            </dt>
-                            <dd class="govuk-summary-list__value"> 
-                                @ViewModel.EstimatedDisruptedUtilities
-                            </dd>
-                        </div>
                         <div class="govuk-summary-list__row">
                             <dt class="govuk-summary-list__key govuk-!-width-one-quarter govuk-!-padding-right-1">
                                 Uninhabitable properties
