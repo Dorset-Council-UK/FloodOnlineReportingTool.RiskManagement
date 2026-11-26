@@ -77,6 +77,7 @@ public interface IFloodEventRepository
     ///         <item>There is at least one source of flooding that is the same</item>
     ///     </list>
     ///     <para>Missing criteria (no geometry, no date, or no flood sources) are treated as unrestricted.</para>
+    ///     <para>Returned events have an empty flood source collection when the stored value is null.</para>
     ///     <para>The flood event linked to the saved search with the same reference as the search criteria is excluded.</para>
     /// </remarks>
     Task<IList<FloodEvent>> GetOverlapping(SavedSearch searchCriteria, CancellationToken cancellationToken);

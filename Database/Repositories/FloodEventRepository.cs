@@ -569,12 +569,30 @@ public class FloodEventRepository(
             .OrderByDescending(fe => fe.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        // Client evaluation - at least one source of flooding is the same
-        if (searchCriteria.FloodSources.Count == 0)
+        // EF Core does not pass database nulls through the collection value converter.
+        for (var i = 0; i < results.Count; i++)
+        {
+            var floodEvent = results[i];
+            if (floodEvent.SavedSearch.FloodSources is null)
+            {
+                results[i] = floodEvent with
+                {
+                    SavedSearch = floodEvent.SavedSearch with { FloodSources = [] }
+                };
+            }
+        }
+
+        var searchSources = searchCriteria.FloodSources ?? [];
+        if (searchSources.Count == 0)
         {
             return results;
         }
 
-        return [.. results.Where(fe => fe.SavedSearch.FloodSources.Count == 0 || fe.SavedSearch.FloodSources.Intersect(searchCriteria.FloodSources).Any())];
+        // An event with no specified sources matches any search source.
+        var overlappingEvents = results.Where(floodEvent =>
+            floodEvent.SavedSearch.FloodSources.Count == 0 ||
+            floodEvent.SavedSearch.FloodSources.Intersect(searchSources).Any());
+
+        return overlappingEvents.ToList();
     }
 }
