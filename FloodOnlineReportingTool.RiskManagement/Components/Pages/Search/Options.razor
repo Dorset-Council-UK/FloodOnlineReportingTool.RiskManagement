@@ -137,28 +137,30 @@ else
                 {
                     <div class="govuk-!-margin-bottom-6">
                         <GdsWarning Text="@(_overlappingFloodEvents.Count == 1 ? "This search overlaps with an existing flood event." : $"This search overlaps with {_overlappingFloodEvents.Count} existing flood events.")" />
-                        <p class="govuk-body">Check whether this is the same flood event before creating a new one. An overlap is where the search area, dates and at least one source of flooding are the same.</p>
-                        <ul class="govuk-list govuk-list--bullet">
-                            @foreach (var overlappingFloodEvent in _overlappingFloodEvents)
-                            {
-                                var overlappingSearch = overlappingFloodEvent.SavedSearch;
-                                <li>
-                                    <a href="@($"{EventPages.View.Url}/{overlappingSearch.Reference}")" class="govuk-link govuk-link--no-visited-state">Flood event @overlappingSearch.Reference</a>
-                                    @if (!string.IsNullOrWhiteSpace(overlappingSearch.SearchTitle))
-                                    {
-                                        <span> - @overlappingSearch.SearchTitle</span>
-                                    }
-                                    <span>, from @(overlappingSearch.ResultsFrom is null ? "-" : overlappingSearch.ResultsFrom.GdsReadable()) until @(overlappingSearch.ResultsTo is null ? "-" : overlappingSearch.ResultsTo.GdsReadable())</span>
-                                    @{
-                                        var sourceNames = FloodSourceNames(overlappingSearch.FloodSources);
-                                    }
-                                    @if (!string.IsNullOrWhiteSpace(sourceNames))
-                                    {
-                                        <span>, source of flooding: @sourceNames</span>
-                                    }
-                                </li>
-                            }
-                        </ul>
+                        <p class="govuk-body">Check whether this is the same flood event before creating a new one. </p>
+
+
+                        <GdsTable T="Database.Models.FloodEvents.FloodEvent" Items="@_overlappingFloodEvents" Caption="Overlapping flood events" Density="GdsTableDensity.SmallTextUntilTablet">
+                            <HeaderContent>
+                                <GdsTableTh>Reference</GdsTableTh>
+                                <GdsTableTh>Title</GdsTableTh>
+                                <GdsTableTh>Date range</GdsTableTh>
+                                <GdsTableTh>Sources</GdsTableTh>
+                            </HeaderContent>
+                            <RowTemplate Context="item">
+                                <GdsTableTd>
+                                    <GdsLink Href="@($"{EventPages.View.Url}/{item.Reference}")">@item.Reference</GdsLink>
+                                </GdsTableTd>
+                                <GdsTableTd Value="@item.SavedSearch.SearchTitle" />
+                                <GdsTableTd>
+                                    @(item.SavedSearch.ResultsFrom is null ? "-" : item.SavedSearch.ResultsFrom.GdsReadable()) until @(item.SavedSearch.ResultsTo is null ? "-" : item.SavedSearch.ResultsTo.GdsReadable())
+                                </GdsTableTd>
+                                <GdsTableTd>
+                                    @FloodSourceNames(item.SavedSearch.FloodSources)
+                                </GdsTableTd>
+                            </RowTemplate>
+                        </GdsTable>
+
                         <p class="govuk-body">If this is a different flood event you can continue with your search.</p>
                         <GdsButton IsSubmit="false" PreventDoubleClick AdditionalCssClasses="govuk-button--warning" OnClick="@ContinueIgnoringOverlaps" Text="Continue with this search anyway" disabled="@(!_canEdit)" />
                     </div>
