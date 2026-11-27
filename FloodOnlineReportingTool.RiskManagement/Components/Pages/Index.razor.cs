@@ -1,13 +1,20 @@
 using FloodOnlineReportingTool.Database.Repositories;
+using FloodOnlineReportingTool.RiskManagement.Extensions;
+using FloodOnlineReportingTool.RiskManagement.Models.Order;
+using FloodOnlineReportingTool.RiskManagement.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Identity.Web;
 using System.Security.Claims;
 
 namespace FloodOnlineReportingTool.RiskManagement.Components.Pages;
 
 public partial class Index(ILogger<Index> logger,
                            IActionLogRepository actionLogRepository,
-                           IFloodEventRepository floodEventRepository) : System.IDisposable
+                           IFloodEventRepository floodEventRepository,
+                           IReferenceSearchService referenceSearchService,
+                           MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler,
+                           NavigationManager navigationManager) : System.IDisposable
 {
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; }
@@ -23,6 +30,60 @@ public partial class Index(ILogger<Index> logger,
     private string _floodedPropertiesFriendlyText = "";
     private string _userActionsFriendlyText = "";
     private bool _isLoading = false;
+    private bool _omniboxSearching;
+    private string? _omniboxErrorMessage;
+    private const int MaxOmniboxResults = 50;
+
+    private async Task HandleOmniboxSearch(string query)
+    {
+        _omniboxErrorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            _omniboxErrorMessage = "Enter a reference number or title.";
+            return;
+        }
+
+        _omniboxSearching = true;
+        StateHasChanged();
+
+        try
+        {
+            var results = await referenceSearchService.Search(query, MaxOmniboxResults, _cts.Token);
+            if (results.Count == 0)
+            {
+                _omniboxErrorMessage = "No matching records could be found.";
+                return;
+            }
+
+            if (results.Count > 1)
+            {
+                navigationManager.NavigateTo($"{SearchPages.OmniboxResults.Url}/{Uri.EscapeDataString(query)}");
+                return;
+            }
+
+            navigationManager.NavigateTo(results[0].GetUrl());
+        }
+        catch (MicrosoftIdentityWebChallengeUserException ex)
+        {
+            logger.LogWarning(ex, "Consent required while searching by reference");
+            consentHandler.HandleException(ex);
+        }
+        catch (OperationCanceledException) when (_cts.IsCancellationRequested)
+        {
+            // Expected when navigating away from or disposing the home page.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while searching by reference");
+            _omniboxErrorMessage = "There was a problem searching for records. Try again.";
+        }
+        finally
+        {
+            _omniboxSearching = false;
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         _isLoading = true;

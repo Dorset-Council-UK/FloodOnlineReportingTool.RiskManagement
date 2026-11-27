@@ -16,6 +16,15 @@
         }
         else
         {
+            <GdsHeading Level="2">Find a record</GdsHeading>
+            <Searchbox LabelText="Search by reference number or title"
+                       HintText="Enter a flood event, saved search or flood report reference, or part of a title"
+                       FormName="HomeOmniboxSearch"
+                       Disabled="@_omniboxSearching"
+                       ErrorMessage="@_omniboxErrorMessage"
+                       OnSearch="HandleOmniboxSearch" />
+            <GdsSpinner Show="_omniboxSearching" ShowMessage="true" Message="Searching records" />
+
             <GdsHeading Level="2">Your dashboard</GdsHeading>
             <GdsContainer>
                 <GdsGridRow>
