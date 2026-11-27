@@ -94,11 +94,19 @@ public partial class Estimates(
             }
         }
 
+        if (detailsMatch && detailsState is not null)
+        {
+            Model.SearchTitle = detailsState.SearchTitle;
+        }
+
         if (!detailsMatch)
         {
-            floodEventState.SetEventDetails(savedSearch is not null
+            var eventDetails = savedSearch is not null
                 ? new EventDetailsViewModel(savedSearch)
-                : new EventDetailsViewModel { SearchReference = SearchReference });
+                : new EventDetailsViewModel { SearchReference = SearchReference };
+
+            eventDetails.SearchTitle = Model.SearchTitle;
+            floodEventState.SetEventDetails(eventDetails);
         }
 
         CreateEditContext();
@@ -271,6 +279,14 @@ public partial class Estimates(
         else
         {
             floodEventState.SetEventEstimates(null);
+        }
+
+        var eventDetails = floodEventState.Details;
+        if (eventDetails is not null
+            && string.Equals(eventDetails.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            eventDetails.SearchTitle = Model.SearchTitle;
+            floodEventState.SetEventDetails(eventDetails);
         }
 
         if (EditContext.Validate())
