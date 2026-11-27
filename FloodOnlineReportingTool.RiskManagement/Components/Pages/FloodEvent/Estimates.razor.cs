@@ -94,11 +94,19 @@ public partial class Estimates(
             }
         }
 
+        if (detailsMatch && detailsState is not null)
+        {
+            Model.SearchTitle = detailsState.SearchTitle;
+        }
+
         if (!detailsMatch)
         {
-            floodEventState.SetEventDetails(savedSearch is not null
+            var eventDetails = savedSearch is not null
                 ? new EventDetailsViewModel(savedSearch)
-                : new EventDetailsViewModel { SearchReference = SearchReference });
+                : new EventDetailsViewModel { SearchReference = SearchReference };
+
+            eventDetails.SearchTitle = Model.SearchTitle;
+            floodEventState.SetEventDetails(eventDetails);
         }
 
         CreateEditContext();
@@ -175,6 +183,22 @@ public partial class Estimates(
             _messageStore.Add(errorFieldIdentifier, "Event details are missing. Unable to save estimates.");
             EditContext.NotifyValidationStateChanged();
             return;
+        }
+
+        if (savedSearch.FloodEventId is null)
+        {
+            savedSearch.SearchTitle = Model.SearchTitle;
+            savedSearch.UpdatedBy = await GetUserName();
+            var updateSavedSearchTitleResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
+            if (!updateSavedSearchTitleResult.IsSuccess)
+            {
+                foreach (var error in updateSavedSearchTitleResult.Errors)
+                {
+                    _messageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
         }
 
         var newFloodEvent = Model.ToFloodEvent(savedSearch.Id, eventDetails, Model);
@@ -255,6 +279,14 @@ public partial class Estimates(
         else
         {
             floodEventState.SetEventEstimates(null);
+        }
+
+        var eventDetails = floodEventState.Details;
+        if (eventDetails is not null
+            && string.Equals(eventDetails.SearchReference, SearchReference, StringComparison.OrdinalIgnoreCase))
+        {
+            eventDetails.SearchTitle = Model.SearchTitle;
+            floodEventState.SetEventDetails(eventDetails);
         }
 
         if (EditContext.Validate())

@@ -13,6 +13,18 @@ public partial class EventEstimatesViewModelValidator : AbstractValidator<EventE
             .NotEmpty()
             .WithMessage("Search reference is required");
 
+        RuleFor(o => o.SearchTitle)
+            .MinimumLength(25)
+            .WithMessage("The title must be at least 25 characters")
+            .MaximumLength(100)
+            .WithMessage("The title must be less than 100 characters")
+            .Must(o => !(o.Contains("Add the location")))
+            .WithMessage("The title must contain a location")
+            .Must(o => !(o.Contains("Add the date")))
+            .WithMessage("The title must include a date")
+            .Must(o => !(o.Contains("Flood type unknown")))
+            .WithMessage("The title must include a flood type");
+
         RuleFor(o => o.EstimatedResidentialFloodedString)
                 .NotEmpty()
                 .WithMessage("Enter a number for residential flooded")

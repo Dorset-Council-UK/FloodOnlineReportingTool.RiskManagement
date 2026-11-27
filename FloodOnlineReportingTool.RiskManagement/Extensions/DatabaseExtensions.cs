@@ -33,6 +33,7 @@ internal static class DatabaseExtensions
             builder.Services.AddScoped<IReferenceSearchService, ReferenceSearchService>();
             builder.Services.AddScoped<IActionLogRepository, ActionLogRepository>();
             builder.Services.AddScoped<IEventLogRepository, EventLogRepository>();
+            builder.Services.AddScoped<ILinkedFloodReportResolver, LinkedFloodReportResolver>();
             builder.Services.AddScoped<IFloodEventRepository, FloodEventRepository>();
             builder.Services.AddScoped<ISavedSearchRepository, SavedSearchRepository>();
 

@@ -166,6 +166,22 @@ public partial class Details(
             return;
         }
 
+        if (savedSearch.FloodEventId is null)
+        {
+            savedSearch.SearchTitle = Model.SearchTitle;
+            savedSearch.UpdatedBy = await GetUserName();
+            var updateSavedSearchTitleResult = await savedSearchRepository.Update(SearchReference, savedSearch, _cts.Token);
+            if (!updateSavedSearchTitleResult.IsSuccess)
+            {
+                foreach (var error in updateSavedSearchTitleResult.Errors)
+                {
+                    MessageStore.Add(errorFieldIdentifier, error);
+                }
+                EditContext.NotifyValidationStateChanged();
+                return;
+            }
+        }
+
         var newFloodEvent = Model.ToFloodEvent(savedSearch.Id, Model, floodEventState.Estimates);
 
         if (savedSearch.FloodEventId is Guid floodEventId)
@@ -379,6 +395,10 @@ public partial class Details(
             estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
             estimates?.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
             estimates?.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+            if (estimates is not null)
+            {
+                estimates.SearchTitle = Model.SearchTitle;
+            }
             floodEventState.SetEventEstimates(estimates);
         }
         else
@@ -393,6 +413,7 @@ public partial class Details(
                 estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
                 estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
                 estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+                estimates.SearchTitle = Model.SearchTitle;
                 estimates.SearchReference = SearchReference;
             } else
             {
@@ -401,6 +422,7 @@ public partial class Details(
                     EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
                     EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
                     EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
+                    SearchTitle = Model.SearchTitle,
                     SearchReference = SearchReference,
                 };
             }
@@ -423,6 +445,10 @@ public partial class Details(
             estimates?.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
             estimates?.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
             estimates?.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+            if (estimates is not null)
+            {
+                estimates.SearchTitle = Model.SearchTitle;
+            }
             floodEventState.SetEventEstimates(estimates);
         }
         else
@@ -437,6 +463,7 @@ public partial class Details(
                 estimates.EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded;
                 estimates.EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly;
                 estimates.EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities;
+                estimates.SearchTitle = Model.SearchTitle;
                 estimates.SearchReference = SearchReference;
             }
             else
@@ -446,6 +473,7 @@ public partial class Details(
                     EstimatedTotalInternallyFlooded = Model.EstimatedTotalInternallyFlooded,
                     EstimatedTotalExternalOnly = Model.EstimatedTotalExternalOnly,
                     EstimatedDisruptedUtilities = Model.EstimatedDisruptedUtilities,
+                    SearchTitle = Model.SearchTitle,
                     SearchReference = SearchReference,
                 };
             }
