@@ -1,15 +1,27 @@
-﻿<GdsFormGroup AdditionalCssClasses="searchbox govuk-grid-column-two-thirds">
-    <GdsLabel Text="@LabelText" />
-    <div class="searchbox__wrapper">
-        <GdsInputText @bind-Value=SearchText type="search" spellcheck="false" autocomplete="off" class="searchbox__input govuk-input"></GdsInputText>
-        <div class="searchbox__input searchbox__button">
-            <button class="searchbox__submit" type="submit" enterkeyhint="search">
-                <span class="govuk-visually-hidden">Search</span>
-                <svg class="searchbox__icon" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                    <circle cx="12.0161" cy="11.0161" r="8.51613" stroke="currentColor" stroke-width="3"></circle>
-                    <line x1="17.8668" y1="17.3587" x2="26.4475" y2="25.9393" stroke="currentColor" stroke-width="3"></line>
-                </svg>
-            </button>
+﻿<EditForm EditContext="_editContext" OnSubmit="HandleSubmitAsync" FormName="@FormName">
+    <GdsFormGroup AdditionalCssClasses="searchbox">
+        <GdsLabel Text="@LabelText" />
+        @if (!string.IsNullOrWhiteSpace(HintText))
+        {
+            <GdsHint>@HintText</GdsHint>
+        }
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <p id="@($"{FormName}-error")" class="govuk-error-message" role="alert">
+                <span class="govuk-visually-hidden">Error:</span> @ErrorMessage
+            </p>
+        }
+        <div class="searchbox__wrapper">
+            <GdsInputText @bind-Value="_model.SearchText" type="search" spellcheck="false" autocomplete="off" disabled="@Disabled" aria-invalid="@(!string.IsNullOrWhiteSpace(ErrorMessage))" aria-describedby="@(string.IsNullOrWhiteSpace(ErrorMessage) ? null : $"{FormName}-error")" class="@InputClass"></GdsInputText>
+            <div class="searchbox__input searchbox__button">
+                <button class="searchbox__submit" type="submit" enterkeyhint="search" disabled="@Disabled">
+                    <span class="govuk-visually-hidden">Search</span>
+                    <svg class="searchbox__icon" width="27" height="27" viewBox="0 0 27 27" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <circle cx="12.0161" cy="11.0161" r="8.51613" stroke="currentColor" stroke-width="3"></circle>
+                        <line x1="17.8668" y1="17.3587" x2="26.4475" y2="25.9393" stroke="currentColor" stroke-width="3"></line>
+                    </svg>
+                </button>
+            </div>
         </div>
-    </div>
-</GdsFormGroup>
+    </GdsFormGroup>
+</EditForm>
