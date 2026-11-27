@@ -1,6 +1,7 @@
 ﻿using FloodOnlineReportingTool.Database.Models.FloodEvents;
 using FloodOnlineReportingTool.Database.Models.Lookups;
 using FloodOnlineReportingTool.Database.Models.ResultModels;
+using FloodOnlineReportingTool.Database.Models.SavedSearches;
 
 namespace FloodOnlineReportingTool.Database.Repositories;
 
@@ -64,4 +65,20 @@ public interface IFloodEventRepository
     Task<bool> UpdateMediaUrlExpiry(Guid floodEventId, DateTimeOffset mediaExpiry, CancellationToken cancellationToken);
 
     Task<List<FloodEvent>> GetFloodEventsFromPast30Days(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get the flood events which overlap with the search criteria.
+    /// </summary>
+    /// <remarks>
+    ///     <para>An overlap is when all of the following are true:</para>
+    ///     <list type="bullet">
+    ///         <item>The geometry partially or fully overlaps</item>
+    ///         <item>The dates partially or fully overlap</item>
+    ///         <item>There is at least one source of flooding that is the same</item>
+    ///     </list>
+    ///     <para>Missing criteria (no geometry, no date, or no flood sources) are treated as unrestricted.</para>
+    ///     <para>Returned events have an empty flood source collection when the stored value is null.</para>
+    ///     <para>The flood event linked to the saved search with the same reference as the search criteria is excluded.</para>
+    /// </remarks>
+    Task<IList<FloodEvent>> GetOverlapping(SavedSearch searchCriteria, CancellationToken cancellationToken);
 }

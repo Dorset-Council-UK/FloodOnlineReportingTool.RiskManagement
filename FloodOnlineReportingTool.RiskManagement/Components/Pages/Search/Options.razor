@@ -3,6 +3,7 @@
 
 @using FloodOnlineReportingTool.Contracts.Shared
 @using FloodOnlineReportingTool.RiskManagement.Authorization
+@using FloodOnlineReportingTool.RiskManagement.Models.Order
 @using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>@Title</PageTitle>
@@ -129,6 +130,39 @@ else
                                 }
                             </ul>
                         }
+                    </div>
+                }
+
+                @if (_overlappingFloodEvents.Count > 0)
+                {
+                    <div class="govuk-!-margin-bottom-6">
+                        <GdsWarning Text="@(_overlappingFloodEvents.Count == 1 ? "This search overlaps with an existing flood event." : $"This search overlaps with {_overlappingFloodEvents.Count} existing flood events.")" />
+                        <p class="govuk-body">Check whether this is the same flood event before creating a new one. </p>
+
+
+                        <GdsTable T="Database.Models.FloodEvents.FloodEvent" Items="@_overlappingFloodEvents" Caption="Overlapping flood events" Density="GdsTableDensity.SmallTextUntilTablet">
+                            <HeaderContent>
+                                <GdsTableTh>Reference</GdsTableTh>
+                                <GdsTableTh>Title</GdsTableTh>
+                                <GdsTableTh>Date range</GdsTableTh>
+                                <GdsTableTh>Sources</GdsTableTh>
+                            </HeaderContent>
+                            <RowTemplate Context="item">
+                                <GdsTableTd>
+                                    <GdsLink Href="@($"{EventPages.View.Url}/{item.Reference}")">@item.Reference</GdsLink>
+                                </GdsTableTd>
+                                <GdsTableTd Value="@item.SavedSearch.SearchTitle" />
+                                <GdsTableTd>
+                                    @(item.SavedSearch.ResultsFrom is null ? "-" : item.SavedSearch.ResultsFrom.GdsReadable()) until @(item.SavedSearch.ResultsTo is null ? "-" : item.SavedSearch.ResultsTo.GdsReadable())
+                                </GdsTableTd>
+                                <GdsTableTd>
+                                    @FloodSourceNames(item.SavedSearch.FloodSources)
+                                </GdsTableTd>
+                            </RowTemplate>
+                        </GdsTable>
+
+                        <p class="govuk-body">If this is a different flood event you can continue with your search.</p>
+                        <GdsButton IsSubmit="false" PreventDoubleClick AdditionalCssClasses="govuk-button--warning" OnClick="@ContinueIgnoringOverlaps" Text="Continue with this search anyway" disabled="@(!_canEdit)" />
                     </div>
                 }
 

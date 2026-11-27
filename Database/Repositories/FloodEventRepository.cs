@@ -540,4 +540,68 @@ public class FloodEventRepository(
             .OrderByDescending(fe => fe.CreatedAt)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IList<FloodEvent>> GetOverlapping(SavedSearch searchCriteria, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(searchCriteria);
+
+        await using var context = await contextFactory.CreateDbContextAsync(cancellationToken);
+
+        // SQL query (Multiple Where = AND queries)
+        var query = context.FloodEvents
+            .AsNoTracking()
+            .IgnoreAutoIncludes()
+            .Include(fe => fe.SavedSearch)
+            .Where(fe => fe.SavedSearch.Id != searchCriteria.Id && fe.SavedSearch.Reference != searchCriteria.Reference); // exclude the current search's own flood event
+
+        // Dates partially or fully overlap
+        if (searchCriteria.ResultsFrom is not null)
+        {
+            var from = searchCriteria.ResultsFrom.Value;
+            query = query.Where(fe => fe.SavedSearch.ResultsTo == null || fe.SavedSearch.ResultsTo >= from);
+        }
+
+        if (searchCriteria.ResultsTo is not null)
+        {
+            var to = searchCriteria.ResultsTo.Value;
+            query = query.Where(fe => fe.SavedSearch.ResultsFrom == null || fe.SavedSearch.ResultsFrom <= to);
+        }
+
+        // Geometry partially or fully overlaps (interiors intersect, only touching boundaries is not an overlap)
+        if (searchCriteria.Geom is not null)
+        {
+            var geom = searchCriteria.Geom;
+            query = query.Where(fe => fe.SavedSearch.Geom == null || (fe.SavedSearch.Geom.Intersects(geom) && !fe.SavedSearch.Geom.Touches(geom)));
+        }
+
+        var results = await query
+            .OrderByDescending(fe => fe.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        // EF Core does not pass database nulls through the collection value converter.
+        for (var i = 0; i < results.Count; i++)
+        {
+            var floodEvent = results[i];
+            if (floodEvent.SavedSearch.FloodSources is null)
+            {
+                results[i] = floodEvent with
+                {
+                    SavedSearch = floodEvent.SavedSearch with { FloodSources = [] }
+                };
+            }
+        }
+
+        var searchSources = searchCriteria.FloodSources ?? [];
+        if (searchSources.Count == 0)
+        {
+            return results;
+        }
+
+        // An event with no specified sources matches any search source.
+        var overlappingEvents = results.Where(floodEvent =>
+            floodEvent.SavedSearch.FloodSources.Count == 0 ||
+            floodEvent.SavedSearch.FloodSources.Intersect(searchSources).Any());
+
+        return overlappingEvents.ToList();
+    }
 }
